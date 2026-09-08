@@ -42,19 +42,23 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
     notFound();
   }
 
-  const session = await getServerSession(authOptions);
-  
+  let session = null;
   let isInWatchlist = false;
-  if (session) {
-    const watchlist = await prisma.watchlist.findUnique({
-      where: {
-        userId_movieId: {
-          userId: session.user.id,
-          movieId: movie.id,
+  try {
+    session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      const watchlist = await prisma.watchlist.findUnique({
+        where: {
+          userId_movieId: {
+            userId: session.user.id,
+            movieId: movie.id,
+          }
         }
-      }
-    });
-    isInWatchlist = !!watchlist;
+      });
+      isInWatchlist = !!watchlist;
+    }
+  } catch (err) {
+    console.error("Non-critical session error:", err);
   }
 
   // Fetch Recommended / Related Movies (same genre or other top movies)
