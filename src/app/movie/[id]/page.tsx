@@ -4,8 +4,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import WatchlistButton from "./WatchlistButton";
 import ReviewSection from "./ReviewSection";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import VideoPlayer from "./VideoPlayer";
 import { Star, Sparkles, Film, Play, Tv, Share2 } from "lucide-react";
 
@@ -45,6 +43,12 @@ async function getMovieSafely(id: string) {
   return null;
 }
 
+export async function generateStaticParams() {
+  return CURATED_CATALOG.map((m) => ({ id: m.id }));
+}
+
+export const dynamicParams = true;
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   try {
     const { id } = await params;
@@ -78,25 +82,6 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
 
   if (!movie) {
     notFound();
-  }
-
-  let session = null;
-  let isInWatchlist = false;
-  try {
-    session = await getServerSession(authOptions);
-    if (session?.user?.id) {
-      const watchlist = await prisma.watchlist.findUnique({
-        where: {
-          userId_movieId: {
-            userId: session.user.id,
-            movieId: movie.id,
-          }
-        }
-      });
-      isInWatchlist = !!watchlist;
-    }
-  } catch (err) {
-    console.error("Non-critical session error:", err);
   }
 
   // Fetch Recommended / Related Movies (same genre or other top movies)
@@ -208,9 +193,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
           </div>
 
           <div className="flex items-center space-x-3 shrink-0">
-            {session && (
-              <WatchlistButton movieId={movie.id} initialStatus={isInWatchlist} />
-            )}
+            <WatchlistButton movieId={movie.id} />
           </div>
         </div>
         
@@ -273,7 +256,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
 
       {/* Community Reviews & Ratings Section */}
       <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-purple-900/30 p-8 sm:p-10 shadow-xl">
-        <ReviewSection movieId={movie.id} isLoggedIn={!!session} />
+        <ReviewSection movieId={movie.id} />
       </div>
     </div>
   );

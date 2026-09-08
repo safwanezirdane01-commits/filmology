@@ -1,12 +1,23 @@
 "use client";
+
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function WatchlistButton({ movieId, initialStatus }: { movieId: string; initialStatus: boolean }) {
+export default function WatchlistButton({ 
+  movieId, 
+  initialStatus = false 
+}: { 
+  movieId: string; 
+  initialStatus?: boolean; 
+}) {
+  const { data: session } = useSession();
   const [inWatchlist, setInWatchlist] = useState(initialStatus);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  if (!session) return null;
 
   const toggleWatchlist = async () => {
     setLoading(true);
@@ -19,7 +30,7 @@ export default function WatchlistButton({ movieId, initialStatus }: { movieId: s
 
       if (res.ok) {
         setInWatchlist(!inWatchlist);
-        router.refresh(); // Refresh to update server components
+        router.refresh();
       }
     } catch (error) {
       console.error(error);
@@ -41,12 +52,12 @@ export default function WatchlistButton({ movieId, initialStatus }: { movieId: s
       {inWatchlist ? (
         <>
           <BookmarkCheck className="w-5 h-5" />
-          In Watchlist
+          <span>In Watchlist</span>
         </>
       ) : (
         <>
           <Bookmark className="w-5 h-5" />
-          Add to Watchlist
+          <span>Add to Watchlist</span>
         </>
       )}
     </button>

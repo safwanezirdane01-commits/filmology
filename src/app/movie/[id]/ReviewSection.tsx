@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { Star } from "lucide-react";
 
 type Review = {
@@ -13,7 +14,9 @@ type Review = {
   };
 };
 
-export default function ReviewSection({ movieId, isLoggedIn }: { movieId: string, isLoggedIn: boolean }) {
+export default function ReviewSection({ movieId, isLoggedIn: initialIsLoggedIn }: { movieId: string, isLoggedIn?: boolean }) {
+  const { data: session } = useSession();
+  const isLoggedIn = !!session || !!initialIsLoggedIn;
   const [reviews, setReviews] = useState<Review[]>([]);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
