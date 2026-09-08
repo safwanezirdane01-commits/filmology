@@ -9,34 +9,68 @@ import { authOptions } from "@/lib/auth";
 import VideoPlayer from "./VideoPlayer";
 import { Star, Sparkles, Film, Play, Tv, Share2 } from "lucide-react";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params;
-  const movie = await prisma.movie.findUnique({ where: { id } });
-  if (!movie) return { title: "Movie Not Found | FilmologyX" };
+import { CURATED_CATALOG } from "@/lib/catalog";
 
-  return {
-    title: `Watch ${movie.title} (${movie.releaseYear}) Free Online in 1080p | FilmologyX`,
-    description: movie.description || `Stream ${movie.title} in HD quality for free on FilmologyX.`,
-    openGraph: {
-      title: `${movie.title} (${movie.releaseYear}) - Full Movie Streaming`,
-      description: movie.description,
-      images: movie.thumbnailUrl ? [{ url: movie.thumbnailUrl }] : [],
-      type: "video.movie",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `Watch ${movie.title} Free on FilmologyX`,
-      description: movie.description,
-      images: movie.thumbnailUrl ? [movie.thumbnailUrl] : [],
-    },
-  };
+async function getMovieSafely(id: string) {
+  try {
+    const movie = await prisma.movie.findUnique({ where: { id } });
+    if (movie) return movie;
+  } catch (err) {
+    console.error("Database query failed in getMovieSafely:", err);
+  }
+
+  // Fallback to CURATED_CATALOG matching by videoUrl (TMDb ID) or title slug or index
+  const foundInCatalog = CURATED_CATALOG.find(
+    (c) => c.videoUrl === id || c.title.toLowerCase().replace(/[^a-z0-9]/g, "") === id.toLowerCase()
+  );
+
+  if (foundInCatalog) {
+    return {
+      id,
+      title: foundInCatalog.title,
+      description: foundInCatalog.description,
+      videoUrl: foundInCatalog.videoUrl,
+      thumbnailUrl: foundInCatalog.thumbnailUrl,
+      releaseYear: foundInCatalog.releaseYear,
+      genre: foundInCatalog.genre,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+
+  return null;
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  try {
+    const { id } = await params;
+    const movie = await getMovieSafely(id);
+    if (!movie) return { title: "Movie Not Found | FilmologyX" };
+
+    return {
+      title: `Watch ${movie.title} (${movie.releaseYear}) Free Online in 1080p | FilmologyX`,
+      description: movie.description || `Stream ${movie.title} in HD quality for free on FilmologyX.`,
+      openGraph: {
+        title: `${movie.title} (${movie.releaseYear}) - Full Movie Streaming`,
+        description: movie.description,
+        images: movie.thumbnailUrl ? [{ url: movie.thumbnailUrl }] : [],
+        type: "video.movie",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `Watch ${movie.title} Free on FilmologyX`,
+        description: movie.description,
+        images: movie.thumbnailUrl ? [movie.thumbnailUrl] : [],
+      },
+    };
+  } catch {
+    return { title: "Watch Movies Free Online | FilmologyX" };
+  }
 }
 
 export default async function MovieDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const movie = await prisma.movie.findUnique({
-    where: { id },
-  });
+  const movie = await getMovieSafely(id);
 
   if (!movie) {
     notFound();
@@ -62,13 +96,27 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
   }
 
   // Fetch Recommended / Related Movies (same genre or other top movies)
-  const relatedMovies = await prisma.movie.findMany({
-    where: {
-      NOT: { id: movie.id }
-    },
-    orderBy: { createdAt: "desc" },
-    take: 5
-  });
+  let relatedMovies: Array<{ id: string; title: string; genre: string; thumbnailUrl: string | null }> = [];
+  try {
+    relatedMovies = await prisma.movie.findMany({
+      where: {
+        NOT: { id: movie.id }
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5
+    });
+  } catch (err) {
+    console.error("Failed to fetch related movies from DB, using catalog fallback:", err);
+    relatedMovies = CURATED_CATALOG
+      .filter((c) => c.title !== movie.title)
+      .slice(0, 5)
+      .map((c, i) => ({
+        id: c.videoUrl || `cat-${i}`,
+        title: c.title,
+        genre: c.genre,
+        thumbnailUrl: c.thumbnailUrl
+      }));
+  }
 
   const { getAdSettings } = await import("@/lib/ads");
   const adSettings = getAdSettings();

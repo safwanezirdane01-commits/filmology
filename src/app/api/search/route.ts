@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { CURATED_CATALOG } from "@/lib/catalog";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,9 +22,30 @@ export async function GET(request: Request) {
       take: 20
     });
 
-    return NextResponse.json(movies);
+    if (movies && movies.length > 0) {
+      return NextResponse.json(movies);
+    }
   } catch (error) {
-    console.error("Search error:", error);
-    return NextResponse.json({ error: "Failed to search movies" }, { status: 500 });
+    console.error("Prisma search failed, falling back to catalog:", error);
   }
+
+  // Fallback search over CURATED_CATALOG
+  const filtered = CURATED_CATALOG
+    .filter(
+      (m) =>
+        m.title.toLowerCase().includes(q.toLowerCase()) ||
+        m.genre.toLowerCase().includes(q.toLowerCase())
+    )
+    .slice(0, 20)
+    .map((m) => ({
+      id: m.videoUrl,
+      title: m.title,
+      description: m.description,
+      videoUrl: m.videoUrl,
+      thumbnailUrl: m.thumbnailUrl,
+      releaseYear: m.releaseYear,
+      genre: m.genre,
+    }));
+
+  return NextResponse.json(filtered);
 }
