@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
@@ -31,6 +31,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
 
   const categories = [
     { id: "all", label: "All Library", icon: "🎬" },
+    { id: "series", label: "TV Series & Shows", icon: "📺" },
     { id: "action", label: "Action & Marvel", icon: "💥" },
     { id: "scifi", label: "Sci-Fi Universe", icon: "🌌" },
     { id: "animation", label: "Animation", icon: "🎨" },
@@ -42,7 +43,9 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
     let list = movies.filter((m) => {
       const matchCat =
         activeCategory === "all" ||
-        m.genre.toLowerCase().includes(activeCategory.toLowerCase());
+        (activeCategory === "series"
+          ? /series|tv/i.test(m.genre)
+          : m.genre.toLowerCase().includes(activeCategory.toLowerCase()));
       const matchQuery =
         !filterSearch.trim() ||
         m.title.toLowerCase().includes(filterSearch.toLowerCase()) ||

@@ -1,31 +1,45 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Play, Server, Film, ShieldCheck } from "lucide-react";
+import { Play, Server, Film, ShieldCheck, Tv } from "lucide-react";
 
 export default function VideoPlayer({ 
   movieVideoUrl, 
   thumbnailUrl,
+  genre,
   adDirectLink,
   requiredClicks = 2,
   adsEnabled = true,
 }: { 
   movieVideoUrl: string | null; 
   thumbnailUrl: string | null;
+  genre?: string;
   adDirectLink?: string;
   requiredClicks?: number;
   adsEnabled?: boolean;
 }) {
   const [clickCount, setClickCount] = useState(0);
   const [selectedServer, setSelectedServer] = useState<number>(1);
+  const [season, setSeason] = useState<number>(1);
+  const [episode, setEpisode] = useState<number>(1);
   const targetClicks = Math.max(1, requiredClicks);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Check if title is a TV Series
+  const isSeries = useMemo(() => {
+    const isTvGenre = genre ? /series|tv|show|anime/i.test(genre) : false;
+    const isTvUrl = movieVideoUrl ? movieVideoUrl.trim().startsWith("tv:") : false;
+    return isTvGenre || isTvUrl;
+  }, [genre, movieVideoUrl]);
 
   // Normalize and parse the video URL or ID
   const parsedSources = useMemo(() => {
     if (!movieVideoUrl) return null;
 
-    const trimmed = movieVideoUrl.trim();
+    let trimmed = movieVideoUrl.trim();
+    if (trimmed.startsWith("tv:")) {
+      trimmed = trimmed.replace("tv:", "");
+    }
 
     // Check if it's an IMDb ID (e.g. tt0816692) or TMDb ID (e.g. 157336)
     const isImdbId = /^tt\d+$/i.test(trimmed);
@@ -44,7 +58,11 @@ export default function VideoPlayer({
     let server2 = "";
     let server3 = "";
 
-    if (isImdbId || isTmdbId) {
+    if (isSeries && (isImdbId || isTmdbId)) {
+      server1 = `https://vidlink.pro/tv/${trimmed}/${season}/${episode}`;
+      server2 = `https://vidsrc.me/embed/tv?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}&season=${season}&episode=${episode}`;
+      server3 = `https://vidsrc.xyz/embed/tv/${trimmed}/${season}-${episode}`;
+    } else if (isImdbId || isTmdbId) {
       server1 = `https://vidlink.pro/movie/${trimmed}`;
       server2 = `https://vidsrc.me/embed/movie?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}`;
       server3 = `https://vidsrc.xyz/embed/movie/${trimmed}`;
@@ -72,7 +90,7 @@ export default function VideoPlayer({
       server3,
       currentUrl: selectedServer === 1 ? server1 : selectedServer === 2 ? server2 : server3
     };
-  }, [movieVideoUrl, selectedServer]);
+  }, [movieVideoUrl, selectedServer, isSeries, season, episode]);
 
   const handleFakeClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -148,6 +166,62 @@ export default function VideoPlayer({
               }`}
             >
               Backup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TV Series Season & Episode Controller Bar */}
+      {isSeries && (
+        <div className="absolute top-14 left-3 right-3 z-40 flex flex-wrap items-center justify-between gap-2 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-xl border border-purple-500/20 text-xs">
+          <div className="flex items-center space-x-3">
+            <span className="font-bold text-rose-400 uppercase tracking-wider flex items-center space-x-1">
+              <Tv className="w-3.5 h-3.5" />
+              <span>Series</span>
+            </span>
+            <div className="flex items-center space-x-1.5">
+              <span className="text-slate-400">Season:</span>
+              <select
+                value={season}
+                onChange={(e) => {
+                  setSeason(Number(e.target.value));
+                  setEpisode(1);
+                }}
+                className="bg-slate-800 border border-purple-500/30 text-white rounded px-2 py-1 font-semibold focus:outline-none focus:border-rose-500"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => (
+                  <option key={s} value={s}>Season {s}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <span className="text-slate-400">Episode:</span>
+              <select
+                value={episode}
+                onChange={(e) => setEpisode(Number(e.target.value))}
+                className="bg-slate-800 border border-purple-500/30 text-white rounded px-2 py-1 font-semibold focus:outline-none focus:border-rose-500"
+              >
+                {Array.from({ length: 24 }, (_, i) => i + 1).map((ep) => (
+                  <option key={ep} value={ep}>Episode {ep}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              disabled={episode <= 1}
+              onClick={() => setEpisode((prev) => Math.max(1, prev - 1))}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded text-slate-200 font-medium"
+            >
+              ◀ Prev
+            </button>
+            <button
+              type="button"
+              onClick={() => setEpisode((prev) => prev + 1)}
+              className="px-2.5 py-1 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 rounded text-white font-bold"
+            >
+              Next ▶
             </button>
           </div>
         </div>
