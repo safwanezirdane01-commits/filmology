@@ -1,25 +1,25 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Play, Film, Search } from "lucide-react";
+import { Play, Film, Search, Star, Sparkles, Zap, ShieldCheck, Clapperboard, Info } from "lucide-react";
+import MovieCatalogView from "@/components/MovieCatalogView";
 
 export default async function Home() {
   const movies = await prisma.movie.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 60,
+    orderBy: { createdAt: "desc" },
   });
 
   const featuredMovie = movies.length > 0 ? movies[0] : null;
 
   return (
-    <div className="flex flex-col min-h-screen font-sans">
-      {/* Hero Section */}
+    <div className="flex flex-col min-h-screen font-sans -mt-4">
+      {/* Cinematic Hero Spotlight */}
       {featuredMovie && (
-        <section className="relative w-full h-[75vh] min-h-[550px] flex items-center justify-center overflow-hidden rounded-3xl mt-2 border border-purple-500/20 shadow-[0_0_50px_rgba(139,92,246,0.15)] group">
+        <section className="relative w-full h-[78vh] min-h-[580px] max-h-[750px] flex items-center justify-center overflow-hidden rounded-3xl mt-2 border border-purple-500/20 shadow-[0_0_60px_rgba(139,92,246,0.2)] group">
           {featuredMovie.thumbnailUrl ? (
             <img 
               src={featuredMovie.thumbnailUrl} 
               alt={featuredMovie.title} 
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-1000 group-hover:scale-105" 
             />
           ) : (
             <div className="absolute inset-0 bg-slate-900 flex items-center justify-center">
@@ -27,115 +27,139 @@ export default async function Home() {
             </div>
           )}
           
-          {/* Gradients for Rose Winter Sky Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent opacity-90" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-purple-950/50 to-transparent opacity-80" />
+          {/* Gradients Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/30 opacity-95" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-purple-950/60 to-transparent opacity-90" />
           <div className="absolute inset-0 bg-rose-500/10 mix-blend-overlay pointer-events-none" />
           
-          <div className="relative z-10 max-w-7xl w-full mx-auto px-6 sm:px-10 lg:px-12 flex flex-col items-start pt-20">
-            <div className="inline-flex items-center space-x-2 bg-rose-500/10 border border-rose-500/20 rounded-full px-4 py-1.5 mb-6 backdrop-blur-md">
-              <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
-              <span className="text-rose-200 text-sm font-medium tracking-wide uppercase">Featured Movie</span>
+          <div className="relative z-10 max-w-7xl w-full mx-auto px-6 sm:px-10 lg:px-12 flex flex-col items-start pt-16">
+            {/* Spotlight Pills */}
+            <div className="flex flex-wrap items-center gap-3 mb-5">
+              <div className="inline-flex items-center space-x-2 bg-rose-500/20 border border-rose-500/40 rounded-full px-3.5 py-1 backdrop-blur-md">
+                <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
+                <span className="text-rose-200 text-xs font-bold tracking-wider uppercase">#1 Trending Movie</span>
+              </div>
+              <div className="inline-flex items-center space-x-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1 backdrop-blur-md text-amber-300 text-xs font-bold">
+                <Star className="w-3.5 h-3.5 fill-current text-amber-400" />
+                <span>8.9 / 10 IMDb</span>
+              </div>
+              <span className="bg-slate-800/80 border border-purple-500/20 text-purple-200 text-xs font-bold px-2.5 py-1 rounded-full uppercase">
+                4K Ultra HD
+              </span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-rose-100 to-purple-200 mb-6 drop-shadow-[0_2px_20px_rgba(244,63,94,0.3)] max-w-3xl tracking-tight">
+
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-rose-100 to-purple-200 mb-5 drop-shadow-[0_2px_30px_rgba(244,63,94,0.4)] max-w-3xl tracking-tight leading-none">
               {featuredMovie.title}
             </h1>
-            <p className="text-slate-300 text-lg md:text-xl max-w-2xl mb-10 line-clamp-3 drop-shadow-md font-light leading-relaxed">
+
+            <p className="text-slate-300 text-base sm:text-lg max-w-2xl mb-8 line-clamp-3 drop-shadow-md font-light leading-relaxed">
               {featuredMovie.description}
             </p>
-            <div className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto">
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
               <Link 
                 href={`/movie/${featuredMovie.id}`}
-                className="bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white px-10 py-4 rounded-full font-bold flex items-center justify-center transition-all hover:scale-105 shadow-[0_0_30px_rgba(244,63,94,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] group/btn"
+                className="bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white px-9 py-4 rounded-full font-bold flex items-center justify-center transition-all hover:scale-105 shadow-[0_0_35px_rgba(244,63,94,0.45)] hover:shadow-[0_0_50px_rgba(168,85,247,0.7)] group/btn text-base"
               >
                 <Play className="w-5 h-5 mr-3 fill-current group-hover/btn:scale-110 transition-transform" /> 
-                <span className="tracking-wide">Watch Now</span>
+                <span className="tracking-wide">Watch Now (1080p)</span>
+              </Link>
+              <Link 
+                href={`/movie/${featuredMovie.id}`}
+                className="bg-slate-900/80 hover:bg-slate-800/90 text-slate-200 border border-purple-500/30 px-7 py-4 rounded-full font-semibold flex items-center justify-center transition-all hover:border-rose-500/50 backdrop-blur-md text-sm"
+              >
+                <Info className="w-4 h-4 mr-2 text-rose-400" />
+                <span>More Details</span>
               </Link>
             </div>
           </div>
         </section>
       )}
 
-      {/* Search Section */}
-      <section className="max-w-4xl w-full mx-auto px-4 -mt-10 relative z-20 mb-16">
+      {/* Modern Floating Search Box */}
+      <section className="max-w-4xl w-full mx-auto px-4 -mt-8 relative z-20 mb-12">
         <form action="/search" method="GET" className="relative group/search">
           <div className="relative flex items-center">
-            <Search className="absolute left-6 w-6 h-6 text-purple-400/60 group-focus-within/search:text-rose-400 transition-colors" />
+            <Search className="absolute left-6 w-5 h-5 text-purple-400/60 group-focus-within/search:text-rose-400 transition-colors" />
             <input 
               type="text" 
               name="q" 
-              placeholder="Search top tier movies..." 
-              className="w-full bg-slate-900/80 backdrop-blur-xl border border-purple-500/30 text-slate-100 px-16 py-5 rounded-full focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 shadow-[0_10px_40px_rgba(0,0,0,0.5)] text-lg transition-all placeholder:text-purple-300/40"
+              placeholder="Search by title, genre, actor, or franchise..." 
+              className="w-full bg-slate-900/90 backdrop-blur-2xl border border-purple-500/30 text-slate-100 pl-16 pr-32 py-4 sm:py-5 rounded-full focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 shadow-[0_15px_50px_rgba(0,0,0,0.6)] text-base sm:text-lg transition-all placeholder:text-purple-300/40"
             />
-            <button type="submit" className="absolute right-3 bg-slate-800 hover:bg-slate-700 text-rose-300 hover:text-rose-200 px-8 py-3 rounded-full font-medium transition-all border border-purple-500/20">
+            <button 
+              type="submit" 
+              className="absolute right-2.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-bold px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm transition-all shadow-md"
+            >
               Search
             </button>
           </div>
         </form>
       </section>
 
-      {/* Movies Grid */}
-      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="flex items-center justify-between mb-10">
-          <h2 className="text-3xl font-bold text-white flex items-center tracking-tight">
-            <span className="bg-gradient-to-b from-rose-400 to-purple-600 w-1.5 h-8 mr-4 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]"></span>
-            Trending Now
-          </h2>
+      {/* Feature Highlights Bar */}
+      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-slate-900/40 border border-purple-900/30 rounded-2xl p-4 flex items-center space-x-3.5 backdrop-blur-md">
+            <div className="bg-rose-500/10 p-2.5 rounded-xl text-rose-400 border border-rose-500/20">
+              <Zap className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-white text-sm font-bold">Ultra Fast 1080p Streaming</h4>
+              <p className="text-xs text-slate-400">Direct CDN and multi-server failover</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/40 border border-purple-900/30 rounded-2xl p-4 flex items-center space-x-3.5 backdrop-blur-md">
+            <div className="bg-purple-500/10 p-2.5 rounded-xl text-purple-400 border border-purple-500/20">
+              <Clapperboard className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-white text-sm font-bold">{movies.length} Films Ready to Stream</h4>
+              <p className="text-xs text-slate-400">Blockbusters, Marvel, Sci-Fi & Classics</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/40 border border-purple-900/30 rounded-2xl p-4 flex items-center space-x-3.5 backdrop-blur-md">
+            <div className="bg-emerald-500/10 p-2.5 rounded-xl text-emerald-400 border border-emerald-500/20">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-white text-sm font-bold">100% Free & Open</h4>
+              <p className="text-xs text-slate-400">Watch instantly, no credit card needed</p>
+            </div>
+          </div>
         </div>
-        
-        {movies.length === 0 ? (
-          <div className="text-center text-purple-300 py-32 bg-slate-900/30 backdrop-blur-sm rounded-3xl border border-purple-900/30">
-            <Film className="w-16 h-16 mx-auto mb-6 text-purple-500/50 animate-pulse" />
-            <p className="text-2xl font-light">No movies available yet. Check back soon!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
-            {movies.map((movie) => (
-              <Link href={`/movie/${movie.id}`} key={movie.id} className="group cursor-pointer">
-                <div className="relative aspect-[2/3] bg-slate-900 rounded-2xl overflow-hidden border border-purple-900/30 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(139,92,246,0.2)] group-hover:border-rose-500/50">
-                  {movie.thumbnailUrl ? (
-                    <img src={movie.thumbnailUrl} alt={movie.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 p-4 text-center">
-                      <Film className="w-12 h-12 text-purple-900/50 mb-3" />
-                      <span className="text-purple-300/50 text-sm font-medium">{movie.title}</span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
-                  <div className="absolute inset-0 bg-rose-500/10 opacity-0 group-hover:opacity-100 mix-blend-overlay transition-opacity duration-500" />
-                  
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px] bg-slate-950/20">
-                    <div className="bg-white/10 backdrop-blur-md rounded-full p-5 transform scale-50 group-hover:scale-100 transition-all duration-500 border border-white/20 shadow-[0_0_30px_rgba(244,63,94,0.3)]">
-                      <Play className="w-8 h-8 text-white fill-current ml-1" />
-                    </div>
-                  </div>
-                  
-                  <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                    <div className="text-xs font-bold text-rose-400 mb-2 uppercase tracking-widest drop-shadow-md">{movie.genre}</div>
-                    <h3 className="font-bold text-slate-100 text-xl leading-tight truncate drop-shadow-lg mb-1">{movie.title}</h3>
-                    <div className="flex items-center text-sm text-purple-300/80 font-medium">
-                      <span>{movie.releaseYear}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+      </section>
+
+      {/* Main Movies Catalog with Live Filtering */}
+      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-24">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center tracking-tight">
+            <span className="bg-gradient-to-b from-rose-500 to-purple-600 w-1.5 h-7 mr-3.5 rounded-full shadow-[0_0_12px_rgba(244,63,94,0.6)]"></span>
+            Browse Film Collection
+          </h2>
+          <span className="text-xs text-purple-300/70 font-semibold">
+            {movies.length} Titles Available
+          </span>
+        </div>
+
+        <MovieCatalogView movies={movies} />
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-950 border-t border-purple-900/30 py-16 mt-auto relative overflow-hidden">
+      {/* Sleek Modern Footer */}
+      <footer className="bg-slate-950 border-t border-purple-900/30 py-12 mt-auto relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between relative z-10">
-          <div className="flex items-center space-x-3 mb-6 md:mb-0 group cursor-pointer">
-            <Film className="w-8 h-8 text-rose-500 group-hover:text-rose-400 transition-colors drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
-            <span className="font-bold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+          <div className="flex items-center space-x-3 group cursor-pointer">
+            <Film className="w-7 h-7 text-rose-500 group-hover:text-rose-400 transition-colors drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
+            <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-200">
               Filmology<span className="text-rose-500">X</span>
             </span>
           </div>
-          <p className="text-purple-300/60 text-sm font-medium">
-            &copy; {new Date().getFullYear()} FilmologyX. All rights reserved.
+          <p className="text-purple-300/60 text-xs font-medium text-center md:text-right">
+            &copy; {new Date().getFullYear()} FilmologyX. High-Definition Free Streaming Platform.
           </p>
         </div>
       </footer>
