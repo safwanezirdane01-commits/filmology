@@ -41,8 +41,8 @@ export default async function AdminPage() {
                 <input name="thumbnailUrl" type="url" className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white" placeholder="https://..." />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-gray-400 mb-1">Video URL (MP4, WebM, etc.)</label>
-                <input name="videoUrl" type="url" className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white" placeholder="https://..." />
+                <label className="block text-gray-400 mb-1">Video Stream (MP4 link, Embed URL, or IMDb / TMDb ID)</label>
+                <input name="videoUrl" type="text" className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white" placeholder="e.g. tt0816692, 157336, or https://...mp4" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-gray-400 mb-1">Description</label>
