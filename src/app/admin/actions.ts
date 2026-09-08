@@ -52,3 +52,126 @@ export async function deleteMovie(movieId: string) {
   revalidatePath("/");
   revalidatePath("/admin");
 }
+
+export async function importCatalogMovies(category?: string) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  const { CURATED_CATALOG } = await import("@/lib/catalog");
+  const filtered = category 
+    ? CURATED_CATALOG.filter(m => m.category === category)
+    : CURATED_CATALOG;
+
+  let addedCount = 0;
+  for (const m of filtered) {
+    const exists = await prisma.movie.findFirst({
+      where: { title: m.title }
+    });
+
+    if (!exists) {
+      await prisma.movie.create({
+        data: {
+          title: m.title,
+          genre: m.genre,
+          releaseYear: m.releaseYear,
+          videoUrl: m.videoUrl,
+          thumbnailUrl: m.thumbnailUrl,
+          description: m.description
+        }
+      });
+      addedCount++;
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, count: addedCount, totalProcessed: filtered.length };
+}
+
+export async function importTmdbTrendingMovies(apiKey?: string) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  const { fetchTrendingFromTmdb } = await import("@/lib/tmdb");
+  const movies = await fetchTrendingFromTmdb(apiKey, 20);
+
+  if (!movies || movies.length === 0) {
+    return { success: false, error: "No movies found or TMDB API key is missing." };
+  }
+
+  let addedCount = 0;
+  for (const m of movies) {
+    const exists = await prisma.movie.findFirst({
+      where: { title: m.title }
+    });
+
+    if (!exists) {
+      await prisma.movie.create({
+        data: {
+          title: m.title,
+          genre: m.genre,
+          releaseYear: m.releaseYear,
+          videoUrl: m.videoUrl,
+          thumbnailUrl: m.thumbnailUrl,
+          description: m.description
+        }
+      });
+      addedCount++;
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, count: addedCount, totalProcessed: movies.length };
+}
+
+export async function importTmdbById(id: string, apiKey?: string) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  const { fetchFromTmdbById } = await import("@/lib/tmdb");
+  const movie = await fetchFromTmdbById(id, apiKey);
+
+  if (!movie) {
+    return { success: false, error: "Movie not found on TMDB with this ID." };
+  }
+
+  const exists = await prisma.movie.findFirst({
+    where: { title: movie.title }
+  });
+
+  if (exists) {
+    return { success: false, error: `"${movie.title}" is already in your library.` };
+  }
+
+  const created = await prisma.movie.create({
+    data: {
+      title: movie.title,
+      genre: movie.genre,
+      releaseYear: movie.releaseYear,
+      videoUrl: movie.videoUrl,
+      thumbnailUrl: movie.thumbnailUrl,
+      description: movie.description
+    }
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, movie: created };
+}
+
+export async function searchTmdbMovies(query: string, apiKey?: string) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  const { searchTmdb } = await import("@/lib/tmdb");
+  return await searchTmdb(query, apiKey);
+}

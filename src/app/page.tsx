@@ -5,7 +5,7 @@ import { Play, Film, Search } from "lucide-react";
 export default async function Home() {
   const movies = await prisma.movie.findMany({
     orderBy: { createdAt: 'desc' },
-    take: 12,
+    take: 60,
   });
 
   const featuredMovie = movies.length > 0 ? movies[0] : null;
