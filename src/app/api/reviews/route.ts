@@ -23,7 +23,8 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(reviews);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
+    console.warn("Failed to fetch reviews from DB:", error);
+    return NextResponse.json([]);
   }
 }
 

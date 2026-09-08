@@ -16,17 +16,21 @@ async function getMovieSafely(id: string) {
     const movie = await prisma.movie.findUnique({ where: { id } });
     if (movie) return movie;
   } catch (err) {
-    console.error("Database query failed in getMovieSafely:", err);
+    console.warn("Database query failed in getMovieSafely, using catalog fallback:", err);
   }
 
-  // Fallback to CURATED_CATALOG matching by videoUrl (TMDb ID) or title slug or index
+  // Fallback to CURATED_CATALOG matching by exact id, videoUrl (TMDb ID), or title slug
+  const cleanId = id.trim().toLowerCase();
   const foundInCatalog = CURATED_CATALOG.find(
-    (c) => c.videoUrl === id || c.title.toLowerCase().replace(/[^a-z0-9]/g, "") === id.toLowerCase()
+    (c) =>
+      c.id.toLowerCase() === cleanId ||
+      c.videoUrl.toLowerCase() === cleanId ||
+      c.title.toLowerCase().replace(/[^a-z0-9]/g, "") === cleanId
   );
 
   if (foundInCatalog) {
     return {
-      id,
+      id: foundInCatalog.id,
       title: foundInCatalog.title,
       description: foundInCatalog.description,
       videoUrl: foundInCatalog.videoUrl,
@@ -106,12 +110,15 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
       take: 5
     });
   } catch (err) {
-    console.error("Failed to fetch related movies from DB, using catalog fallback:", err);
+    console.warn("Failed to fetch related movies from DB, using catalog fallback:", err);
+  }
+
+  if (!relatedMovies || relatedMovies.length === 0) {
     relatedMovies = CURATED_CATALOG
-      .filter((c) => c.title !== movie.title)
+      .filter((c) => c.title !== movie.title && c.id !== movie.id)
       .slice(0, 5)
-      .map((c, i) => ({
-        id: c.videoUrl || `cat-${i}`,
+      .map((c) => ({
+        id: c.id,
         title: c.title,
         genre: c.genre,
         thumbnailUrl: c.thumbnailUrl

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { CURATED_CATALOG } from "@/lib/catalog";
 import Link from "next/link";
 import { Play, Film, Search as SearchIcon } from "lucide-react";
 
@@ -13,15 +14,28 @@ export default async function SearchPage({ searchParams }: SearchProps) {
   let movies: any[] = [];
   
   if (q) {
-    movies = await prisma.movie.findMany({
-      where: {
-        OR: [
-          { title: { contains: q } },
-          { genre: { contains: q } }
-        ]
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    try {
+      movies = await prisma.movie.findMany({
+        where: {
+          OR: [
+            { title: { contains: q } },
+            { genre: { contains: q } }
+          ]
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+    } catch (err) {
+      console.warn("Prisma search failed, falling back to CURATED_CATALOG:", err);
+    }
+
+    if (!movies || movies.length === 0) {
+      const qLower = q.toLowerCase();
+      movies = CURATED_CATALOG.filter(
+        (m) =>
+          m.title.toLowerCase().includes(qLower) ||
+          m.genre.toLowerCase().includes(qLower)
+      );
+    }
   }
 
   return (

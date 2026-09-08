@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     )
     .slice(0, 20)
     .map((m) => ({
-      id: m.videoUrl,
+      id: m.id || m.videoUrl,
       title: m.title,
       description: m.description,
       videoUrl: m.videoUrl,

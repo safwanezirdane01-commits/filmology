@@ -1,12 +1,22 @@
 import { prisma } from "@/lib/prisma";
+import { CURATED_CATALOG } from "@/lib/catalog";
 import Link from "next/link";
 import { Play, Film, Search, Star, Sparkles, Zap, ShieldCheck, Clapperboard, Info } from "lucide-react";
 import MovieCatalogView from "@/components/MovieCatalogView";
 
 export default async function Home() {
-  const movies = await prisma.movie.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  let movies: any[] = [];
+  try {
+    movies = await prisma.movie.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (err) {
+    console.warn("Prisma findMany failed on Home, using catalog fallback:", err);
+  }
+
+  if (!movies || movies.length === 0) {
+    movies = CURATED_CATALOG;
+  }
 
   const featuredMovie = movies.length > 0 ? movies[0] : null;
 
