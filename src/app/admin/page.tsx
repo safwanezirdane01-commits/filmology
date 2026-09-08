@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { addMovie, deleteMovie } from "./actions";
 import AutoImportPanel from "./AutoImportPanel";
+import AdSettingsPanel from "./AdSettingsPanel";
+import { getAdSettings } from "@/lib/ads";
 import { Film, Trash2, PlusCircle, Clapperboard } from "lucide-react";
 
 export default async function AdminPage() {
@@ -16,6 +18,8 @@ export default async function AdminPage() {
   const movies = await prisma.movie.findMany({
     orderBy: { createdAt: "desc" },
   });
+
+  const adSettings = getAdSettings();
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 pb-20 font-sans">
@@ -37,6 +41,9 @@ export default async function AdminPage() {
 
       {/* 🚀 AUTOMATED IMPORTER PANEL */}
       <AutoImportPanel />
+
+      {/* 💰 AD MONETIZATION & REVENUE MANAGER */}
+      <AdSettingsPanel initialSettings={adSettings} />
 
       {/* Manual Movie Creator */}
       <div className="bg-slate-900/60 border border-purple-900/40 p-8 rounded-3xl backdrop-blur-xl shadow-xl">

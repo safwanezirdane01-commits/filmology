@@ -175,3 +175,32 @@ export async function searchTmdbMovies(query: string, apiKey?: string) {
   const { searchTmdb } = await import("@/lib/tmdb");
   return await searchTmdb(query, apiKey);
 }
+
+export async function getAdSettingsAction() {
+  const { getAdSettings } = await import("@/lib/ads");
+  return getAdSettings();
+}
+
+export async function saveAdSettingsAction(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  const directLinkUrl = (formData.get("directLinkUrl") as string) || "";
+  const requiredClicks = parseInt(formData.get("requiredClicks") as string) || 2;
+  const bannerCode = (formData.get("bannerCode") as string) || "";
+  const isEnabled = formData.get("isEnabled") === "on";
+
+  const { saveAdSettings } = await import("@/lib/ads");
+  const updated = saveAdSettings({
+    directLinkUrl: directLinkUrl.trim(),
+    requiredClicks,
+    bannerCode: bannerCode.trim(),
+    isEnabled,
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, settings: updated };
+}

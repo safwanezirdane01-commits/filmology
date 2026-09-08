@@ -5,14 +5,20 @@ import { Play, Server, Film, ShieldCheck } from "lucide-react";
 
 export default function VideoPlayer({ 
   movieVideoUrl, 
-  thumbnailUrl 
+  thumbnailUrl,
+  adDirectLink,
+  requiredClicks = 2,
+  adsEnabled = true,
 }: { 
   movieVideoUrl: string | null; 
   thumbnailUrl: string | null;
+  adDirectLink?: string;
+  requiredClicks?: number;
+  adsEnabled?: boolean;
 }) {
   const [clickCount, setClickCount] = useState(0);
   const [selectedServer, setSelectedServer] = useState<number>(1);
-  const REQUIRED_CLICKS = 3; // Number of popups before the video works
+  const targetClicks = Math.max(1, requiredClicks);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Normalize and parse the video URL or ID
@@ -72,13 +78,10 @@ export default function VideoPlayer({
     e.preventDefault();
     e.stopPropagation();
     
-    // CPM AD NETWORK DIRECT LINKS
-    const AD_NETWORK_DIRECT_LINK = "YOUR_DIRECT_LINK_HERE";
-    
-    if (AD_NETWORK_DIRECT_LINK !== "YOUR_DIRECT_LINK_HERE") {
-      window.open(AD_NETWORK_DIRECT_LINK, "_blank");
+    if (adDirectLink && adDirectLink.startsWith("http")) {
+      window.open(adDirectLink, "_blank");
     } else {
-      console.log("Sponsor popup triggered! (Replace YOUR_DIRECT_LINK_HERE with real ad link)");
+      console.log("Sponsor popup triggered! Configure your Adsterra/Monetag link in /admin to earn money.");
       window.open("about:blank", "_blank");
     }
     setClickCount(prev => prev + 1);
@@ -86,10 +89,10 @@ export default function VideoPlayer({
 
   // Auto-play when direct video becomes unblocked
   useEffect(() => {
-    if (clickCount >= REQUIRED_CLICKS && videoRef.current && parsedSources?.isDirectVideo) {
+    if (clickCount >= targetClicks && videoRef.current && parsedSources?.isDirectVideo) {
       videoRef.current.play().catch(e => console.log("Autoplay blocked:", e));
     }
-  }, [clickCount, parsedSources]);
+  }, [clickCount, targetClicks, parsedSources]);
 
   if (!movieVideoUrl || !parsedSources) {
     return (
@@ -101,7 +104,7 @@ export default function VideoPlayer({
     );
   }
 
-  const needsPopups = clickCount < REQUIRED_CLICKS;
+  const needsPopups = adsEnabled && clickCount < targetClicks;
 
   return (
     <div className="relative w-full h-full flex flex-col bg-black group overflow-hidden">
@@ -176,12 +179,12 @@ export default function VideoPlayer({
             <div className="w-full bg-slate-800 rounded-full h-2.5 mb-3 overflow-hidden border border-purple-500/20">
               <div 
                 className="bg-gradient-to-r from-rose-500 to-purple-600 h-2.5 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(244,63,94,0.5)]" 
-                style={{ width: `${(clickCount / REQUIRED_CLICKS) * 100}%` }}
+                style={{ width: `${(clickCount / targetClicks) * 100}%` }}
               />
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="text-purple-300/70 font-medium">Steps completed</span>
-              <span className="text-rose-400 font-bold">{clickCount} / {REQUIRED_CLICKS}</span>
+              <span className="text-rose-400 font-bold">{clickCount} / {targetClicks}</span>
             </div>
           </div>
         </div>

@@ -42,6 +42,9 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
     take: 5
   });
 
+  const { getAdSettings } = await import("@/lib/ads");
+  const adSettings = getAdSettings();
+
   return (
     <div className="max-w-5xl mx-auto space-y-12 font-sans pb-20">
       {/* Video Player with Cinematic Ambilight Glow */}
@@ -53,9 +56,19 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
           <VideoPlayer 
             movieVideoUrl={movie.videoUrl} 
             thumbnailUrl={movie.thumbnailUrl} 
+            adDirectLink={adSettings.directLinkUrl}
+            requiredClicks={adSettings.requiredClicks}
+            adsEnabled={adSettings.isEnabled}
           />
         </div>
       </div>
+
+      {/* Optional Sponsor Banner Slot */}
+      {adSettings.isEnabled && adSettings.bannerCode && (
+        <div className="w-full flex justify-center overflow-hidden rounded-2xl border border-purple-500/20 bg-slate-950/80 p-3 shadow-lg">
+          <div dangerouslySetInnerHTML={{ __html: adSettings.bannerCode }} />
+        </div>
+      )}
 
       {/* Movie Details & Action Header */}
       <div className="bg-slate-900/70 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl border border-purple-900/40 shadow-2xl relative overflow-hidden">
