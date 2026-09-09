@@ -114,7 +114,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
   const adSettings = getAdSettings();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 font-sans pb-20">
+    <div className="max-w-5xl mx-auto space-y-6 sm:space-y-10 font-sans pb-16 sm:pb-20">
       {/* Google Movie JSON-LD Structured Data */}
       <script
         type="application/ld+json"
@@ -140,86 +140,84 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
       {/* Video Player with Cinematic Ambilight Glow */}
       <div className="relative group">
         {/* Ambient Glow Background Effect */}
-        <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-rose-600/30 via-purple-600/25 to-rose-600/30 rounded-3xl blur-2xl opacity-60 group-hover:opacity-90 transition-opacity duration-1000 -z-10" />
+        <div className="absolute -inset-2 sm:-inset-6 bg-gradient-to-r from-rose-600/30 via-purple-600/25 to-rose-600/30 rounded-2xl sm:rounded-3xl blur-xl sm:blur-2xl opacity-60 group-hover:opacity-90 transition-opacity duration-1000 -z-10" />
 
-        <div className="aspect-video bg-slate-950 rounded-3xl overflow-hidden border border-purple-500/30 shadow-[0_0_60px_rgba(139,92,246,0.3)] relative">
-          <VideoPlayer 
-            movieVideoUrl={movie.videoUrl} 
-            thumbnailUrl={movie.thumbnailUrl} 
-            genre={movie.genre}
-            adDirectLink={adSettings.directLinkUrl}
-            requiredClicks={adSettings.requiredClicks}
-            adsEnabled={adSettings.isEnabled}
-          />
-        </div>
+        <VideoPlayer 
+          movieVideoUrl={movie.videoUrl} 
+          thumbnailUrl={movie.thumbnailUrl} 
+          genre={movie.genre}
+          adDirectLink={adSettings.directLinkUrl}
+          requiredClicks={adSettings.requiredClicks}
+          adsEnabled={adSettings.isEnabled}
+        />
       </div>
 
       {/* Optional Sponsor Banner Slot */}
       {adSettings.isEnabled && adSettings.bannerCode && (
-        <div className="w-full flex justify-center overflow-hidden rounded-2xl border border-purple-500/20 bg-slate-950/80 p-3 shadow-lg">
+        <div className="w-full flex justify-center overflow-hidden rounded-xl sm:rounded-2xl border border-purple-500/20 bg-slate-950/80 p-2.5 sm:p-3 shadow-lg">
           <div dangerouslySetInnerHTML={{ __html: adSettings.bannerCode }} />
         </div>
       )}
 
       {/* Movie Details & Action Header */}
-      <div className="bg-slate-900/70 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl border border-purple-900/40 shadow-2xl relative overflow-hidden">
+      <div className="bg-slate-900/70 backdrop-blur-2xl p-4 sm:p-7 md:p-10 rounded-2xl sm:rounded-3xl border border-purple-900/40 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 via-purple-500 to-rose-500"></div>
-        <div className="absolute top-0 right-0 w-80 h-80 bg-rose-500/10 blur-[100px] pointer-events-none rounded-full"></div>
+        <div className="absolute top-0 right-0 w-60 sm:w-80 h-60 sm:h-80 bg-rose-500/10 blur-[80px] sm:blur-[100px] pointer-events-none rounded-full"></div>
         
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-6 relative z-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6 mb-4 sm:mb-6 relative z-10">
           <div>
-            <div className="flex flex-wrap items-center gap-2.5 mb-3">
-              <span className="bg-rose-500/15 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full uppercase tracking-wider text-xs font-bold">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mb-2.5 sm:mb-3">
+              <span className="bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider text-[10px] sm:text-xs font-bold">
                 {movie.genre}
               </span>
-              <span className="bg-slate-800/80 px-3 py-1 rounded-full border border-purple-500/20 text-xs font-semibold text-purple-200">
+              <span className="bg-slate-800/80 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-purple-500/20 text-[10px] sm:text-xs font-semibold text-purple-200">
                 {movie.releaseYear}
               </span>
-              <span className="bg-amber-500/10 text-amber-300 border border-amber-500/25 px-2.5 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
-                <Star className="w-3 h-3 fill-current text-amber-400" />
+              <span className="bg-amber-500/10 text-amber-300 border border-amber-500/25 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center space-x-1">
+                <Star className="w-2.5 sm:w-3 h-2.5 sm:h-3 fill-current text-amber-400" />
                 <span>8.8 / 10 IMDb</span>
               </span>
-              <span className="bg-slate-800/80 text-purple-300 border border-purple-500/20 px-2.5 py-1 rounded-full text-xs font-bold">
+              <span className="bg-slate-800/80 text-purple-300 border border-purple-500/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold">
                 4K Ultra HD
               </span>
-              <span className="bg-slate-800/80 text-purple-300 border border-purple-500/20 px-2.5 py-1 rounded-full text-xs font-bold">
+              <span className="bg-slate-800/80 text-purple-300 border border-purple-500/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold">
                 Dolby 5.1
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-rose-100 to-purple-200 tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-rose-100 to-purple-200 tracking-tight leading-tight">
               {movie.title}
             </h1>
           </div>
 
-          <div className="flex items-center space-x-3 shrink-0">
+          <div className="flex items-center space-x-3 shrink-0 w-full sm:w-auto">
             <WatchlistButton movieId={movie.id} />
           </div>
         </div>
         
-        <p className="text-slate-300 text-base sm:text-lg leading-relaxed font-light relative z-10 max-w-4xl">
+        <p className="text-slate-300 text-sm sm:text-base md:text-lg leading-relaxed font-light relative z-10 max-w-4xl">
           {movie.description}
         </p>
       </div>
 
       {/* "More Like This" Recommended Movies Row */}
       {relatedMovies.length > 0 && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
-              <Sparkles className="w-5 h-5 text-rose-400" />
+            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center space-x-2">
+              <Sparkles className="w-4 sm:w-5 h-4 sm:h-5 text-rose-400" />
               <span>More Like This</span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
             {relatedMovies.map((rel) => (
               <Link
                 href={`/movie/${rel.id}`}
                 key={rel.id}
                 className="group relative flex flex-col cursor-pointer"
               >
-                <div className="relative aspect-[2/3] bg-slate-900 rounded-2xl overflow-hidden border border-purple-900/30 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_15px_30px_rgba(244,63,94,0.3)] group-hover:border-rose-500/50">
+                <div className="relative aspect-[2/3] bg-slate-900 rounded-xl sm:rounded-2xl overflow-hidden border border-purple-900/30 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_15px_30px_rgba(244,63,94,0.3)] group-hover:border-rose-500/50">
                   {rel.thumbnailUrl ? (
                     <img
                       src={rel.thumbnailUrl}
@@ -236,13 +234,13 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80" />
                   
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="bg-gradient-to-r from-rose-600 to-purple-600 rounded-full p-3 shadow-lg">
-                      <Play className="w-4 h-4 text-white fill-current ml-0.5" />
+                    <div className="bg-gradient-to-r from-rose-600 to-purple-600 rounded-full p-2.5 sm:p-3 shadow-lg">
+                      <Play className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-white fill-current ml-0.5" />
                     </div>
                   </div>
 
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <p className="text-[10px] text-rose-400 font-bold uppercase">{rel.genre}</p>
+                  <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3">
+                    <p className="text-[9px] sm:text-[10px] text-rose-400 font-bold uppercase line-clamp-1">{rel.genre}</p>
                     <h4 className="text-white text-xs font-bold truncate group-hover:text-rose-200 transition-colors">
                       {rel.title}
                     </h4>
@@ -255,7 +253,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
       )}
 
       {/* Community Reviews & Ratings Section */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-purple-900/30 p-8 sm:p-10 shadow-xl">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-purple-900/30 p-4 sm:p-8 md:p-10 shadow-xl">
         <ReviewSection movieId={movie.id} />
       </div>
     </div>

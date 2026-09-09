@@ -31,7 +31,7 @@ export default function RootLayout({
       <body className={`${inter.className} bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-rose-500/30 selection:text-rose-200`}>
         <Providers>
           <Navbar />
-          <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+          <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
             {children}
           </main>
         </Providers>
