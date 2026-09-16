@@ -27,6 +27,11 @@ export default function VideoPlayer({
   const targetClicks = Math.max(1, requiredClicks);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Arabic subtitle state
+  const [arabicSubTracks, setArabicSubTracks] = useState<Array<{ id: string; label: string; url: string }>>([]);
+  const [activeArabicSubUrl, setActiveArabicSubUrl] = useState<string | null>(null);
+  const [loadingSubs, setLoadingSubs] = useState<boolean>(false);
+
   // Check if title is a TV Series (strict - movies are NEVER a series)
   const isSeries = useMemo(() => {
     return isRealSeries(movieVideoUrl, genre);
@@ -39,6 +44,27 @@ export default function VideoPlayer({
   const availableEpisodesCount = useMemo(() => {
     return isSeries ? getEpisodesForSeason(movieVideoUrl, season, genre) : 0;
   }, [isSeries, movieVideoUrl, season, genre]);
+
+  // Fetch verified Arabic subtitles from /api/subtitles
+  useEffect(() => {
+    if (!movieVideoUrl) return;
+    setLoadingSubs(true);
+    fetch(`/api/subtitles?id=${encodeURIComponent(movieVideoUrl)}&type=${isSeries ? "series" : "movie"}&season=${season}&episode=${episode}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.tracks && data.tracks.length > 0) {
+          setArabicSubTracks(data.tracks);
+          const origin = typeof window !== "undefined" ? window.location.origin : "";
+          const proxied = `${origin}/api/subtitles/vtt?url=${encodeURIComponent(data.defaultArabicUrl)}`;
+          setActiveArabicSubUrl(proxied);
+        } else {
+          setArabicSubTracks([]);
+          setActiveArabicSubUrl(null);
+        }
+      })
+      .catch((err) => console.warn("Failed to load Arabic subtitles:", err))
+      .finally(() => setLoadingSubs(false));
+  }, [movieVideoUrl, isSeries, season, episode]);
 
   // Read URL query params on mount for direct episode deep-linking (e.g. ?s=1&e=2)
   useEffect(() => {
@@ -85,15 +111,19 @@ export default function VideoPlayer({
     let server4 = "";
     let server5 = "";
 
+    const subParam = activeArabicSubUrl
+      ? `&sub_file=${encodeURIComponent(activeArabicSubUrl)}&sub_label=Arabic`
+      : "";
+
     if (isSeries && (isImdbId || isTmdbId)) {
       server1 = `https://multiembed.mov/?video_id=${trimmed}&tmdb=1&s=${season}&e=${episode}`;
-      server2 = `https://vidlink.pro/tv/${trimmed}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
+      server2 = `https://vidlink.pro/tv/${trimmed}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true${subParam}`;
       server3 = `https://vidsrc.to/embed/tv/${trimmed}/${season}/${episode}`;
       server4 = `https://vidsrc.me/embed/tv?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}&season=${season}&episode=${episode}`;
       server5 = `https://vidsrc.xyz/embed/tv/${trimmed}/${season}-${episode}`;
     } else if (isImdbId || isTmdbId) {
       server1 = `https://multiembed.mov/?video_id=${trimmed}&tmdb=1`;
-      server2 = `https://vidlink.pro/movie/${trimmed}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
+      server2 = `https://vidlink.pro/movie/${trimmed}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true${subParam}`;
       server3 = `https://vidsrc.to/embed/movie/${trimmed}`;
       server4 = `https://vidsrc.me/embed/movie?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}`;
       server5 = `https://vidsrc.xyz/embed/movie/${trimmed}`;
@@ -127,7 +157,7 @@ export default function VideoPlayer({
       server5,
       currentUrl: selectedServer === 1 ? server1 : selectedServer === 2 ? server2 : selectedServer === 3 ? server3 : selectedServer === 4 ? server4 : server5
     };
-  }, [movieVideoUrl, selectedServer, isSeries, season, episode]);
+  }, [movieVideoUrl, selectedServer, isSeries, season, episode, activeArabicSubUrl]);
 
   const handleFakeClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -313,19 +343,43 @@ export default function VideoPlayer({
         </div>
       </div>
 
-      {/* Arabic Subtitles & Server Helper Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-900/90 border border-purple-500/25 px-3.5 py-2.5 rounded-xl sm:rounded-2xl text-xs backdrop-blur-md">
+      {/* Arabic Subtitles & Upload Helper Toolbar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/95 border border-purple-500/30 p-3 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl backdrop-blur-md shadow-lg">
         <div className="flex items-center space-x-2 text-slate-200">
-          <span className="bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded-full border border-rose-500/30 text-[10px] uppercase tracking-wider shrink-0">
-            💬 Arabic Subs
+          <span className="bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30 text-[10px] uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Arabic Subs</span>
           </span>
-          <span className="text-slate-300 text-[11px] sm:text-xs">
-            Use <strong className="text-rose-400 font-semibold">Server 1 (Multi-Sub)</strong> or click <span className="bg-slate-800 px-1.5 py-0.5 rounded text-purple-200 border border-purple-500/30 font-bold">[CC]</span> inside the player to turn on Arabic (الترجمة العربية).
+          <span className="text-slate-300 text-xs">
+            {loadingSubs ? (
+              <span className="text-purple-300">Searching Arabic subtitle tracks...</span>
+            ) : arabicSubTracks.length > 0 ? (
+              <span>
+                <strong className="text-emerald-400 font-semibold">{arabicSubTracks.length} Arabic track{arabicSubTracks.length > 1 ? "s" : ""}</strong> synced. In player, click <span className="bg-slate-800 px-1.5 py-0.5 rounded text-purple-200 border border-purple-500/30 font-bold">[CC] / Subtitle</span> &rarr; select <strong className="text-rose-400 font-bold">Arabic</strong>.
+              </span>
+            ) : (
+              <span>
+                Use <strong className="text-rose-400">Server 1 (Multi-Sub)</strong> or <strong className="text-purple-300">Server 2 (VidLink)</strong> to stream with subtitles.
+              </span>
+            )}
           </span>
         </div>
-        <span className="text-[10px] text-purple-300/60 hidden md:inline shrink-0">
-          Switch servers above if a stream buffers
-        </span>
+
+        {/* 1-Click Download Button (for the 'Upload' button in user's player menu) */}
+        {activeArabicSubUrl && (
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href={`${activeArabicSubUrl}&download=true&filename=Arabic_Subtitles.vtt`}
+              download="Arabic_Subtitles.vtt"
+              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition-all hover:scale-105 cursor-pointer"
+            >
+              <span>📥 Download Arabic .VTT</span>
+            </a>
+            <span className="text-[10px] text-slate-400 hidden lg:inline">
+              (Use with "Upload" in player if needed)
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Dedicated Mobile Controls Bar (Servers + TV Series Episode Switcher) */}
