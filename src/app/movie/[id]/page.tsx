@@ -40,6 +40,27 @@ async function getMovieSafely(id: string) {
     };
   }
 
+  // 3. Universal Resolver: Fetch from entire global IMDb & TMDb library
+  try {
+    const { getUniversalMovieOrShow } = await import("@/lib/tmdb");
+    const universal = await getUniversalMovieOrShow(id);
+    if (universal) {
+      return {
+        id: universal.id,
+        title: universal.title,
+        description: universal.description,
+        videoUrl: universal.videoUrl,
+        thumbnailUrl: universal.thumbnailUrl,
+        releaseYear: universal.releaseYear,
+        genre: universal.genre,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
+  } catch (err) {
+    console.warn("Universal TMDb fetch failed in getMovieSafely:", err);
+  }
+
   return null;
 }
 

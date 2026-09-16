@@ -1,27 +1,27 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { Play, Film, Star, Sparkles, SlidersHorizontal, Eye } from "lucide-react";
+import { Star, Play, Film, Search, Sparkles, Loader2 } from "lucide-react";
 
-export interface MovieItem {
+interface MovieItem {
   id: string;
   title: string;
   genre: string;
   releaseYear: number;
-  thumbnailUrl: string | null;
+  videoUrl: string;
+  thumbnailUrl: string;
   description: string;
+  category?: string;
 }
 
-// Generate realistic rating from title hash
 function getMovieRating(title: string): string {
   let hash = 0;
   for (let i = 0; i < title.length; i++) {
-    hash = (hash << 5) - hash + title.charCodeAt(i);
-    hash |= 0;
+    hash = (hash * 31 + title.charCodeAt(i)) % 1000;
   }
-  const rating = 7.5 + (Math.abs(hash) % 20) / 10;
-  return Math.min(9.4, rating).toFixed(1);
+  const rating = 7.5 + (Math.abs(hash) % 21) / 10;
+  return rating.toFixed(1);
 }
 
 export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
@@ -29,12 +29,42 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
   const [filterSearch, setFilterSearch] = useState<string>("");
   const [sortBy, setSortBy] = useState<"trending" | "year" | "title">("trending");
 
+  const [imdbItems, setImdbItems] = useState<Record<string, MovieItem[]>>({});
+  const [loadingImdb, setLoadingImdb] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (activeCategory === "imdb_trending" && !imdbItems["imdb_trending"]) {
+      setLoadingImdb(true);
+      fetch("/api/discover?type=trending")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.results) {
+            setImdbItems((prev) => ({ ...prev, imdb_trending: data.results }));
+          }
+        })
+        .catch((err) => console.warn("Trending fetch failed:", err))
+        .finally(() => setLoadingImdb(false));
+    } else if (activeCategory === "imdb_top" && !imdbItems["imdb_top"]) {
+      setLoadingImdb(true);
+      fetch("/api/discover?type=top_rated")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.results) {
+            setImdbItems((prev) => ({ ...prev, imdb_top: data.results }));
+          }
+        })
+        .catch((err) => console.warn("Top rated fetch failed:", err))
+        .finally(() => setLoadingImdb(false));
+    }
+  }, [activeCategory, imdbItems]);
+
   const categories = [
     { id: "all", label: "All Library", icon: "🎬" },
+    { id: "imdb_trending", label: "IMDb Trending", icon: "🔥" },
+    { id: "imdb_top", label: "Top Rated IMDb", icon: "⭐" },
     { id: "series", label: "TV Series & Shows", icon: "📺" },
     { id: "action", label: "Action & Marvel", icon: "💥" },
     { id: "scifi", label: "Sci-Fi Universe", icon: "🌌" },
-    { id: "animation", label: "Animation", icon: "🎨" },
     { id: "drama", label: "Drama & Hits", icon: "🎭" },
     { id: "horror", label: "Horror", icon: "👻" },
     { id: "comedy", label: "Comedy", icon: "😂" },
@@ -43,10 +73,19 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
   ];
 
   const filteredMovies = useMemo(() => {
-    let list = movies.filter((m) => {
+    let source = movies;
+    if (activeCategory === "imdb_trending") {
+      source = imdbItems["imdb_trending"] || [];
+    } else if (activeCategory === "imdb_top") {
+      source = imdbItems["imdb_top"] || [];
+    }
+
+    let list = source.filter((m) => {
       const genre = m.genre.toLowerCase();
       const matchCat =
         activeCategory === "all" ||
+        activeCategory === "imdb_trending" ||
+        activeCategory === "imdb_top" ||
         (activeCategory === "series"
           ? /series|tv/i.test(m.genre)
           : activeCategory === "arabic"
@@ -71,7 +110,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
     }
 
     return list;
-  }, [movies, activeCategory, filterSearch, sortBy]);
+  }, [movies, activeCategory, filterSearch, sortBy, imdbItems]);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -86,7 +125,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center space-x-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all min-h-[38px] ${
+                className={`flex items-center space-x-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all min-h-[38px] cursor-pointer ${
                   isActive
                     ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-lg shadow-rose-500/25 scale-[1.02]"
                     : "bg-slate-800/60 text-purple-200/80 hover:bg-slate-800 hover:text-white border border-purple-500/10"
@@ -120,12 +159,47 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
         </div>
       </div>
 
-      {/* Movies Grid */}
-      {filteredMovies.length === 0 ? (
+      {/* Quick Search Deep Link Banner */}
+      {filterSearch.trim().length > 1 && (
+        <div className="flex items-center justify-between bg-gradient-to-r from-rose-950/40 via-purple-950/40 to-slate-950/40 border border-rose-500/30 p-3 sm:p-4 rounded-xl sm:rounded-2xl backdrop-blur-md">
+          <div className="flex items-center space-x-2 text-white text-xs sm:text-sm">
+            <Sparkles className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>
+              Looking for more results matching <strong className="text-rose-300">"{filterSearch}"</strong>?
+            </span>
+          </div>
+          <Link
+            href={`/search?q=${encodeURIComponent(filterSearch.trim())}`}
+            className="bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center space-x-1 shrink-0 shadow transition-all hover:scale-105"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Search Entire IMDb Library</span>
+          </Link>
+        </div>
+      )}
+
+      {/* Loading state for dynamic categories */}
+      {loadingImdb ? (
+        <div className="text-center py-20 flex flex-col items-center justify-center space-y-3">
+          <Loader2 className="w-8 h-8 text-rose-500 animate-spin" />
+          <p className="text-sm text-purple-300/80">Fetching latest titles from IMDb & TMDb...</p>
+        </div>
+      ) : filteredMovies.length === 0 ? (
         <div className="text-center text-purple-300 py-16 sm:py-24 bg-slate-900/30 backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-purple-900/30">
           <Film className="w-10 sm:w-14 h-10 sm:h-14 mx-auto mb-3 text-purple-500/40 animate-pulse" />
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-1">No movies found</h3>
-          <p className="text-xs sm:text-sm text-slate-400">Try selecting another genre or clearing your filter search.</p>
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-1">No movies found in this view</h3>
+          <p className="text-xs sm:text-sm text-slate-400 mb-4">
+            Try searching across the millions of titles in the global IMDb database.
+          </p>
+          {filterSearch.trim() && (
+            <Link
+              href={`/search?q=${encodeURIComponent(filterSearch.trim())}`}
+              className="inline-flex items-center space-x-1.5 bg-gradient-to-r from-rose-600 to-purple-600 text-white text-xs font-bold px-4 py-2 rounded-xl shadow hover:scale-105 transition-all"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Search IMDb for "{filterSearch}"</span>
+            </Link>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-5 md:gap-6">
@@ -179,16 +253,11 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                     <div className="text-[9px] sm:text-[10px] font-bold text-rose-400 mb-0.5 uppercase tracking-wider line-clamp-1">
                       {movie.genre}
                     </div>
-                    <h3 className="font-bold text-slate-100 text-xs sm:text-sm leading-snug truncate drop-shadow-md group-hover:text-rose-200 transition-colors">
+                    <h3 className="font-bold text-white text-xs sm:text-sm md:text-base leading-tight drop-shadow-md line-clamp-2">
                       {movie.title}
                     </h3>
-                    <div className="flex items-center space-x-1.5 sm:space-x-2 text-[10px] sm:text-[11px] text-purple-300/70 font-medium mt-0.5 sm:mt-1">
-                      <span>{movie.releaseYear}</span>
-                      <span>•</span>
-                      <span className="flex items-center space-x-0.5 text-slate-400">
-                        <Eye className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-purple-400" />
-                        <span>Free</span>
-                      </span>
+                    <div className="text-[10px] sm:text-xs text-purple-200/60 font-semibold mt-0.5">
+                      {movie.releaseYear}
                     </div>
                   </div>
                 </div>
