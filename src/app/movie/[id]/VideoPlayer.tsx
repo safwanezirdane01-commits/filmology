@@ -511,7 +511,6 @@ export default function VideoPlayer({
               src={needsPopups ? undefined : parsedSources.currentUrl}
               className="w-full h-full border-0"
               allowFullScreen
-              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             />
           )}
