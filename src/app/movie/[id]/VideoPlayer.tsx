@@ -320,7 +320,7 @@ export default function VideoPlayer({
         )}
 
         {/* Video Player Frame */}
-        <div className="w-full h-full">
+        <div className="w-full h-full relative">
           {parsedSources.isDirectVideo ? (
             <video 
               ref={videoRef}
@@ -343,41 +343,52 @@ export default function VideoPlayer({
         </div>
       </div>
 
-      {/* Arabic Subtitles & Upload Helper Toolbar */}
+      {/* Arabic Subtitles Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/95 border border-purple-500/30 p-3 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl backdrop-blur-md shadow-lg">
-        <div className="flex items-center space-x-2 text-slate-200">
-          <span className="bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30 text-[10px] uppercase tracking-wider shrink-0 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Arabic Subs</span>
+        <div className="flex items-center space-x-2 text-slate-200 flex-1 min-w-0">
+          <span className={`font-bold px-2.5 py-0.5 rounded-full border text-[10px] uppercase tracking-wider shrink-0 flex items-center gap-1 ${arabicSubTracks.length > 0 ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : loadingSubs ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-slate-700/50 text-slate-400 border-slate-600/30"}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${arabicSubTracks.length > 0 ? "bg-emerald-400 animate-pulse" : loadingSubs ? "bg-purple-400 animate-pulse" : "bg-slate-500"}`}></span>
+            <span>ترجمة عربية</span>
           </span>
-          <span className="text-slate-300 text-xs">
+          <span className="text-slate-300 text-xs truncate">
             {loadingSubs ? (
-              <span className="text-purple-300">Searching Arabic subtitle tracks...</span>
+              <span className="text-purple-300">جارٍ البحث عن الترجمة العربية...</span>
             ) : arabicSubTracks.length > 0 ? (
               <span>
-                <strong className="text-emerald-400 font-semibold">{arabicSubTracks.length} Arabic track{arabicSubTracks.length > 1 ? "s" : ""}</strong> synced. In player, click <span className="bg-slate-800 px-1.5 py-0.5 rounded text-purple-200 border border-purple-500/30 font-bold">[CC] / Subtitle</span> &rarr; select <strong className="text-rose-400 font-bold">Arabic</strong>.
+                تم العثور على <strong className="text-emerald-400">{arabicSubTracks.length} مسار عربي</strong>.{" "}
+                اضغط <strong className="text-rose-400">تحميل الترجمة</strong> ثم ارفعها من زر{" "}
+                <span className="bg-slate-800 px-1.5 py-0.5 rounded text-purple-200 border border-purple-500/30 font-bold">Upload</span>{" "}
+                داخل المشغّل.
               </span>
             ) : (
-              <span>
-                Use <strong className="text-rose-400">Server 1 (Multi-Sub)</strong> or <strong className="text-purple-300">Server 2 (VidLink)</strong> to stream with subtitles.
-              </span>
+              <span className="text-slate-400">لا توجد ترجمة عربية — جرّب مشغّلاً آخر.</span>
             )}
           </span>
         </div>
 
-        {/* 1-Click Download Button (for the 'Upload' button in user's player menu) */}
-        {activeArabicSubUrl && (
-          <div className="flex items-center gap-2 shrink-0">
+        {/* Action Buttons */}
+        {arabicSubTracks.length > 0 && activeArabicSubUrl && (
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {/* Switch to Server 1 which supports Arabic subs natively */}
+            {selectedServer !== 1 && (
+              <button
+                type="button"
+                onClick={() => setSelectedServer(1)}
+                className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition-all hover:scale-105 cursor-pointer"
+              >
+                <span>🌐</span>
+                <span>تشغيل بالترجمة (سيرفر 1)</span>
+              </button>
+            )}
+            {/* Download VTT for Upload-based players */}
             <a
               href={`${activeArabicSubUrl}&download=true&filename=Arabic_Subtitles.vtt`}
               download="Arabic_Subtitles.vtt"
               className="inline-flex items-center gap-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition-all hover:scale-105 cursor-pointer"
             >
-              <span>📥 Download Arabic .VTT</span>
+              <span>📥</span>
+              <span>تحميل الترجمة .VTT</span>
             </a>
-            <span className="text-[10px] text-slate-400 hidden lg:inline">
-              (Use with "Upload" in player if needed)
-            </span>
           </div>
         )}
       </div>
