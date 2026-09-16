@@ -61,6 +61,19 @@ export default function VideoPlayer({
     setShowResumeBanner(!!progress);
   }, [movieVideoUrl, season, episode]);
 
+  // Suppress and block any unauthorized pop-up windows on the client
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const originalOpen = window.open;
+    window.open = function(url?: string | URL, target?: string, features?: string) {
+      console.warn("Blocked unauthorized popup to:", url);
+      return null;
+    };
+    return () => {
+      window.open = originalOpen;
+    };
+  }, []);
+
   // Listen for player postMessage events (e.g. VidLink or HTML5 video) for progress
   useEffect(() => {
     const handleMsg = (e: MessageEvent) => {
@@ -198,16 +211,16 @@ export default function VideoPlayer({
 
     if (isSeries && (isImdbId || isTmdbId)) {
       server1 = `https://vidlink.pro/tv/${effectiveId}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://vidjoy.pro/embed/tv/${effectiveId}/${season}/${episode}`;
-      server3 = `https://vidsrc.pm/embed/tv/${effectiveId}/${season}/${episode}`;
-      server4 = `https://www.2embed.cc/embedtv/${effectiveId}&s=${season}&e=${episode}`;
-      server5 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
+      server2 = `https://player.videasy.to/tv/${effectiveId}/${season}/${episode}?color=e11d48`;
+      server3 = `https://autoembed.co/tv/tmdb/${effectiveId}/${season}/${episode}`;
+      server4 = `https://vidsrc.pm/embed/tv/${effectiveId}/${season}/${episode}`;
+      server5 = `https://www.2embed.cc/embedtv/${effectiveId}&s=${season}&e=${episode}`;
     } else if (isImdbId || isTmdbId) {
       server1 = `https://vidlink.pro/movie/${effectiveId}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://vidjoy.pro/embed/movie/${effectiveId}`;
-      server3 = `https://vidsrc.pm/embed/movie/${effectiveId}`;
-      server4 = `https://www.2embed.cc/embed/${effectiveId}`;
-      server5 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
+      server2 = `https://player.videasy.to/movie/${effectiveId}?color=e11d48`;
+      server3 = `https://autoembed.co/movie/tmdb/${effectiveId}`;
+      server4 = `https://vidsrc.pm/embed/movie/${effectiveId}`;
+      server5 = `https://www.2embed.cc/embed/${effectiveId}`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
       server2 = youtubeEmbed;
@@ -303,10 +316,10 @@ export default function VideoPlayer({
 
   const serverList = [
     { id: 1, label: "VidLink (Fast HD)" },
-    { id: 2, label: "VidJoy (Ultra HD)" },
-    { id: 3, label: "VidSrc PM" },
-    { id: 4, label: "2Embed" },
-    { id: 5, label: "MultiEmbed" },
+    { id: 2, label: "Videasy (Ad-Free HD)" },
+    { id: 3, label: "AutoEmbed (1080p)" },
+    { id: 4, label: "VidSrc PM" },
+    { id: 5, label: "2Embed" },
   ];
 
   return (
