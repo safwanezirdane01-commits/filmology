@@ -4,6 +4,10 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight } from "lucide-react";
 import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
+import dynamic from "next/dynamic";
+
+const NativeArabicPlayer = dynamic(() => import("@/components/NativeArabicPlayer"), { ssr: false });
+
 
 export default function VideoPlayer({ 
   movieVideoUrl, 
@@ -31,6 +35,12 @@ export default function VideoPlayer({
   const [arabicSubTracks, setArabicSubTracks] = useState<Array<{ id: string; label: string; url: string }>>([]);
   const [activeArabicSubUrl, setActiveArabicSubUrl] = useState<string | null>(null);
   const [loadingSubs, setLoadingSubs] = useState<boolean>(false);
+
+  // Native stream state (for the built-in Arabic player, server 6)
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [streamType, setStreamType] = useState<string>("video/mp4");
+  const [loadingStream, setLoadingStream] = useState<boolean>(false);
+  const [streamError, setStreamError] = useState<string | null>(null);
 
   // Check if title is a TV Series (strict - movies are NEVER a series)
   const isSeries = useMemo(() => {
@@ -65,6 +75,27 @@ export default function VideoPlayer({
       .catch((err) => console.warn("Failed to load Arabic subtitles:", err))
       .finally(() => setLoadingSubs(false));
   }, [movieVideoUrl, isSeries, season, episode]);
+
+  // Fetch real stream URL when "Arabic Player" server (6) is selected
+  useEffect(() => {
+    if (selectedServer !== 6 || !movieVideoUrl) return;
+    setLoadingStream(true);
+    setStreamUrl(null);
+    setStreamError(null);
+    fetch(`/api/stream?id=${encodeURIComponent(movieVideoUrl)}&type=${isSeries ? "series" : "movie"}&season=${season}&episode=${episode}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.url) {
+          setStreamUrl(data.url);
+          setStreamType(data.type || "video/mp4");
+        } else {
+          setStreamError("لم يتم العثور على بث مباشر — جرّب سيرفراً آخر.");
+        }
+      })
+      .catch(() => setStreamError("خطأ في تحميل البث — جرّب سيرفراً آخر."))
+      .finally(() => setLoadingStream(false));
+  }, [selectedServer, movieVideoUrl, isSeries, season, episode]);
+
 
   // Read URL query params on mount for direct episode deep-linking (e.g. ?s=1&e=2)
   useEffect(() => {
@@ -207,7 +238,8 @@ export default function VideoPlayer({
                 { id: 2, label: "VidLink (1080p)" },
                 { id: 3, label: "VidSrc Pro" },
                 { id: 4, label: "VidSrc ME" },
-                { id: 5, label: "Backup" }
+                { id: 5, label: "Backup" },
+                { id: 6, label: "🇸🇦 Arabic Player" },
               ].map((s) => (
                 <button
                   key={s.id}
@@ -215,7 +247,11 @@ export default function VideoPlayer({
                   onClick={() => setSelectedServer(s.id)}
                   className={`px-2.5 py-1 rounded-lg font-semibold transition-all text-xs cursor-pointer ${
                     selectedServer === s.id
-                      ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-sm"
+                      ? s.id === 6
+                        ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm"
+                        : "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-sm"
+                      : s.id === 6
+                      ? "bg-emerald-900/40 text-emerald-300 hover:bg-emerald-800/60 border border-emerald-600/30"
                       : "bg-slate-800/80 text-purple-200 hover:bg-slate-700"
                   }`}
                 >
@@ -321,7 +357,36 @@ export default function VideoPlayer({
 
         {/* Video Player Frame */}
         <div className="w-full h-full relative">
-          {parsedSources.isDirectVideo ? (
+          {selectedServer === 6 && !needsPopups ? (
+            /* ─── Built-in Arabic Player with native subtitle track ─── */
+            <div className="w-full h-full flex items-center justify-center bg-black">
+              {loadingStream ? (
+                <div className="flex flex-col items-center gap-3 text-center p-6">
+                  <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-emerald-300 text-sm font-semibold">جارٍ تحميل البث المباشر...</p>
+                  <p className="text-slate-400 text-xs">يتم البحث عن أفضل جودة متاحة</p>
+                </div>
+              ) : streamError ? (
+                <div className="flex flex-col items-center gap-3 text-center p-6">
+                  <p className="text-red-400 text-sm">{streamError}</p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedServer(1)}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl"
+                  >
+                    ← العودة للسيرفر 1
+                  </button>
+                </div>
+              ) : streamUrl ? (
+                <NativeArabicPlayer
+                  streamUrl={streamUrl}
+                  streamType={streamType}
+                  subtitleUrl={activeArabicSubUrl}
+                  poster={thumbnailUrl}
+                />
+              ) : null}
+            </div>
+          ) : parsedSources.isDirectVideo ? (
             <video 
               ref={videoRef}
               key={`direct-${parsedSources.currentUrl}`}
@@ -342,6 +407,7 @@ export default function VideoPlayer({
           )}
         </div>
       </div>
+
 
       {/* Arabic Subtitles Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/95 border border-purple-500/30 p-3 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl backdrop-blur-md shadow-lg">
@@ -369,15 +435,15 @@ export default function VideoPlayer({
         {/* Action Buttons */}
         {arabicSubTracks.length > 0 && activeArabicSubUrl && (
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            {/* Switch to Server 1 which supports Arabic subs natively */}
-            {selectedServer !== 1 && (
+            {/* Switch to Arabic Player (server 6) for fully integrated subtitle experience */}
+            {selectedServer !== 6 && (
               <button
                 type="button"
-                onClick={() => setSelectedServer(1)}
+                onClick={() => setSelectedServer(6)}
                 className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition-all hover:scale-105 cursor-pointer"
               >
-                <span>🌐</span>
-                <span>تشغيل بالترجمة (سيرفر 1)</span>
+                <span>🇸🇦</span>
+                <span>تشغيل بترجمة عربية مدمجة</span>
               </button>
             )}
             {/* Download VTT for Upload-based players */}
@@ -408,7 +474,8 @@ export default function VideoPlayer({
                 { id: 2, label: "VidLink (1080p)" },
                 { id: 3, label: "VidSrc Pro" },
                 { id: 4, label: "VidSrc ME" },
-                { id: 5, label: "Backup" }
+                { id: 5, label: "Backup" },
+                { id: 6, label: "🇸🇦 Arabic Player" },
               ].map((s) => (
                 <button
                   key={s.id}
@@ -416,7 +483,11 @@ export default function VideoPlayer({
                   onClick={() => setSelectedServer(s.id)}
                   className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center min-h-[36px] ${
                     selectedServer === s.id
-                      ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow"
+                      ? s.id === 6
+                        ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow"
+                        : "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow"
+                      : s.id === 6
+                      ? "bg-emerald-900/30 text-emerald-300 border border-emerald-600/30"
                       : "bg-slate-800/80 text-purple-200 border border-purple-500/10"
                   }`}
                 >
