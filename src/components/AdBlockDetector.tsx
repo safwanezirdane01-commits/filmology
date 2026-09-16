@@ -7,11 +7,10 @@ export default function AdBlockDetector() {
   const [isAdBlockActive, setIsAdBlockActive] = useState<boolean>(false);
   const [checking, setChecking] = useState<boolean>(true);
 
-  const checkAdBlocker = async () => {
+  const checkAdBlocker = () => {
+    if (typeof window === "undefined") return;
     setChecking(true);
-    let detected = false;
 
-    // Test 1: DOM Bait Element Test
     try {
       const bait = document.createElement("div");
       bait.className = "adsbygoogle ad-zone ad-banner pub_300x250 sponsor-ad";
@@ -24,50 +23,32 @@ export default function AdBlockDetector() {
       document.body.appendChild(bait);
 
       window.setTimeout(() => {
-        if (
-          bait.offsetHeight === 0 ||
-          bait.clientHeight === 0 ||
-          bait.offsetParent === null ||
-          window.getComputedStyle(bait).display === "none" ||
-          window.getComputedStyle(bait).visibility === "hidden"
-        ) {
-          detected = true;
+        let isBlocked = false;
+        try {
+          const style = window.getComputedStyle(bait);
+          if (
+            bait.offsetHeight === 0 ||
+            bait.clientHeight === 0 ||
+            bait.offsetParent === null ||
+            style.display === "none" ||
+            style.visibility === "hidden"
+          ) {
+            isBlocked = true;
+          }
+        } catch {
+          isBlocked = true;
         }
-        if (document.body.contains(bait)) {
+
+        if (document.body && document.body.contains(bait)) {
           document.body.removeChild(bait);
         }
-      }, 100);
+
+        setIsAdBlockActive(isBlocked);
+        setChecking(false);
+      }, 250);
     } catch {
-      detected = true;
-    }
-
-    // Test 2: Network Fetch Bait Test (googleadservices)
-    try {
-      const res = await fetch("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", {
-        method: "HEAD",
-        mode: "no-cors",
-        cache: "no-store",
-      }).catch(() => null);
-
-      if (!res) {
-        detected = true;
-      }
-    } catch {
-      detected = true;
-    }
-
-    // Test 3: Brave Browser Specific Check
-    try {
-      // @ts-ignore
-      if (navigator.brave && (await navigator.brave.isBrave())) {
-        detected = true;
-      }
-    } catch {}
-
-    setTimeout(() => {
-      setIsAdBlockActive(detected);
       setChecking(false);
-    }, 400);
+    }
   };
 
   useEffect(() => {
