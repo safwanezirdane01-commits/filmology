@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
-import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw } from "lucide-react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, Zap, RefreshCw } from "lucide-react";
 import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
@@ -25,6 +25,8 @@ export default function VideoPlayer({
 }) {
   const [clickCount, setClickCount] = useState(0);
   const [selectedServer, setSelectedServer] = useState<number>(1);
+  const [isAutoMode, setIsAutoMode] = useState<boolean>(true);
+  const [autoStatusMessage, setAutoStatusMessage] = useState<string | null>(null);
   const [season, setSeason] = useState<number>(1);
   const [episode, setEpisode] = useState<number>(1);
   const targetClicks = Math.max(1, requiredClicks);
@@ -314,13 +316,24 @@ export default function VideoPlayer({
 
   const needsPopups = adsEnabled && clickCount < targetClicks;
 
-  const serverList = [
-    { id: 1, label: "VidLink (Fast HD)" },
-    { id: 2, label: "Videasy (Ad-Free HD)" },
-    { id: 3, label: "AutoEmbed (1080p)" },
-    { id: 4, label: "VidSrc PM" },
-    { id: 5, label: "2Embed" },
-  ];
+  const serverList = useMemo(() => [
+    { id: 1, label: "VidLink (Fast HD)", short: "VidLink" },
+    { id: 2, label: "Videasy (Ad-Free HD)", short: "Videasy" },
+    { id: 3, label: "AutoEmbed (1080p)", short: "AutoEmbed" },
+    { id: 4, label: "VidSrc PM", short: "VidSrc" },
+    { id: 5, label: "2Embed", short: "2Embed" },
+  ], []);
+
+  const handleNextServer = useCallback((reason?: string) => {
+    setSelectedServer((prev) => {
+      const next = prev >= 5 ? 1 : prev + 1;
+      const targetServer = serverList.find((s) => s.id === next);
+      const name = targetServer ? targetServer.label : `Server ${next}`;
+      setAutoStatusMessage(reason ? `${reason} → Switched to ${name}` : `⚡ Switched to ${name}`);
+      setTimeout(() => setAutoStatusMessage(null), 3500);
+      return next;
+    });
+  }, [serverList]);
 
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -376,25 +389,61 @@ export default function VideoPlayer({
         {/* Desktop Overlay Server Bar (visible on sm+) */}
         {parsedSources.isImdbOrTmdb && (
           <div className="hidden sm:flex absolute top-3 left-3 right-3 z-40 items-center justify-between bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
-            <div className="flex items-center space-x-1.5 text-rose-300 font-medium">
-              <Server className="w-3.5 h-3.5 text-rose-400" />
-              <span>Server:</span>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5 text-rose-300 font-medium">
+                <Server className="w-3.5 h-3.5 text-rose-400" />
+                <span>Server:</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAutoMode(true);
+                  setSelectedServer(1);
+                  setAutoStatusMessage("⚡ Auto Mode: Testing fastest stream (VidLink)");
+                  setTimeout(() => setAutoStatusMessage(null), 3500);
+                }}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all text-xs flex items-center space-x-1 cursor-pointer ${
+                  isAutoMode
+                    ? "bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm ring-1 ring-amber-300/40 animate-pulse"
+                    : "bg-slate-800/80 text-amber-300/80 hover:bg-slate-700"
+                }`}
+                title="Automatically plays the best working server"
+              >
+                <Zap className="w-3 h-3 fill-current text-amber-200" />
+                <span>Auto (Best)</span>
+              </button>
             </div>
+
             <div className="flex items-center space-x-1.5 flex-wrap">
               {serverList.map((s) => (
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => setSelectedServer(s.id)}
+                  onClick={() => {
+                    setSelectedServer(s.id);
+                    setIsAutoMode(false);
+                  }}
                   className={`px-2.5 py-1 rounded-lg font-semibold transition-all text-xs cursor-pointer ${
-                    selectedServer === s.id
+                    selectedServer === s.id && !isAutoMode
                       ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-sm"
+                      : selectedServer === s.id && isAutoMode
+                      ? "bg-purple-900/60 text-purple-200 font-bold border border-rose-500/60 shadow-sm"
                       : "bg-slate-800/80 text-purple-200 hover:bg-slate-700"
                   }`}
                 >
                   {s.label}
                 </button>
               ))}
+
+              <button
+                type="button"
+                onClick={() => handleNextServer()}
+                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold border border-purple-500/20 flex items-center space-x-1 cursor-pointer transition-colors"
+                title="Stream buffering or not working? Click to try next server"
+              >
+                <RefreshCw className="w-3 h-3 text-rose-400" />
+                <span>Next ↻</span>
+              </button>
             </div>
           </div>
         )}
@@ -506,6 +555,14 @@ export default function VideoPlayer({
           </div>
         )}
 
+        {/* Floating Auto-Status Notification Toast */}
+        {autoStatusMessage && (
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-950/95 border border-amber-500/60 text-amber-300 px-4 py-1.5 rounded-full text-xs font-bold shadow-2xl flex items-center space-x-2 animate-bounce backdrop-blur-md">
+            <Zap className="w-3.5 h-3.5 text-amber-400 fill-current shrink-0" />
+            <span>{autoStatusMessage}</span>
+          </div>
+        )}
+
         {/* Video Player Frame */}
         <div className="w-full h-full relative">
           {parsedSources.isDirectVideo ? (
@@ -530,7 +587,7 @@ export default function VideoPlayer({
         </div>
       </div>
 
-      {/* Subtitles Bar with Download Button on the Side */}
+      {/* Subtitles & Quick Server Failsafe Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/95 border border-purple-500/30 p-3 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl backdrop-blur-md shadow-lg">
         <div className="flex items-center space-x-2 text-slate-200 flex-1 min-w-0">
           <span className={`font-bold px-2.5 py-0.5 rounded-full border text-[10px] uppercase tracking-wider shrink-0 flex items-center gap-1 ${arabicSubTracks.length > 0 ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : loadingSubs ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-slate-700/50 text-slate-400 border-slate-600/30"}`}>
@@ -545,24 +602,35 @@ export default function VideoPlayer({
                 <strong className="text-emerald-400">{arabicSubTracks.length} Arabic subtitle file{arabicSubTracks.length > 1 ? "s" : ""} available</strong>. Download to use with player's "Upload" button if needed.
               </span>
             ) : (
-              <span className="text-slate-400">No external Arabic subtitles found. Try Server 2 (Multi-Sub) for built-in subs.</span>
+              <span className="text-slate-400">Stream buffering or black screen? Try switching servers.</span>
             )}
           </span>
         </div>
 
-        {/* Download Arabic Subtitles Button on the Side */}
-        {arabicSubTracks.length > 0 && activeArabicSubUrl && (
-          <div className="shrink-0">
+        <div className="flex items-center space-x-2 shrink-0">
+          {/* Quick Failsafe Next Server Button */}
+          <button
+            type="button"
+            onClick={() => handleNextServer()}
+            className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-200 hover:text-white px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow"
+            title="Stream stuck or buffering? Click to switch to next server instantly"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-rose-400" />
+            <span>Switch Server (↻)</span>
+          </button>
+
+          {/* Download Arabic Subtitles Button on the Side */}
+          {arabicSubTracks.length > 0 && activeArabicSubUrl && (
             <a
               href={`${activeArabicSubUrl}&download=true&filename=Arabic_Subtitles.vtt`}
               download="Arabic_Subtitles.vtt"
               className="inline-flex items-center gap-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition-all hover:scale-105 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Download Arabic Subs (.VTT)</span>
+              <span>Download Subs</span>
             </a>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Dedicated Mobile Controls Bar (Servers + TV Series Episode Switcher) */}
@@ -570,19 +638,43 @@ export default function VideoPlayer({
         {/* Mobile Server Selector */}
         {parsedSources.isImdbOrTmdb && (
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] text-rose-300 font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
-              <Server className="w-3.5 h-3.5" />
-              <span>Server:</span>
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-rose-300 font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
+                <Server className="w-3.5 h-3.5" />
+                <span>Server:</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAutoMode(true);
+                  setSelectedServer(1);
+                  setAutoStatusMessage("⚡ Auto Mode: Fastest stream active");
+                  setTimeout(() => setAutoStatusMessage(null), 3000);
+                }}
+                className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold flex items-center gap-1 ${
+                  isAutoMode
+                    ? "bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm ring-1 ring-amber-300/40"
+                    : "bg-slate-800 text-amber-300"
+                }`}
+              >
+                <Zap className="w-3 h-3 fill-current" />
+                <span>⚡ Auto (Best)</span>
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-1.5">
               {serverList.map((s) => (
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => setSelectedServer(s.id)}
+                  onClick={() => {
+                    setSelectedServer(s.id);
+                    setIsAutoMode(false);
+                  }}
                   className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center min-h-[36px] ${
-                    selectedServer === s.id
+                    selectedServer === s.id && !isAutoMode
                       ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow"
+                      : selectedServer === s.id && isAutoMode
+                      ? "bg-purple-900/60 text-white border border-rose-500/60 font-black shadow"
                       : "bg-slate-800/80 text-purple-200 border border-purple-500/10"
                   }`}
                 >
