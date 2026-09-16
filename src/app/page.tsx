@@ -144,8 +144,8 @@ export default async function Home() {
               <Clapperboard className="w-4 sm:w-5 h-4 sm:h-5" />
             </div>
             <div>
-              <h4 className="text-white text-xs sm:text-sm font-bold">{movies.length} Films Ready to Stream</h4>
-              <p className="text-[11px] sm:text-xs text-slate-400">Blockbusters, Marvel, Sci-Fi & Series</p>
+              <h4 className="text-white text-xs sm:text-sm font-bold">10,000+ Films & Shows Ready</h4>
+              <p className="text-[11px] sm:text-xs text-slate-400">Full IMDb Library, Marvel, Sci-Fi & Series</p>
             </div>
           </div>
 
@@ -169,7 +169,7 @@ export default async function Home() {
             Browse Film Collection
           </h2>
           <span className="text-xs text-purple-300/70 font-semibold">
-            {movies.length} Titles Available
+            10,000+ Titles & Instant Search
           </span>
         </div>
 
