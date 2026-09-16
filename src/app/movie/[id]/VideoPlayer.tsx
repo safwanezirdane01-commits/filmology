@@ -198,16 +198,16 @@ export default function VideoPlayer({
 
     if (isSeries && (isImdbId || isTmdbId)) {
       server1 = `https://vidlink.pro/tv/${effectiveId}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
-      server3 = `https://vidsrc.to/embed/tv/${effectiveId}/${season}/${episode}`;
-      server4 = `https://vidsrc.me/embed/tv?${isImdbId ? `imdb=${effectiveId}` : `tmdb=${effectiveId}`}&season=${season}&episode=${episode}`;
-      server5 = `https://vidsrc.xyz/embed/tv/${effectiveId}/${season}-${episode}`;
+      server2 = `https://embed.su/embed/tv/${effectiveId}/${season}/${episode}`;
+      server3 = `https://player.autoembed.cc/embed/tv/${effectiveId}/${season}/${episode}`;
+      server4 = `https://www.2embed.cc/embed/tv?id=${effectiveId}&s=${season}&e=${episode}`;
+      server5 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
     } else if (isImdbId || isTmdbId) {
       server1 = `https://vidlink.pro/movie/${effectiveId}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
-      server3 = `https://vidsrc.to/embed/movie/${effectiveId}`;
-      server4 = `https://vidsrc.me/embed/movie?${isImdbId ? `imdb=${effectiveId}` : `tmdb=${effectiveId}`}`;
-      server5 = `https://vidsrc.xyz/embed/movie/${effectiveId}`;
+      server2 = `https://embed.su/embed/movie/${effectiveId}`;
+      server3 = `https://player.autoembed.cc/embed/movie/${effectiveId}`;
+      server4 = `https://www.2embed.cc/embed/${effectiveId}`;
+      server5 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
       server2 = youtubeEmbed;
@@ -273,20 +273,10 @@ export default function VideoPlayer({
       ? adDirectLink 
       : "about:blank";
 
-    let popupOpened = false;
     try {
-      const win = window.open(targetUrl, "_blank");
-      if (win && !win.closed && typeof win.closed !== "undefined") {
-        popupOpened = true;
-      }
-    } catch {
-      popupOpened = false;
-    }
-
-    if (!popupOpened && adDirectLink && adDirectLink.startsWith("http")) {
-      // Brave Shields or AdBlocker blocked window.open!
-      setBlockedByAdBlocker(true);
-      return;
+      window.open(targetUrl, "_blank");
+    } catch (err) {
+      console.log("Popup launch error:", err);
     }
 
     triggerStepVerification();
@@ -312,11 +302,11 @@ export default function VideoPlayer({
   const needsPopups = adsEnabled && clickCount < targetClicks;
 
   const serverList = [
-    { id: 1, label: "VidLink (1080p)" },
-    { id: 2, label: "Multi-Sub (Arabic)" },
-    { id: 3, label: "VidSrc Pro" },
-    { id: 4, label: "VidSrc ME" },
-    { id: 5, label: "Backup" },
+    { id: 1, label: "VidLink (Fast HD)" },
+    { id: 2, label: "EmbedSu (1080p)" },
+    { id: 3, label: "AutoEmbed" },
+    { id: 4, label: "2Embed" },
+    { id: 5, label: "MultiEmbed" },
   ];
 
   return (
@@ -482,59 +472,11 @@ export default function VideoPlayer({
                 )}
               </h3>
 
-              {/* Brave Shields / Mobile Popup Blocked Banner */}
-              {blockedByAdBlocker ? (
-                <div className="my-3 p-3 bg-amber-950/80 border border-amber-500/50 rounded-xl text-left">
-                  <span className="text-amber-400 font-bold text-xs uppercase tracking-wider block mb-1">
-                    ⚠️ Popup Blocked (Mobile / AdBlocker Active)
-                  </span>
-                  <p className="text-slate-300 text-[11px] leading-snug mb-2.5">
-                    Your browser blocked sponsor popups. Click below to start the stream directly.
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    <a
-                      href={adDirectLink && adDirectLink.startsWith("http") ? adDirectLink : "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        triggerStepVerification();
-                      }}
-                      className="inline-flex items-center justify-center gap-1.5 w-full bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs py-2 rounded-lg shadow-lg cursor-pointer"
-                    >
-                      <span>Open Sponsor Link (Step {clickCount + 1}/{targetClicks})</span>
-                    </a>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setClickCount(targetClicks);
-                      }}
-                      className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2 rounded-lg border border-purple-500/30 cursor-pointer"
-                    >
-                      ▶ Skip & Start HD Stream Directly
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2 mb-3 sm:mb-4">
-                  <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                    {isVerifyingClick
-                      ? "Please wait a moment while your step is verified..."
-                      : `Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setClickCount(targetClicks);
-                    }}
-                    className="text-[11px] text-purple-300 hover:text-rose-300 underline font-semibold transition-colors cursor-pointer"
-                  >
-                    Having trouble on phone? Tap here to start video directly
-                  </button>
-                </div>
-              )}
+              <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed">
+                {isVerifyingClick
+                  ? "Please wait a moment while your step is verified..."
+                  : `Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
+              </p>
               
               {/* Progress Bar */}
               <div className="w-full bg-slate-800 rounded-full h-2 sm:h-2.5 mb-2 overflow-hidden border border-purple-500/20">
@@ -569,6 +511,7 @@ export default function VideoPlayer({
               src={needsPopups ? undefined : parsedSources.currentUrl}
               className="w-full h-full border-0"
               allowFullScreen
+              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             />
           )}

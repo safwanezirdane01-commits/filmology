@@ -1,20 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShieldAlert, RefreshCw, CheckCircle2, ShieldOff } from "lucide-react";
+import { ShieldAlert, RefreshCw, ShieldOff } from "lucide-react";
 
 export default function AdBlockDetector() {
   const [isAdBlockActive, setIsAdBlockActive] = useState<boolean>(false);
   const [checking, setChecking] = useState<boolean>(true);
 
-  const [dismissed, setDismissed] = useState<boolean>(false);
-
   const checkAdBlocker = () => {
     if (typeof window === "undefined") return;
-    if (sessionStorage.getItem("adblock_dismissed") === "true") {
-      setChecking(false);
-      return;
-    }
     setChecking(true);
 
     try {
@@ -61,14 +55,7 @@ export default function AdBlockDetector() {
     checkAdBlocker();
   }, []);
 
-  const handleDismiss = () => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("adblock_dismissed", "true");
-    }
-    setDismissed(true);
-  };
-
-  if (checking || !isAdBlockActive || dismissed) {
+  if (checking || !isAdBlockActive) {
     return null;
   }
 
@@ -98,37 +85,27 @@ export default function AdBlockDetector() {
         <div className="bg-slate-950/80 border border-purple-500/20 rounded-2xl p-4 mb-6 text-left space-y-2.5">
           <h4 className="text-xs font-bold text-rose-300 uppercase tracking-wider flex items-center space-x-1.5">
             <ShieldOff className="w-4 h-4 text-rose-400" />
-            <span>How to disable for best experience:</span>
+            <span>How to disable and enter:</span>
           </h4>
           <ol className="text-xs text-slate-300 space-y-2 list-decimal list-inside font-medium">
             <li>Click your AdBlocker extension icon (or the Lion icon in Brave).</li>
             <li>Select <strong className="text-white">"Disable on this site"</strong> or turn off <strong className="text-white">Shields</strong>.</li>
-            <li>Or click below to continue streaming directly!</li>
+            <li>Click the button below to refresh and start streaming!</li>
           </ol>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setChecking(true);
-              window.location.reload();
-            }}
-            className="w-full sm:flex-1 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-bold py-3.5 px-4 rounded-2xl shadow-xl transition-transform hover:scale-[1.02] flex items-center justify-center space-x-2 text-xs sm:text-sm cursor-pointer min-h-[44px]"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span>Disable & Refresh</span>
-          </button>
-          
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="w-full sm:flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3.5 px-4 rounded-2xl border border-purple-500/20 transition-all text-xs sm:text-sm cursor-pointer min-h-[44px]"
-          >
-            <span>Continue Streaming</span>
-          </button>
-        </div>
+        {/* Action Button */}
+        <button
+          type="button"
+          onClick={() => {
+            setChecking(true);
+            window.location.reload();
+          }}
+          className="w-full bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-bold py-3.5 px-6 rounded-2xl shadow-xl transition-transform hover:scale-[1.02] flex items-center justify-center space-x-2 text-sm cursor-pointer min-h-[44px]"
+        >
+          <RefreshCw className="w-4 h-4 animate-spin" />
+          <span>I Have Disabled My AdBlocker (Refresh)</span>
+        </button>
       </div>
     </div>
   );
