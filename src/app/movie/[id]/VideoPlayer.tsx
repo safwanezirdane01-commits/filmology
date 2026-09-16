@@ -482,34 +482,58 @@ export default function VideoPlayer({
                 )}
               </h3>
 
-              {/* Brave Shields / AdBlocker Detected Banner */}
+              {/* Brave Shields / Mobile Popup Blocked Banner */}
               {blockedByAdBlocker ? (
                 <div className="my-3 p-3 bg-amber-950/80 border border-amber-500/50 rounded-xl text-left">
                   <span className="text-amber-400 font-bold text-xs uppercase tracking-wider block mb-1">
-                    ⚠️ Popup Blocked (Brave Shields Active)
+                    ⚠️ Popup Blocked (Mobile / AdBlocker Active)
                   </span>
                   <p className="text-slate-300 text-[11px] leading-snug mb-2.5">
-                    Brave blocked the sponsor window. Click below to open step {clickCount + 1} of {targetClicks} directly to unlock streaming.
+                    Your browser blocked sponsor popups. Click below to start the stream directly.
                   </p>
-                  <a
-                    href={adDirectLink && adDirectLink.startsWith("http") ? adDirectLink : "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      triggerStepVerification();
-                    }}
-                    className="inline-flex items-center justify-center gap-1.5 w-full bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs py-2 rounded-lg shadow-lg cursor-pointer"
-                  >
-                    <span>Open Sponsor Link (Step {clickCount + 1}/{targetClicks})</span>
-                  </a>
+                  <div className="flex flex-col gap-2">
+                    <a
+                      href={adDirectLink && adDirectLink.startsWith("http") ? adDirectLink : "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerStepVerification();
+                      }}
+                      className="inline-flex items-center justify-center gap-1.5 w-full bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs py-2 rounded-lg shadow-lg cursor-pointer"
+                    >
+                      <span>Open Sponsor Link (Step {clickCount + 1}/{targetClicks})</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setClickCount(targetClicks);
+                      }}
+                      className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2 rounded-lg border border-purple-500/30 cursor-pointer"
+                    >
+                      ▶ Skip & Start HD Stream Directly
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed">
-                  {isVerifyingClick
-                    ? "Please wait a moment while your step is verified..."
-                    : `Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
-                </p>
+                <div className="space-y-2 mb-3 sm:mb-4">
+                  <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                    {isVerifyingClick
+                      ? "Please wait a moment while your step is verified..."
+                      : `Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setClickCount(targetClicks);
+                    }}
+                    className="text-[11px] text-purple-300 hover:text-rose-300 underline font-semibold transition-colors cursor-pointer"
+                  >
+                    Having trouble on phone? Tap here to start video directly
+                  </button>
+                </div>
               )}
               
               {/* Progress Bar */}

@@ -165,7 +165,7 @@ export default function Navbar() {
 
         {/* Mobile Menu Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-purple-900/30 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="md:hidden py-4 border-t border-purple-900/30 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[calc(100vh-4.5rem)] overflow-y-auto pb-6">
             {/* Quick Links */}
             <div className="grid grid-cols-2 gap-2 pb-2">
               <Link
