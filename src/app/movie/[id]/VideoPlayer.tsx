@@ -27,10 +27,11 @@ export default function VideoPlayer({
   const targetClicks = Math.max(1, requiredClicks);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Arabic subtitle state
+  // Arabic subtitle state & IMDb ID resolution
   const [arabicSubTracks, setArabicSubTracks] = useState<Array<{ id: string; label: string; url: string }>>([]);
   const [activeArabicSubUrl, setActiveArabicSubUrl] = useState<string | null>(null);
   const [loadingSubs, setLoadingSubs] = useState<boolean>(false);
+  const [resolvedImdbId, setResolvedImdbId] = useState<string | null>(null);
 
   // Check if title is a TV Series (strict - movies are NEVER a series)
   const isSeries = useMemo(() => {
@@ -45,21 +46,26 @@ export default function VideoPlayer({
     return isSeries ? getEpisodesForSeason(movieVideoUrl, season, genre) : 0;
   }, [isSeries, movieVideoUrl, season, genre]);
 
-  // Fetch verified Arabic subtitles from /api/subtitles for manual download
+  // Fetch verified Arabic subtitles from /api/subtitles & resolve IMDb ID
   useEffect(() => {
     if (!movieVideoUrl) return;
     setLoadingSubs(true);
     fetch(`/api/subtitles?id=${encodeURIComponent(movieVideoUrl)}&type=${isSeries ? "series" : "movie"}&season=${season}&episode=${episode}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.tracks && data.tracks.length > 0) {
-          setArabicSubTracks(data.tracks);
-          const origin = typeof window !== "undefined" ? window.location.origin : "";
-          const proxied = `${origin}/api/subtitles/vtt?url=${encodeURIComponent(data.defaultArabicUrl)}`;
-          setActiveArabicSubUrl(proxied);
-        } else {
-          setArabicSubTracks([]);
-          setActiveArabicSubUrl(null);
+        if (data.success) {
+          if (data.imdbId) {
+            setResolvedImdbId(data.imdbId);
+          }
+          if (data.tracks && data.tracks.length > 0) {
+            setArabicSubTracks(data.tracks);
+            const origin = typeof window !== "undefined" ? window.location.origin : "";
+            const proxied = `${origin}/api/subtitles/vtt?url=${encodeURIComponent(data.defaultArabicUrl)}`;
+            setActiveArabicSubUrl(proxied);
+          } else {
+            setArabicSubTracks([]);
+            setActiveArabicSubUrl(null);
+          }
         }
       })
       .catch((err) => console.warn("Failed to load Arabic subtitles:", err))
@@ -92,9 +98,11 @@ export default function VideoPlayer({
       trimmed = trimmed.replace("tv:", "");
     }
 
+    const effectiveId = resolvedImdbId || trimmed;
+
     // Check if it's an IMDb ID (e.g. tt0816692) or TMDb ID (e.g. 157336)
-    const isImdbId = /^tt\d+$/i.test(trimmed);
-    const isTmdbId = /^\d+$/.test(trimmed);
+    const isImdbId = /^tt\d+$/i.test(effectiveId);
+    const isTmdbId = /^\d+$/.test(effectiveId);
 
     // Check if it's a direct video link (.mp4, .webm, .ogg, .m3u8, etc.)
     const isDirectVideo = /\.(mp4|webm|ogg|m4v|m3u8)($|\?)/i.test(trimmed) || 
@@ -112,17 +120,17 @@ export default function VideoPlayer({
     let server5 = "";
 
     if (isSeries && (isImdbId || isTmdbId)) {
-      server1 = `https://vidlink.pro/tv/${trimmed}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://multiembed.mov/?video_id=${trimmed}&tmdb=1&s=${season}&e=${episode}`;
-      server3 = `https://vidsrc.to/embed/tv/${trimmed}/${season}/${episode}`;
-      server4 = `https://vidsrc.me/embed/tv?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}&season=${season}&episode=${episode}`;
-      server5 = `https://vidsrc.xyz/embed/tv/${trimmed}/${season}-${episode}`;
+      server1 = `https://vidlink.pro/tv/${effectiveId}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
+      server2 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
+      server3 = `https://vidsrc.to/embed/tv/${effectiveId}/${season}/${episode}`;
+      server4 = `https://vidsrc.me/embed/tv?${isImdbId ? `imdb=${effectiveId}` : `tmdb=${effectiveId}`}&season=${season}&episode=${episode}`;
+      server5 = `https://vidsrc.xyz/embed/tv/${effectiveId}/${season}-${episode}`;
     } else if (isImdbId || isTmdbId) {
-      server1 = `https://vidlink.pro/movie/${trimmed}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://multiembed.mov/?video_id=${trimmed}&tmdb=1`;
-      server3 = `https://vidsrc.to/embed/movie/${trimmed}`;
-      server4 = `https://vidsrc.me/embed/movie?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}`;
-      server5 = `https://vidsrc.xyz/embed/movie/${trimmed}`;
+      server1 = `https://vidlink.pro/movie/${effectiveId}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
+      server2 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
+      server3 = `https://vidsrc.to/embed/movie/${effectiveId}`;
+      server4 = `https://vidsrc.me/embed/movie?${isImdbId ? `imdb=${effectiveId}` : `tmdb=${effectiveId}`}`;
+      server5 = `https://vidsrc.xyz/embed/movie/${effectiveId}`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
       server2 = youtubeEmbed;
@@ -153,7 +161,7 @@ export default function VideoPlayer({
       server5,
       currentUrl: selectedServer === 1 ? server1 : selectedServer === 2 ? server2 : selectedServer === 3 ? server3 : selectedServer === 4 ? server4 : server5
     };
-  }, [movieVideoUrl, selectedServer, isSeries, season, episode]);
+  }, [movieVideoUrl, resolvedImdbId, selectedServer, isSeries, season, episode]);
 
   const handleFakeClick = (e: React.MouseEvent) => {
     e.preventDefault();
