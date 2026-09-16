@@ -144,7 +144,7 @@ export default function VideoPlayer({
                 { id: 1, label: "VidLink (1080p)" },
                 { id: 2, label: "VidSrc" },
                 { id: 3, label: "Backup" },
-                { id: 4, label: "🌙 Arabic Subs" }
+                { id: 4, label: "Multi-Sub (1080p)" }
               ].map((s) => (
                 <button
                   key={s.id}
@@ -294,7 +294,7 @@ export default function VideoPlayer({
                 { id: 1, label: "VidLink" },
                 { id: 2, label: "VidSrc" },
                 { id: 3, label: "Backup" },
-                { id: 4, label: "🌙 Arabic" }
+                { id: 4, label: "Multi-Sub" }
               ].map((s) => (
                 <button
                   key={s.id}

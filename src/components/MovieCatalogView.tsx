@@ -39,7 +39,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
     { id: "horror", label: "Horror", icon: "👻" },
     { id: "comedy", label: "Comedy", icon: "😂" },
     { id: "romance", label: "Romance", icon: "💕" },
-    { id: "arabic", label: "Arabic / MENA", icon: "🌙" },
+    { id: "arabic", label: "MENA Cinema", icon: "🌟" },
   ];
 
   const filteredMovies = useMemo(() => {

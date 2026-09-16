@@ -129,7 +129,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "TV Series",
     "releaseYear": 2021,
     "videoUrl": "tv:94605",
-    "thumbnailUrl": "https://media.themoviedb.org/t/p/w500/fqldf2t8GyqUo9xYeYxSZAR3b.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg",
     "description": "Amid the stark discord of twin cities Piltover and Zaun, two sisters fight on rival sides of a war between magic technologies and incompatible convictions in this animated masterpiece.",
     "category": "series"
   },
@@ -473,7 +473,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Action",
     "releaseYear": 2018,
     "videoUrl": "299536",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/7WsyChQLEftFiDhRkZR31Dhi0Ph.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg",
     "description": "The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation puts an end to the universe.",
     "category": "action"
   },
@@ -543,7 +543,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Action",
     "releaseYear": 2014,
     "videoUrl": "118340",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/r7vmZjiyZw9rpJMQJp0Oz7VnM1g.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/r7vmZjiyZw9rpJMQJdXpjgiCOk9.jpg",
     "description": "A group of intergalactic criminals must pull together to stop a fanatical warrior with plans to purge the universe.",
     "category": "action"
   },
@@ -653,7 +653,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Action",
     "releaseYear": 2011,
     "videoUrl": "123757",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/3FUJT82YKY1EJ1d2iFPsSMjMPFd.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/sQmBGBIjDvX2nMwUHI3yQv4YAJ9.jpg",
     "description": "A S.W.A.T. team becomes trapped in a tenement run by a ruthless mobster and his army of killers and thugs in this Indonesian martial arts action masterpiece.",
     "category": "action"
   },
@@ -677,7 +677,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Sci-Fi",
     "releaseYear": 2014,
     "videoUrl": "264660",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/bPHvFMgFETLqjaSPnBbIWkFBJmr.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/dmJW8IAKHKxFNiUnoDR7JfsK7Rp.jpg",
     "description": "A young programmer is selected to participate in a groundbreaking experiment in synthetic intelligence by evaluating the human qualities of a highly advanced humanoid A.I.",
     "category": "scifi"
   },
@@ -697,7 +697,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Sci-Fi",
     "releaseYear": 2013,
     "videoUrl": "49047",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/kZ2nZw8dp1LprlBMsEkiKKSGRMJ.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/kZ2nZw8D681aphje8NJi8EfbL1U.jpg",
     "description": "Two astronauts work together to survive after an accident leaves them stranded in orbit with dwindling oxygen and no link to Earth.",
     "category": "scifi"
   },
@@ -717,7 +717,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Sci-Fi",
     "releaseYear": 1986,
     "videoUrl": "679",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/r1x5JGpyqkM6eOHHDMx0FWAgfoh.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/r1x5JGpyqZU8PYhbs4UcrO1Xb6x.jpg",
     "description": "Ellen Ripley is rescued after drifting through space for 57 years and returns with a unit of colonial marines to the moon where her crew encountered the alien creatures.",
     "category": "scifi"
   },
@@ -727,7 +727,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Sci-Fi",
     "releaseYear": 2014,
     "videoUrl": "137113",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/xjw62tgMMpxNGslQcNKbNh3PvLX.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/nBM9MMa2WCwvMG4IJ3eiGUdbPe6.jpg",
     "description": "A soldier fighting aliens gets to relive the same day over and over again, the day restarting every time he dies, and gets better with each loop.",
     "category": "scifi"
   },
@@ -747,7 +747,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Sci-Fi",
     "releaseYear": 2018,
     "videoUrl": "300668",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/d3qcpfNwbAMCNqWDHzPQsUoj3iT.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/4YRplSk6BhH6PRuE9gfyw9byUJ6.jpg",
     "description": "A biologist signs up for a dangerous, secret expedition into a mysterious zone where the laws of nature don't apply.",
     "category": "scifi"
   },
@@ -757,7 +757,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Sci-Fi",
     "releaseYear": 2009,
     "videoUrl": "17654",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/tuGlQkqLxnodBMdjMFGnRoYwsGp.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/tuGlQkqLxnodDSk6mp5c2wvxUEd.jpg",
     "description": "Violence ensues after an idealistic government agent is exposed to alien biotechnology in a Johannesburg slum, turning him into a fugitive.",
     "category": "scifi"
   },
@@ -767,7 +767,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Sci-Fi",
     "releaseYear": 2012,
     "videoUrl": "70981",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/omy5CiDMWkGOqvJczmqSBMPxcgx.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/qsYQflQhOuhDpQ0W2aOcwqgDAeI.jpg",
     "description": "A team of explorers discover a clue to the origins of mankind on Earth, leading them on a journey to the darkest corners of the universe.",
     "category": "scifi"
   },
@@ -777,7 +777,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Sci-Fi",
     "releaseYear": 2013,
     "videoUrl": "68726",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/sBqSxyBRJMFSOeSavxPVFMS6dnD.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/8wo4eN8dWKaKlxhSvBz19uvj8gA.jpg",
     "description": "As monstrous creatures rise from the sea, humanity fights back using giant robots controlled simultaneously by two pilots whose minds are locked in a neural bridge.",
     "category": "scifi"
   },
@@ -787,7 +787,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Sci-Fi",
     "releaseYear": 1997,
     "videoUrl": "18",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/dM2w364MScBr7cW8eGZqSUGatMH.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/fPtlCO1yQtnoLHOwKtWz7db6RGU.jpg",
     "description": "In the colorful future, a cab driver unwittingly becomes the central figure in the search for a legendary cosmic weapon to keep Evil and Mr. Zorg at bay.",
     "category": "scifi"
   },
@@ -801,7 +801,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 2006,
     "videoUrl": "1422",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/nT97ifVT2J1yMQmeO20XLyj02aq.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/nT97ifVT2J1yMQmeq20Qblg61T.jpg",
     "description": "An undercover cop and a mole in the police attempt to identify each other while infiltrating an Irish gang in South Boston.",
     "category": "drama"
   },
@@ -811,7 +811,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 1990,
     "videoUrl": "769",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/aKuFiU82s5ISJDx4bXacEE0DsGq.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/9OkCLM73MIU2CrKZbqiT8Ln1wY2.jpg",
     "description": "The story of Henry Hill and his life in the mob, covering his relationship with his wife Karen Hill and his mob partners.",
     "category": "drama"
   },
@@ -871,7 +871,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 2010,
     "videoUrl": "37799",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/n0ybibhJtQ5icDqTp8eRhcootUs.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/n0ybibhJtQ5icDqTp8eRytcIHJx.jpg",
     "description": "As Harvard student Mark Zuckerberg creates the social networking site that would become known as Facebook, he is sued by the twins who claimed he stole their idea.",
     "category": "drama"
   },
@@ -881,7 +881,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 1998,
     "videoUrl": "37165",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/vuza03fepECxLmVESTqvMDilFCg.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/vuza0WqY239yBXOadKlGwJsZJFE.jpg",
     "description": "An insurance salesman discovers his whole life is actually a reality TV show and begins to question everything he knows.",
     "category": "drama"
   },
@@ -891,7 +891,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 2002,
     "videoUrl": "423",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/2hFvxCEWrTguia6GRKQoKPRlmoJ.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/2hFvxCCWrTmCYwfy7yum0GKRi3Y.jpg",
     "description": "A Polish Jewish musician struggles to survive the destruction of the Warsaw ghetto of World War II.",
     "category": "drama"
   },
@@ -901,7 +901,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 2007,
     "videoUrl": "6977",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/bj1v6YKF8yHqA489GFMhHDJYOR3.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/6d5XOczc226jECq0LIX0siKtgHR.jpg",
     "description": "Violence and mayhem ensue after a hunter stumbles upon a drug deal gone wrong and more than two million dollars in cash near the Rio Grande.",
     "category": "drama"
   },
@@ -911,7 +911,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 2010,
     "videoUrl": "11324",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/kve20tXMHFZLIa6GIUTkxPmJdWb.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/nrmXQ0zcZUL8jFLrakWc90IR8z9.jpg",
     "description": "In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane on a remote island.",
     "category": "drama"
   },
@@ -921,7 +921,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 2014,
     "videoUrl": "210577",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/lv5xShBIDPkLRORjRCycos7y0Dp.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/ts996lKsxvjkO2yiYG0ht4qAicO.jpg",
     "description": "With his wife's disappearance having become the focus of an intense media circus, a man sees the spotlight turned on him when it's suspected that he may not be innocent.",
     "category": "drama"
   },
@@ -941,7 +941,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 2013,
     "videoUrl": "146233",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/uhOGRetWwmnXBMbQ2O0TPB5jWMQ.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/uhviyknTT5cEQXbn6vWIqfM4vGm.jpg",
     "description": "When Keller Dover's daughter and her friend go missing, he takes matters into his own hands as the police pursue multiple leads and the pressure mounts.",
     "category": "drama"
   },
@@ -951,7 +951,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Drama",
     "releaseYear": 2015,
     "videoUrl": "281957",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/ji3ecJphATlVoVU4ePslalJ1fvO.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/ji3ecJphATlVgWNY0B0RVXZizdf.jpg",
     "description": "A frontiersman on a fur trading expedition in the 1820s fights for survival after being mauled by a bear and left for dead by members of his own hunting team.",
     "category": "drama"
   },
@@ -1005,7 +1005,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Horror",
     "releaseYear": 2019,
     "videoUrl": "530385",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/7LEI8ulZEMdT01m4M3bCH084Nu8.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/7LEI8ulZzO5gy9Ww2NVCrKmHeDZ.jpg",
     "description": "A couple travels to Northern Europe to visit a rural hometown's fabled Swedish mid-summer festival, but what begins as an idyllic retreat quickly devolves into an increasingly violent and bizarre competition.",
     "category": "horror"
   },
@@ -1025,7 +1025,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Horror",
     "releaseYear": 1996,
     "videoUrl": "4232",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/3O3klyyYiiJEJiKlbVGnEwUvEEz.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/lr9ZIrmuwVmZhpZuTCW8D9g0ZJe.jpg",
     "description": "A year after the murder of her mother, a teenage girl is terrorized by a new killer who targets her and her friends by using horror films as part of a deadly game.",
     "category": "horror"
   },
@@ -1035,7 +1035,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Horror",
     "releaseYear": 2004,
     "videoUrl": "176",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/dGiRMCa5scIF7TsO5JBNEoTuPFd.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/rLNSOudrayDBo1uqXjrhxcjODIC.jpg",
     "description": "Two strangers awaken in a room with no recollection of how they got there, and soon discover they're pawns in a deadly game perpetrated by a notorious serial killer.",
     "category": "horror"
   },
@@ -1045,7 +1045,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Horror",
     "releaseYear": 2010,
     "videoUrl": "49018",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/fgnU0sx7MpJPNGaKBHhIZMJqVcr.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/8su4HXNbbOHBDT3dIc9aWlL5aZ6.jpg",
     "description": "A family looks to prevent evil spirits from trapping their comatose child in a realm called The Further.",
     "category": "horror"
   },
@@ -1055,7 +1055,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Horror",
     "releaseYear": 2002,
     "videoUrl": "565",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/sFGFPW9A7JjEsCHFaJEZ1fFPjNK.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/AeRpUynJKDpJveklBJipOYrVxCS.jpg",
     "description": "A journalist must investigate a mysterious videotape which seems to cause the death of anyone in a week of viewing it.",
     "category": "horror"
   },
@@ -1109,7 +1109,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Animation",
     "releaseYear": 2010,
     "videoUrl": "10193",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/AbbXspMOwdvwWZgVN0nabZcrafU.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/AbbXspMOwdvwWZgVN0nabZq03Ec.jpg",
     "description": "The toys are mistakenly delivered to a day-care center instead of the attic right before Andy leaves for college, and it's up to Woody to convince the other toys that they weren't abandoned.",
     "category": "animation"
   },
@@ -1119,7 +1119,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Animation",
     "releaseYear": 2013,
     "videoUrl": "109445",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/kgwjIb2JDHRhNk13lmSMyEfdV5O.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/itAKcobTYGpYT8Phwjd8c9hleTo.jpg",
     "description": "When the newly crowned Queen Elsa accidentally uses her power to turn things into ice to curse her home in infinite winter, her sister Anna teams up with a mountain man to change the weather condition.",
     "category": "animation"
   },
@@ -1159,7 +1159,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Animation",
     "releaseYear": 2009,
     "videoUrl": "14160",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/vpbaStTMt8GyqUo9xYeYxSZAR3b.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/mFvoEwSfLqbcWwFsDjQebn9bzFe.jpg",
     "description": "78-year-old Carl Fredricksen travels to Paradise Falls in his house equipped with balloons, inadvertently taking a young wilderness explorer along.",
     "category": "animation"
   },
@@ -1189,7 +1189,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Animation",
     "releaseYear": 2008,
     "videoUrl": "9502",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/wWt4JYXTg5Wr8MAp6DQXR3tMb3K.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/wWt4JYXTg5Wr3xBW2phBrMKgp3x.jpg",
     "description": "The Dragon Warrior has to clash against the savage Tai Lung as China's fate hangs in the balance. An unlikely hero, Po the panda, must embrace his true destiny.",
     "category": "animation"
   },
@@ -1199,7 +1199,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Animation",
     "releaseYear": 2016,
     "videoUrl": "277834",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/4vOF4JDxqGxejXPHLAsT5yP7dM3.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/4JeejGugONWpJkbnvL12hVoYEDa.jpg",
     "description": "In Ancient Polynesia, when a terrible curse incurred by the demigod Maui reaches Moana's island, she answers the Ocean's call to seek out Maui to set things right.",
     "category": "animation"
   },
@@ -1209,7 +1209,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Animation",
     "releaseYear": 2016,
     "videoUrl": "269149",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/sM33SANp9z6rXW8Itn7NnG1GOEs.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/hlK0e0wAQ3VLuJcsfIYPvb4JVud.jpg",
     "description": "In a city of anthropomorphic animals, a rookie bunny cop and a cynical con artist fox must work together to uncover a conspiracy.",
     "category": "animation"
   },
@@ -1243,7 +1243,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Comedy",
     "releaseYear": 2009,
     "videoUrl": "18785",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/uluhlXubGu1VxkEFBk0WNs3U5BM.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/A0uS9rHR56FeBtpjVki16M5xxSW.jpg",
     "description": "Three buddies wake up from a bachelor party in Las Vegas with no memory of the previous night and the bachelor missing. They must piece together the events to find their friend before his wedding.",
     "category": "comedy"
   },
@@ -1253,7 +1253,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Comedy",
     "releaseYear": 2007,
     "videoUrl": "8363",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/ek8e8txUyUwd2BNqj6lFEerJfbs.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/ek8e8txUyUwd2BNqj6lFEerJfbq.jpg",
     "description": "Two co-dependent high school seniors are forced to deal with separation anxiety after their plan to stage a booze-soaked party goes awry.",
     "category": "comedy"
   },
@@ -1273,7 +1273,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Comedy",
     "releaseYear": 2004,
     "videoUrl": "10625",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/fXm3YKXAiiLd3jzNJwRqJGjeGxb.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/2ZkuQXvVhh45uSvkBej4S7Ix1NJ.jpg",
     "description": "Cady Heron is a hit with The Plastics, the A-list girl clique at her new school, until she makes the mistake of falling for Aaron Samuels, the ex-boyfriend of alpha Plastic Regina George.",
     "category": "comedy"
   },
@@ -1283,7 +1283,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Comedy",
     "releaseYear": 1994,
     "videoUrl": "854",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/x2N0JMFKlMpAyMvLUf45xSEIDSN.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/jPC2eYub74zwf2tPGVtzSlBW6Oy.jpg",
     "description": "A bank clerk discovers a magical mask that transforms him into a zany green-faced superhero with unlimited powers.",
     "category": "comedy"
   },
@@ -1293,7 +1293,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Comedy",
     "releaseYear": 1998,
     "videoUrl": "2109",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/2rMGUGMNrFHHm8gOL1JOyYm5BTw.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/nwPhAsfnb7f46bZkWLG7IRP5HXr.jpg",
     "description": "A loyal and dedicated Hong Kong Inspector teams up with a reckless and loudmouthed L.A.P.D. detective to rescue the Chinese Consul's kidnapped daughter.",
     "category": "comedy"
   },
@@ -1333,7 +1333,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Comedy",
     "releaseYear": 2019,
     "videoUrl": "515001",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/7GsM4mtM0worKta8HOlLJpM98WF.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/1mqL7VG4Ix8wmxwypmCA1HTHBky.jpg",
     "description": "A young German boy in the Hitler Youth whose imaginary friend is Adolf Hitler discovers that his single mother is hiding a Jewish girl in their attic.",
     "category": "comedy"
   },
@@ -1387,7 +1387,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Romance",
     "releaseYear": 2005,
     "videoUrl": "4348",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/mVY4rBOJ1fYjWbIOzXUKHc4x3fL.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/o8UhmEbWPHmTUxP0lMuCoqNkbB3.jpg",
     "description": "Sparks fly when spirited Elizabeth Bennet meets single, rich, and proud Mr. Darcy. But Mr. Darcy reluctantly finds himself falling in love with a woman beneath his class.",
     "category": "romance"
   },
@@ -1397,7 +1397,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Romance",
     "releaseYear": 2013,
     "videoUrl": "122906",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/x8CqrDxAjqMcTh0A9kHlPp0bsMy.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/ls6zswrOZVhCXQBh96DlbnLBajM.jpg",
     "description": "At the age of 21, Tim discovers he can travel in time and decides to make his world a better place by getting a girlfriend. But things don't always go as planned.",
     "category": "romance"
   },
@@ -1407,7 +1407,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "Romance",
     "releaseYear": 2014,
     "videoUrl": "222935",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/kkkAzEpd41K0zkFw5cXQ2O3ly4T.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/kcVuktIlrn9SAN1uBmPDnocTQmF.jpg",
     "description": "Two teenage cancer patients begin a life-affirming journey to visit a reclusive author in Amsterdam.",
     "category": "romance"
   },
@@ -1471,7 +1471,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "TV Series",
     "releaseYear": 2019,
     "videoUrl": "tv:82856",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/eU1i6eHXlzMOlEq0ku1Rq2lYEhL.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/sWgBv7LV2PRoQgkxwlibdGXKz1S.jpg",
     "description": "After the fall of the Galactic Empire, a lone gunfighter makes his way through the lawless galaxy with a mysterious alien child.",
     "category": "series"
   },
@@ -1521,7 +1521,7 @@ export const CURATED_CATALOG: CatalogMovie[] = [
     "genre": "TV Series",
     "releaseYear": 2019,
     "videoUrl": "tv:76479",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/stTEycfG9Ee3DB7wp3oIIkX5BgQ.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/in1R2dDc421JxsoRWaIIAqVI2KE.jpg",
     "description": "A group of vigilantes set out to take down corrupt superheroes who abuse their superpowers in this darkly satirical superhero series.",
     "category": "series"
   },
@@ -1567,105 +1567,106 @@ export const CURATED_CATALOG: CatalogMovie[] = [
   },
 
   // ============================================================
-  //  NEW ARABIC / MENA CINEMA
+  // ============================================================
+  //  MENA CINEMA
   // ============================================================
   {
     "id": "cat_blue_elephant",
-    "title": "The Blue Elephant (الفيل الأزرق)",
+    "title": "The Blue Elephant",
     "genre": "Arabic",
     "releaseYear": 2014,
     "videoUrl": "293262",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/vpKErTlMm9mNSnPlEAbnRXOvQ0a.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/tWUhh4v5NEMQwsXMtxlCUFtMfre.jpg",
     "description": "A psychiatrist returns to work at a mental hospital after years of absence and encounters a case that blurs the line between reality and hallucination.",
     "category": "arabic"
   },
   {
     "id": "cat_blue_elephant_2",
-    "title": "The Blue Elephant 2 (الفيل الأزرق 2)",
+    "title": "The Blue Elephant 2",
     "genre": "Arabic",
     "releaseYear": 2019,
     "videoUrl": "598235",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/sDAx7PgVRCZt4kKRl6GcjImMIVr.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/2ScpOYjA2KdPyi40AyRM5MoFGe4.jpg",
     "description": "Dr. Yehia returns to investigate a new case involving a famous actress, delving deeper into a world of paranormal terror.",
     "category": "arabic"
   },
   {
     "id": "cat_welad_rizk",
-    "title": "Welad Rizk (أولاد رزق)",
+    "title": "Welad Rizk",
     "genre": "Arabic",
     "releaseYear": 2015,
     "videoUrl": "341016",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/6XObiU05Rka7e0YhD1HOOlODRhj.jpg",
-    "description": "Five brothers from the slums of Cairo plan a daring heist to change their fortune in this action-packed Egyptian thriller.",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/zJcRCT5JhKrPTPzOMHe3OZZCnh4.jpg",
+    "description": "Five brothers from the slums of Cairo plan a daring heist to change their fortune in this action-packed thriller.",
     "category": "arabic"
   },
   {
-    "id": "cat_welad_rizk_2",
-    "title": "Welad Rizk 2 (أولاد رزق 2)",
+    "id": "cat_ziko",
+    "title": "Men Agl Ziko",
     "genre": "Arabic",
-    "releaseYear": 2019,
-    "videoUrl": "610918",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/m3q5ATWDbNLLbMcYlCpxjhPAsi1.jpg",
-    "description": "The five brothers are back with a new heist that puts them on a collision course with a powerful drug lord.",
+    "releaseYear": 2022,
+    "videoUrl": "901046",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/frvCNOTKuCynVAsldWTUt9VM2G5.jpg",
+    "description": "A simple Egyptian family embarks on an unforgettable road trip across the country so their genius young son Ziko can participate in a national competition.",
     "category": "arabic"
   },
   {
     "id": "cat_yacoubian_building",
-    "title": "The Yacoubian Building (عمارة يعقوبيان)",
+    "title": "The Yacoubian Building",
     "genre": "Arabic",
     "releaseYear": 2006,
     "videoUrl": "77951",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/8b4fzPgJ7GKFiwYlGK4iREEsnB.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/lkElT9HpOUIjIL20Hwy3LZqgXWc.jpg",
     "description": "Interwoven stories of the residents of a historic Cairo building, exploring corruption, class struggle, and societal hypocrisy in modern Egypt.",
     "category": "arabic"
   },
   {
     "id": "cat_capernaum",
-    "title": "Capernaum (كفرناحوم)",
+    "title": "Capernaum",
     "genre": "Arabic",
     "releaseYear": 2018,
     "videoUrl": "512200",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/fjFVPMpNAAzbgHIbOmIg1UBRLyY.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/jyw8VKYEiM1UDzPB7NsisUgBeJ8.jpg",
     "description": "A Lebanese boy sues his parents for the 'crime' of giving him life in this devastating yet compassionate film about poverty and resilience.",
     "category": "arabic"
   },
   {
     "id": "cat_the_insult",
-    "title": "The Insult (قضية رقم 23)",
+    "title": "The Insult",
     "genre": "Arabic",
     "releaseYear": 2017,
     "videoUrl": "449176",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/2IYBelaaRG4XDnWGxl3xFz3JIRE.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/snIsqVPmlu4LPjvToHpDotxa7Eh.jpg",
     "description": "A minor incident between a Lebanese Christian and a Palestinian refugee in Beirut quickly escalates into a court case that divides the entire nation.",
     "category": "arabic"
   },
   {
     "id": "cat_theeb",
-    "title": "Theeb (ذيب)",
+    "title": "Theeb",
     "genre": "Arabic",
     "releaseYear": 2014,
     "videoUrl": "287757",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/1gDDjxvxAn2eYMc7ROMHUbNzKW3.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/uI9enNoQsqseLXQK60YbscDr5L6.jpg",
     "description": "A Bedouin boy's epic journey through the desert during the Arab Revolt of World War I, earning him the name 'The Wolf'.",
     "category": "arabic"
   },
   {
     "id": "cat_omar",
-    "title": "Omar (عمر)",
+    "title": "Omar",
     "genre": "Arabic",
     "releaseYear": 2013,
     "videoUrl": "221732",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/s5H5rPqwKO5opMwUBM4VIkjXbsu.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/3sw2YRF0UR4jeZJ2yvpgk4qvMQK.jpg",
     "description": "A Palestinian baker who routinely climbs the separation wall to visit his secret girlfriend becomes embroiled in the struggle for freedom and betrayal.",
     "category": "arabic"
   },
   {
     "id": "cat_perfect_strangers_ar",
-    "title": "Perfect Strangers (أصحاب ولا أعز)",
+    "title": "Perfect Strangers",
     "genre": "Arabic",
     "releaseYear": 2022,
     "videoUrl": "842942",
-    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/jYEW5DoHq4XT1JLSmSr2HLvYE44.jpg",
+    "thumbnailUrl": "https://image.tmdb.org/t/p/w500/yph9PAbmjYPvyvbeZvdYIhCZHEu.jpg",
     "description": "A group of friends agree to share every text and call they receive during a dinner party, exposing secrets that threaten to destroy their relationships.",
     "category": "arabic"
   },
