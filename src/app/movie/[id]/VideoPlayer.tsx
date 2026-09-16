@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight } from "lucide-react";
+import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
+import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 
 export default function VideoPlayer({ 
   movieVideoUrl, 
@@ -25,12 +27,35 @@ export default function VideoPlayer({
   const targetClicks = Math.max(1, requiredClicks);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Check if title is a TV Series
+  // Check if title is a TV Series (strict - movies are NEVER a series)
   const isSeries = useMemo(() => {
-    const isTvGenre = genre ? /series|tv|show|anime/i.test(genre) : false;
-    const isTvUrl = movieVideoUrl ? movieVideoUrl.trim().startsWith("tv:") : false;
-    return isTvGenre || isTvUrl;
+    return isRealSeries(movieVideoUrl, genre);
   }, [genre, movieVideoUrl]);
+
+  const seriesMeta = useMemo(() => {
+    return isSeries ? getSeriesMetadata(movieVideoUrl, genre) : null;
+  }, [isSeries, movieVideoUrl, genre]);
+
+  const availableEpisodesCount = useMemo(() => {
+    return isSeries ? getEpisodesForSeason(movieVideoUrl, season, genre) : 0;
+  }, [isSeries, movieVideoUrl, season, genre]);
+
+  // Read URL query params on mount for direct episode deep-linking (e.g. ?s=1&e=2)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const sParam = params.get("season") || params.get("s");
+      const eParam = params.get("episode") || params.get("e");
+      if (sParam) {
+        const sNum = parseInt(sParam, 10);
+        if (!isNaN(sNum) && sNum >= 1) setSeason(sNum);
+      }
+      if (eParam) {
+        const eNum = parseInt(eParam, 10);
+        if (!isNaN(eNum) && eNum >= 1) setEpisode(eNum);
+      }
+    }
+  }, []);
 
   // Normalize and parse the video URL or ID
   const parsedSources = useMemo(() => {
@@ -58,32 +83,38 @@ export default function VideoPlayer({
     let server2 = "";
     let server3 = "";
     let server4 = "";
+    let server5 = "";
 
     if (isSeries && (isImdbId || isTmdbId)) {
-      server1 = `https://vidlink.pro/tv/${trimmed}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://vidsrc.me/embed/tv?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}&season=${season}&episode=${episode}`;
-      server3 = `https://vidsrc.xyz/embed/tv/${trimmed}/${season}-${episode}`;
-      server4 = `https://embed.su/embed/tv/${trimmed}/${season}/${episode}`;
+      server1 = `https://multiembed.mov/?video_id=${trimmed}&tmdb=1&s=${season}&e=${episode}`;
+      server2 = `https://vidlink.pro/tv/${trimmed}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
+      server3 = `https://vidsrc.to/embed/tv/${trimmed}/${season}/${episode}`;
+      server4 = `https://vidsrc.me/embed/tv?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}&season=${season}&episode=${episode}`;
+      server5 = `https://vidsrc.xyz/embed/tv/${trimmed}/${season}-${episode}`;
     } else if (isImdbId || isTmdbId) {
-      server1 = `https://vidlink.pro/movie/${trimmed}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://vidsrc.me/embed/movie?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}`;
-      server3 = `https://vidsrc.xyz/embed/movie/${trimmed}`;
-      server4 = `https://embed.su/embed/movie/${trimmed}`;
+      server1 = `https://multiembed.mov/?video_id=${trimmed}&tmdb=1`;
+      server2 = `https://vidlink.pro/movie/${trimmed}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
+      server3 = `https://vidsrc.to/embed/movie/${trimmed}`;
+      server4 = `https://vidsrc.me/embed/movie?${isImdbId ? `imdb=${trimmed}` : `tmdb=${trimmed}`}`;
+      server5 = `https://vidsrc.xyz/embed/movie/${trimmed}`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
       server2 = youtubeEmbed;
       server3 = youtubeEmbed;
       server4 = youtubeEmbed;
+      server5 = youtubeEmbed;
     } else if (isDirectVideo) {
       server1 = trimmed;
       server2 = trimmed;
       server3 = trimmed;
       server4 = trimmed;
+      server5 = trimmed;
     } else {
       server1 = trimmed;
       server2 = trimmed;
       server3 = trimmed;
       server4 = trimmed;
+      server5 = trimmed;
     }
 
     return {
@@ -93,7 +124,8 @@ export default function VideoPlayer({
       server2,
       server3,
       server4,
-      currentUrl: selectedServer === 1 ? server1 : selectedServer === 2 ? server2 : selectedServer === 3 ? server3 : server4
+      server5,
+      currentUrl: selectedServer === 1 ? server1 : selectedServer === 2 ? server2 : selectedServer === 3 ? server3 : selectedServer === 4 ? server4 : server5
     };
   }, [movieVideoUrl, selectedServer, isSeries, season, episode]);
 
@@ -131,7 +163,7 @@ export default function VideoPlayer({
   return (
     <div className="flex flex-col gap-3 w-full">
       {/* 16:9 Video Player Screen */}
-      <div className="relative aspect-video w-full bg-black rounded-2xl sm:rounded-3xl overflow-hidden border border-purple-500/30 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
+      <div id="video-player-screen" className="relative aspect-video w-full bg-black rounded-2xl sm:rounded-3xl overflow-hidden border border-purple-500/30 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
         {/* Desktop Overlay Server Bar (visible on sm+) */}
         {parsedSources.isImdbOrTmdb && (
           <div className="hidden sm:flex absolute top-3 left-3 right-3 z-40 items-center justify-between bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
@@ -139,18 +171,19 @@ export default function VideoPlayer({
               <Server className="w-3.5 h-3.5 text-rose-400" />
               <span>Server:</span>
             </div>
-            <div className="flex items-center space-x-1.5">
+            <div className="flex items-center space-x-1.5 flex-wrap">
               {[
-                { id: 1, label: "VidLink (1080p)" },
-                { id: 2, label: "VidSrc" },
-                { id: 3, label: "Backup" },
-                { id: 4, label: "Multi-Sub (1080p)" }
+                { id: 1, label: "Multi-Sub (Arabic)" },
+                { id: 2, label: "VidLink (1080p)" },
+                { id: 3, label: "VidSrc Pro" },
+                { id: 4, label: "VidSrc ME" },
+                { id: 5, label: "Backup" }
               ].map((s) => (
                 <button
                   key={s.id}
                   type="button"
                   onClick={() => setSelectedServer(s.id)}
-                  className={`px-3 py-1 rounded-lg font-semibold transition-all text-xs ${
+                  className={`px-2.5 py-1 rounded-lg font-semibold transition-all text-xs cursor-pointer ${
                     selectedServer === s.id
                       ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-sm"
                       : "bg-slate-800/80 text-purple-200 hover:bg-slate-700"
@@ -181,7 +214,7 @@ export default function VideoPlayer({
                   }}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded px-2 py-0.5 font-semibold focus:outline-none focus:border-rose-500 text-xs"
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => (
+                  {Array.from({ length: Math.max(1, seriesMeta?.totalSeasons || 10) }, (_, i) => i + 1).map((s) => (
                     <option key={s} value={s}>Season {s}</option>
                   ))}
                 </select>
@@ -193,7 +226,7 @@ export default function VideoPlayer({
                   onChange={(e) => setEpisode(Number(e.target.value))}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded px-2 py-0.5 font-semibold focus:outline-none focus:border-rose-500 text-xs"
                 >
-                  {Array.from({ length: 24 }, (_, i) => i + 1).map((ep) => (
+                  {Array.from({ length: availableEpisodesCount }, (_, i) => i + 1).map((ep) => (
                     <option key={ep} value={ep}>Episode {ep}</option>
                   ))}
                 </select>
@@ -280,6 +313,21 @@ export default function VideoPlayer({
         </div>
       </div>
 
+      {/* Arabic Subtitles & Server Helper Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-900/90 border border-purple-500/25 px-3.5 py-2.5 rounded-xl sm:rounded-2xl text-xs backdrop-blur-md">
+        <div className="flex items-center space-x-2 text-slate-200">
+          <span className="bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded-full border border-rose-500/30 text-[10px] uppercase tracking-wider shrink-0">
+            💬 Arabic Subs
+          </span>
+          <span className="text-slate-300 text-[11px] sm:text-xs">
+            Use <strong className="text-rose-400 font-semibold">Server 1 (Multi-Sub)</strong> or click <span className="bg-slate-800 px-1.5 py-0.5 rounded text-purple-200 border border-purple-500/30 font-bold">[CC]</span> inside the player to turn on Arabic (الترجمة العربية).
+          </span>
+        </div>
+        <span className="text-[10px] text-purple-300/60 hidden md:inline shrink-0">
+          Switch servers above if a stream buffers
+        </span>
+      </div>
+
       {/* Dedicated Mobile Controls Bar (Servers + TV Series Episode Switcher) */}
       <div className="flex sm:hidden flex-col gap-2.5 bg-slate-900/80 border border-purple-500/20 p-3 rounded-2xl backdrop-blur-md">
         {/* Mobile Server Selector */}
@@ -291,10 +339,11 @@ export default function VideoPlayer({
             </span>
             <div className="grid grid-cols-2 gap-1.5">
               {[
-                { id: 1, label: "VidLink" },
-                { id: 2, label: "VidSrc" },
-                { id: 3, label: "Backup" },
-                { id: 4, label: "Multi-Sub" }
+                { id: 1, label: "Multi-Sub (Arabic)" },
+                { id: 2, label: "VidLink (1080p)" },
+                { id: 3, label: "VidSrc Pro" },
+                { id: 4, label: "VidSrc ME" },
+                { id: 5, label: "Backup" }
               ].map((s) => (
                 <button
                   key={s.id}
@@ -327,7 +376,7 @@ export default function VideoPlayer({
                   }}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded-xl px-2.5 py-2 text-xs font-bold flex-1 focus:outline-none focus:border-rose-500 min-h-[40px]"
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => (
+                  {Array.from({ length: Math.max(1, seriesMeta?.totalSeasons || 1) }, (_, i) => i + 1).map((s) => (
                     <option key={s} value={s}>Season {s}</option>
                   ))}
                 </select>
@@ -338,7 +387,7 @@ export default function VideoPlayer({
                   onChange={(e) => setEpisode(Number(e.target.value))}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded-xl px-2.5 py-2 text-xs font-bold flex-1 focus:outline-none focus:border-rose-500 min-h-[40px]"
                 >
-                  {Array.from({ length: 24 }, (_, i) => i + 1).map((ep) => (
+                  {Array.from({ length: availableEpisodesCount }, (_, i) => i + 1).map((ep) => (
                     <option key={ep} value={ep}>Episode {ep}</option>
                   ))}
                 </select>
@@ -368,6 +417,26 @@ export default function VideoPlayer({
           </div>
         )}
       </div>
+
+      {/* Interactive Full Series Episode Navigator & Grid */}
+      {isSeries && (
+        <div className="mt-2 sm:mt-4">
+          <SeriesEpisodeNavigator
+            movieVideoUrl={movieVideoUrl}
+            genre={genre}
+            currentSeason={season}
+            currentEpisode={episode}
+            onSelectEpisode={(newSeason, newEpisode) => {
+              setSeason(newSeason);
+              setEpisode(newEpisode);
+              const el = document.getElementById("video-player-screen");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
