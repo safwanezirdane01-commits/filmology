@@ -5,18 +5,36 @@ import { Play, Film, Search, Star, Sparkles, Zap, ShieldCheck, Clapperboard, Inf
 import MovieCatalogView from "@/components/MovieCatalogView";
 
 export default async function Home() {
-  let movies: any[] = [];
+  let dbMovies: any[] = [];
   try {
-    movies = await prisma.movie.findMany({
+    dbMovies = await prisma.movie.findMany({
       orderBy: { createdAt: "desc" },
     });
   } catch (err) {
     console.warn("Prisma findMany failed on Home, using catalog fallback:", err);
   }
 
-  if (!movies || movies.length === 0) {
-    movies = CURATED_CATALOG;
+  // Combine CURATED_CATALOG with database movies so full library and all category filters work
+  const movieMap = new Map<string, any>();
+  for (const item of CURATED_CATALOG) {
+    movieMap.set(item.title.toLowerCase().trim(), item);
   }
+  for (const dbItem of dbMovies) {
+    const key = dbItem.title.toLowerCase().trim();
+    if (movieMap.has(key)) {
+      const existing = movieMap.get(key);
+      movieMap.set(key, {
+        ...existing,
+        ...dbItem,
+        id: existing.id,
+        thumbnailUrl: existing.thumbnailUrl || dbItem.thumbnailUrl,
+        genre: existing.genre || dbItem.genre,
+      });
+    } else {
+      movieMap.set(key, dbItem);
+    }
+  }
+  const movies = Array.from(movieMap.values());
 
   const featuredMovie = movies.length > 0 ? movies[0] : null;
 
