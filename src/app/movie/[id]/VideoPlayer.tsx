@@ -240,16 +240,56 @@ export default function VideoPlayer({
     };
   }, [movieVideoUrl, resolvedImdbId, selectedServer, isSeries, season, episode]);
 
+  // Anti-bypass ad verification state (stops Brave Shields / AdBlockers from bypassing)
+  const [blockedByAdBlocker, setBlockedByAdBlocker] = useState<boolean>(false);
+  const [isVerifyingClick, setIsVerifyingClick] = useState<boolean>(false);
+  const [stepCountdown, setStepCountdown] = useState<number>(0);
+
+  const triggerStepVerification = () => {
+    setBlockedByAdBlocker(false);
+    setIsVerifyingClick(true);
+    setStepCountdown(3);
+
+    const timer = setInterval(() => {
+      setStepCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setIsVerifyingClick(false);
+          setClickCount((c) => c + 1);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   const handleFakeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (adDirectLink && adDirectLink.startsWith("http")) {
-      window.open(adDirectLink, "_blank");
-    } else {
-      window.open("about:blank", "_blank");
+
+    if (isVerifyingClick || stepCountdown > 0) return;
+
+    const targetUrl = (adDirectLink && adDirectLink.startsWith("http")) 
+      ? adDirectLink 
+      : "about:blank";
+
+    let popupOpened = false;
+    try {
+      const win = window.open(targetUrl, "_blank");
+      if (win && !win.closed && typeof win.closed !== "undefined") {
+        popupOpened = true;
+      }
+    } catch {
+      popupOpened = false;
     }
-    setClickCount(prev => prev + 1);
+
+    if (!popupOpened && adDirectLink && adDirectLink.startsWith("http")) {
+      // Brave Shields or AdBlocker blocked window.open!
+      setBlockedByAdBlocker(true);
+      return;
+    }
+
+    triggerStepVerification();
   };
 
   // Auto-play when direct video becomes unblocked
@@ -412,27 +452,65 @@ export default function VideoPlayer({
           </div>
         )}
 
-        {/* Sponsor / Fake Ads Verification Screen */}
+        {/* Sponsor / Fake Ads Verification Screen (Anti-Bypass Enabled) */}
         {needsPopups && (
           <div 
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center cursor-pointer bg-slate-950/90 backdrop-blur-sm p-4 text-center transition-all"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 text-center transition-all select-none"
             onClick={handleFakeClick}
           >
-            {/* Pulsing Play Button */}
-            <div className="w-14 sm:w-20 h-14 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-3 sm:mb-6 animate-pulse">
-              <Play className="w-6 sm:w-9 h-6 sm:h-9 text-white fill-current ml-0.5 sm:ml-1" />
+            {/* Play Icon / Spinner */}
+            <div className="w-14 sm:w-20 h-14 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-3 sm:mb-5 animate-pulse cursor-pointer">
+              {isVerifyingClick ? (
+                <span className="text-white font-black text-xl sm:text-2xl animate-spin">⌛</span>
+              ) : (
+                <Play className="w-6 sm:w-9 h-6 sm:h-9 text-white fill-current ml-0.5 sm:ml-1" />
+              )}
             </div>
             
-            {/* Ad Verification Notice */}
-            <div className="bg-slate-900/95 border border-purple-500/30 px-5 sm:px-8 py-3.5 sm:py-6 rounded-xl sm:rounded-2xl max-w-xs sm:max-w-md shadow-2xl backdrop-blur-xl">
+            {/* Ad Verification Card */}
+            <div className="bg-slate-900/95 border border-purple-500/40 px-5 sm:px-8 py-3.5 sm:py-6 rounded-xl sm:rounded-2xl max-w-xs sm:max-w-md shadow-2xl backdrop-blur-xl">
               <div className="inline-flex items-center space-x-1.5 text-rose-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1 sm:mb-2">
                 <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-                <span>Verification</span>
+                <span>Stream Security Verification</span>
               </div>
-              <h3 className="text-base sm:text-xl font-bold text-white mb-1 sm:mb-2">Unlock HD Stream</h3>
-              <p className="text-slate-300 mb-3 sm:mb-5 text-xs sm:text-sm leading-relaxed line-clamp-2 sm:line-clamp-none">
-                Tap play to support free streaming.
-              </p>
+              
+              <h3 className="text-base sm:text-xl font-bold text-white mb-1">
+                {isVerifyingClick ? (
+                  <span className="text-purple-300">Verifying Step {clickCount + 1}... ({stepCountdown}s)</span>
+                ) : (
+                  "Unlock HD Stream"
+                )}
+              </h3>
+
+              {/* Brave Shields / AdBlocker Detected Banner */}
+              {blockedByAdBlocker ? (
+                <div className="my-3 p-3 bg-amber-950/80 border border-amber-500/50 rounded-xl text-left">
+                  <span className="text-amber-400 font-bold text-xs uppercase tracking-wider block mb-1">
+                    ⚠️ Popup Blocked (Brave Shields Active)
+                  </span>
+                  <p className="text-slate-300 text-[11px] leading-snug mb-2.5">
+                    Brave blocked the sponsor window. Click below to open step {clickCount + 1} of {targetClicks} directly to unlock streaming.
+                  </p>
+                  <a
+                    href={adDirectLink && adDirectLink.startsWith("http") ? adDirectLink : "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      triggerStepVerification();
+                    }}
+                    className="inline-flex items-center justify-center gap-1.5 w-full bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs py-2 rounded-lg shadow-lg cursor-pointer"
+                  >
+                    <span>Open Sponsor Link (Step {clickCount + 1}/{targetClicks})</span>
+                  </a>
+                </div>
+              ) : (
+                <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed">
+                  {isVerifyingClick
+                    ? "Please wait a moment while your step is verified..."
+                    : `Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
+                </p>
+              )}
               
               {/* Progress Bar */}
               <div className="w-full bg-slate-800 rounded-full h-2 sm:h-2.5 mb-2 overflow-hidden border border-purple-500/20">
