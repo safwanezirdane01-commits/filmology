@@ -262,6 +262,51 @@ export async function getPopularMovies(page: number = 1): Promise<UniversalItem[
 }
 
 /**
+ * Discover movies or TV shows across any genre / category
+ */
+export async function discoverByFilter(category: string = "all", page: number = 1): Promise<UniversalItem[]> {
+  try {
+    let url = "";
+    if (category === "series") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "arabic") {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ar&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "action") {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_genres=28&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "scifi") {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_genres=878&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "horror") {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_genres=27&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "comedy") {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_genres=35&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "drama") {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_genres=18&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "romance") {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "imdb_trending") {
+      url = `${TMDB_BASE}/trending/movie/week?api_key=${TMDB_KEY}&page=${page}`;
+    } else if (category === "imdb_top") {
+      url = `${TMDB_BASE}/movie/top_rated?api_key=${TMDB_KEY}&page=${page}`;
+    } else {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    }
+
+    const res = await fetch(url, { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.results) return [];
+
+    const isTv = category === "series";
+    return data.results
+      .map((item: any) => formatTmdbItem(item, isTv ? "tv" : "movie"))
+      .filter((item: UniversalItem | null): item is UniversalItem => item !== null && item.thumbnailUrl !== "/placeholder.png");
+  } catch (err) {
+    console.error("discoverByFilter error:", err);
+    return [];
+  }
+}
+
+/**
  * Backward-compatible exports for admin actions
  */
 export async function fetchTrendingFromTmdb(apiKey?: string, limit: number = 20): Promise<UniversalItem[]> {

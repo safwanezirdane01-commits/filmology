@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Star, Play, Film, Search, Sparkles, Loader2 } from "lucide-react";
+import { Star, Play, Film, Search, Sparkles, Loader2, Plus, FilmIcon, ChevronDown } from "lucide-react";
 
 interface MovieItem {
   id: string;
@@ -13,9 +13,14 @@ interface MovieItem {
   thumbnailUrl: string;
   description: string;
   category?: string;
+  voteAverage?: number;
+  mediaType?: "movie" | "tv";
 }
 
-function getMovieRating(title: string): string {
+function getMovieRating(title: string, voteAverage?: number): string {
+  if (voteAverage && voteAverage > 0) {
+    return voteAverage.toFixed(1);
+  }
   let hash = 0;
   for (let i = 0; i < title.length; i++) {
     hash = (hash * 31 + title.charCodeAt(i)) % 1000;
@@ -29,34 +34,10 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
   const [filterSearch, setFilterSearch] = useState<string>("");
   const [sortBy, setSortBy] = useState<"trending" | "year" | "title">("trending");
 
-  const [imdbItems, setImdbItems] = useState<Record<string, MovieItem[]>>({});
-  const [loadingImdb, setLoadingImdb] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (activeCategory === "imdb_trending" && !imdbItems["imdb_trending"]) {
-      setLoadingImdb(true);
-      fetch("/api/discover?type=trending")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.results) {
-            setImdbItems((prev) => ({ ...prev, imdb_trending: data.results }));
-          }
-        })
-        .catch((err) => console.warn("Trending fetch failed:", err))
-        .finally(() => setLoadingImdb(false));
-    } else if (activeCategory === "imdb_top" && !imdbItems["imdb_top"]) {
-      setLoadingImdb(true);
-      fetch("/api/discover?type=top_rated")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.results) {
-            setImdbItems((prev) => ({ ...prev, imdb_top: data.results }));
-          }
-        })
-        .catch((err) => console.warn("Top rated fetch failed:", err))
-        .finally(() => setLoadingImdb(false));
-    }
-  }, [activeCategory, imdbItems]);
+  // Track dynamically loaded extra movies per category from IMDb/TMDb
+  const [extraMovies, setExtraMovies] = useState<Record<string, MovieItem[]>>({});
+  const [categoryPages, setCategoryPages] = useState<Record<string, number>>({});
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
 
   const categories = [
     { id: "all", label: "All Library", icon: "🎬" },
@@ -72,15 +53,88 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
     { id: "arabic", label: "MENA Cinema", icon: "🌟" },
   ];
 
+  // Load initial page of movies for dynamic categories if not loaded yet
+  useEffect(() => {
+    if (
+      (activeCategory === "imdb_trending" || activeCategory === "imdb_top") &&
+      !extraMovies[activeCategory]
+    ) {
+      setLoadingMore(true);
+      fetch(`/api/discover?category=${activeCategory}&page=1`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.results) {
+            setExtraMovies((prev) => ({ ...prev, [activeCategory]: data.results }));
+            setCategoryPages((prev) => ({ ...prev, [activeCategory]: 1 }));
+          }
+        })
+        .catch((err) => console.warn("Initial category fetch failed:", err))
+        .finally(() => setLoadingMore(false));
+    }
+  }, [activeCategory, extraMovies]);
+
+  // Handler to load next batch of films from IMDb/TMDb
+  const handleLoadMore = useCallback(async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+
+    const currentPage = categoryPages[activeCategory] || 1;
+    const nextPage = currentPage + 1;
+
+    try {
+      const res = await fetch(`/api/discover?category=${activeCategory}&page=${nextPage}`);
+      const data = await res.json();
+      if (data.results && data.results.length > 0) {
+        setExtraMovies((prev) => {
+          const currentList = prev[activeCategory] || [];
+          const existingIds = new Set(currentList.map((m) => m.id));
+          const newItems = data.results.filter((m: MovieItem) => !existingIds.has(m.id));
+          return {
+            ...prev,
+            [activeCategory]: [...currentList, ...newItems],
+          };
+        });
+        setCategoryPages((prev) => ({ ...prev, [activeCategory]: nextPage }));
+      }
+    } catch (err) {
+      console.warn("Load more failed:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [activeCategory, categoryPages, loadingMore]);
+
   const filteredMovies = useMemo(() => {
-    let source = movies;
-    if (activeCategory === "imdb_trending") {
-      source = imdbItems["imdb_trending"] || [];
-    } else if (activeCategory === "imdb_top") {
-      source = imdbItems["imdb_top"] || [];
+    // Base source: local curated movies
+    let baseList: MovieItem[] = [];
+    if (activeCategory === "imdb_trending" || activeCategory === "imdb_top") {
+      baseList = [];
+    } else {
+      baseList = movies;
     }
 
-    let list = source.filter((m) => {
+    const dynamicallyLoaded = extraMovies[activeCategory] || [];
+
+    // Merge base with dynamically loaded, avoiding duplicate IDs or titles
+    const seenTitles = new Set<string>();
+    const merged: MovieItem[] = [];
+
+    for (const m of baseList) {
+      const key = m.title.toLowerCase().trim();
+      if (!seenTitles.has(key)) {
+        seenTitles.add(key);
+        merged.push(m);
+      }
+    }
+
+    for (const m of dynamicallyLoaded) {
+      const key = m.title.toLowerCase().trim();
+      if (!seenTitles.has(key)) {
+        seenTitles.add(key);
+        merged.push(m);
+      }
+    }
+
+    let list = merged.filter((m) => {
       const genre = m.genre.toLowerCase();
       const matchCat =
         activeCategory === "all" ||
@@ -110,7 +164,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
     }
 
     return list;
-  }, [movies, activeCategory, filterSearch, sortBy, imdbItems]);
+  }, [movies, activeCategory, filterSearch, sortBy, extraMovies]);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -178,13 +232,21 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
         </div>
       )}
 
-      {/* Loading state for dynamic categories */}
-      {loadingImdb ? (
-        <div className="text-center py-20 flex flex-col items-center justify-center space-y-3">
-          <Loader2 className="w-8 h-8 text-rose-500 animate-spin" />
-          <p className="text-sm text-purple-300/80">Fetching latest titles from IMDb & TMDb...</p>
-        </div>
-      ) : filteredMovies.length === 0 ? (
+      {/* Library Stats Badge */}
+      <div className="flex items-center justify-between px-1 text-xs text-slate-400">
+        <span className="flex items-center gap-1.5">
+          <FilmIcon className="w-3.5 h-3.5 text-rose-400" />
+          <span>
+            Showing <strong className="text-white font-semibold">{filteredMovies.length}</strong> titles
+          </span>
+        </span>
+        <span className="text-[11px] text-purple-300/60 hidden sm:inline">
+          Connected to global IMDb & TMDb library (millions of titles streamable in 1080p)
+        </span>
+      </div>
+
+      {/* Movies Grid */}
+      {filteredMovies.length === 0 && !loadingMore ? (
         <div className="text-center text-purple-300 py-16 sm:py-24 bg-slate-900/30 backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-purple-900/30">
           <Film className="w-10 sm:w-14 h-10 sm:h-14 mx-auto mb-3 text-purple-500/40 animate-pulse" />
           <h3 className="text-lg sm:text-xl font-bold text-white mb-1">No movies found in this view</h3>
@@ -204,7 +266,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-5 md:gap-6">
           {filteredMovies.map((movie) => {
-            const rating = getMovieRating(movie.title);
+            const rating = getMovieRating(movie.title, movie.voteAverage);
             return (
               <Link
                 href={`/movie/${movie.id}`}
@@ -237,7 +299,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                       <span>{rating}</span>
                     </span>
                     <span className="bg-gradient-to-r from-rose-600/90 to-purple-600/90 backdrop-blur-md px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-white shadow-sm">
-                      4K UHD
+                      {movie.mediaType === "tv" ? "SERIES" : "4K UHD"}
                     </span>
                   </div>
 
@@ -266,6 +328,31 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
           })}
         </div>
       )}
+
+      {/* Infinite "Load More Films from IMDb" Button */}
+      <div className="flex flex-col items-center justify-center pt-6 sm:pt-10 pb-4">
+        <button
+          type="button"
+          onClick={handleLoadMore}
+          disabled={loadingMore}
+          className="group relative inline-flex items-center justify-center gap-2.5 px-8 py-3.5 sm:py-4 rounded-full font-bold text-sm sm:text-base text-white bg-gradient-to-r from-rose-600 via-purple-600 to-rose-600 bg-[length:200%_auto] hover:bg-[position:right_center] transition-all duration-500 shadow-[0_0_30px_rgba(244,63,94,0.3)] hover:shadow-[0_0_40px_rgba(244,63,94,0.5)] hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer border border-white/10"
+        >
+          {loadingMore ? (
+            <>
+              <Loader2 className="w-4 sm:w-5 h-4 sm:h-5 animate-spin" />
+              <span>Loading More Films from IMDb...</span>
+            </>
+          ) : (
+            <>
+              <Plus className="w-4 sm:w-5 h-4 sm:h-5 transition-transform group-hover:rotate-90" />
+              <span>Load More Films from IMDb & TMDb</span>
+            </>
+          )}
+        </button>
+        <p className="text-[11px] sm:text-xs text-slate-500 mt-2">
+          Click to continuously expand your library with thousands of titles
+        </p>
+      </div>
     </div>
   );
 }
