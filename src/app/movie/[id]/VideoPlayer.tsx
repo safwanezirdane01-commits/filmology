@@ -198,14 +198,14 @@ export default function VideoPlayer({
 
     if (isSeries && (isImdbId || isTmdbId)) {
       server1 = `https://vidlink.pro/tv/${effectiveId}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://embed.su/embed/tv/${effectiveId}/${season}/${episode}`;
-      server3 = `https://player.autoembed.cc/embed/tv/${effectiveId}/${season}/${episode}`;
-      server4 = `https://www.2embed.cc/embed/tv?id=${effectiveId}&s=${season}&e=${episode}`;
+      server2 = `https://vidjoy.pro/embed/tv/${effectiveId}/${season}/${episode}`;
+      server3 = `https://vidsrc.pm/embed/tv/${effectiveId}/${season}/${episode}`;
+      server4 = `https://www.2embed.cc/embedtv/${effectiveId}&s=${season}&e=${episode}`;
       server5 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
     } else if (isImdbId || isTmdbId) {
       server1 = `https://vidlink.pro/movie/${effectiveId}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server2 = `https://embed.su/embed/movie/${effectiveId}`;
-      server3 = `https://player.autoembed.cc/embed/movie/${effectiveId}`;
+      server2 = `https://vidjoy.pro/embed/movie/${effectiveId}`;
+      server3 = `https://vidsrc.pm/embed/movie/${effectiveId}`;
       server4 = `https://www.2embed.cc/embed/${effectiveId}`;
       server5 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
     } else if (youtubeEmbed) {
@@ -303,8 +303,8 @@ export default function VideoPlayer({
 
   const serverList = [
     { id: 1, label: "VidLink (Fast HD)" },
-    { id: 2, label: "EmbedSu (1080p)" },
-    { id: 3, label: "AutoEmbed" },
+    { id: 2, label: "VidJoy (Ultra HD)" },
+    { id: 3, label: "VidSrc PM" },
     { id: 4, label: "2Embed" },
     { id: 5, label: "MultiEmbed" },
   ];
