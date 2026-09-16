@@ -167,6 +167,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
           movieVideoUrl={movie.videoUrl} 
           thumbnailUrl={movie.thumbnailUrl} 
           genre={movie.genre}
+          title={movie.title}
           adDirectLink={adSettings.directLinkUrl}
           requiredClicks={adSettings.requiredClicks}
           adsEnabled={adSettings.isEnabled}

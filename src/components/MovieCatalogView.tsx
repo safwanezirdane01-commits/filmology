@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Star, Play, Film, Search, Sparkles, Loader2, Plus, FilmIcon, ChevronDown } from "lucide-react";
+import { Star, Play, Film, Search, Sparkles, Loader2, Plus, FilmIcon, ChevronDown, Clock, X } from "lucide-react";
+import { getWatchHistory, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
 
 interface MovieItem {
   id: string;
@@ -38,6 +39,24 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
   const [extraMovies, setExtraMovies] = useState<Record<string, MovieItem[]>>({});
   const [categoryPages, setCategoryPages] = useState<Record<string, number>>({});
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
+
+  // Continue Watching list state
+  const [continueWatchingList, setContinueWatchingList] = useState<WatchItem[]>([]);
+
+  useEffect(() => {
+    const history = getWatchHistory();
+    const active = history.filter(
+      (h) => h.currentTime > 10 && h.progressPercent < 95
+    );
+    setContinueWatchingList(active);
+  }, []);
+
+  const handleRemoveContinueWatching = (e: React.MouseEvent, item: WatchItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    clearWatchItem(item.id, item.season, item.episode);
+    setContinueWatchingList((prev) => prev.filter((i) => !(i.id === item.id && i.season === item.season && i.episode === item.episode)));
+  };
 
   const categories = [
     { id: "all", label: "All Library", icon: "🎬" },
@@ -168,6 +187,94 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
 
   return (
     <div className="space-y-6 sm:space-y-8">
+      {/* Continue Watching Row (renders when user has unfinished titles) */}
+      {continueWatchingList.length > 0 && (
+        <div className="space-y-3 sm:space-y-4 bg-slate-900/50 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-rose-500/30 backdrop-blur-xl">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base sm:text-xl font-bold text-white flex items-center space-x-2">
+              <Clock className="w-4 sm:w-5 h-4 sm:h-5 text-rose-400 animate-pulse" />
+              <span>Continue Watching</span>
+              <span className="bg-rose-500/20 text-rose-300 text-xs px-2 py-0.5 rounded-full font-bold">
+                {continueWatchingList.length}
+              </span>
+            </h3>
+          </div>
+
+          <div className="flex items-center gap-3.5 overflow-x-auto pb-2 scrollbar-none touch-pan-x">
+            {continueWatchingList.map((item) => {
+              const url = item.season && item.episode 
+                ? `/movie/${item.id}?season=${item.season}&episode=${item.episode}`
+                : `/movie/${item.id}`;
+              return (
+                <div
+                  key={`${item.id}-${item.season}-${item.episode}`}
+                  className="group relative flex-none w-48 sm:w-56 bg-slate-950 rounded-2xl overflow-hidden border border-purple-900/40 shadow-lg hover:border-rose-500/50 transition-all duration-300"
+                >
+                  <Link href={url} className="block relative aspect-video w-full overflow-hidden bg-slate-900">
+                    {item.thumbnailUrl ? (
+                      <img
+                        src={item.thumbnailUrl}
+                        alt={item.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center">
+                        <Film className="w-8 h-8 text-purple-900/50 mb-1" />
+                        <span className="text-purple-300/50 text-[10px]">{item.title}</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+                    
+                    {/* Play Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-gradient-to-r from-rose-600 to-purple-600 rounded-full p-2.5 shadow-lg scale-90 sm:scale-100">
+                        <Play className="w-4 h-4 text-white fill-current ml-0.5" />
+                      </div>
+                    </div>
+
+                    {/* Progress Bar Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-800">
+                      <div
+                        className="h-full bg-gradient-to-r from-rose-500 to-purple-500 transition-all"
+                        style={{ width: `${item.progressPercent}%` }}
+                      />
+                    </div>
+
+                    {/* Season / Episode Badge */}
+                    {item.season && item.episode && (
+                      <div className="absolute top-2 left-2 bg-slate-900/90 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-md border border-rose-500/30">
+                        S{item.season} E{item.episode}
+                      </div>
+                    )}
+
+                    {/* Delete item button */}
+                    <button
+                      type="button"
+                      onClick={(e) => handleRemoveContinueWatching(e, item)}
+                      className="absolute top-2 right-2 p-1 bg-slate-900/80 hover:bg-rose-900/90 text-slate-400 hover:text-white rounded-full transition-colors"
+                      title="Remove from Continue Watching"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </Link>
+
+                  <div className="p-2.5 sm:p-3 space-y-1">
+                    <h4 className="text-white text-xs font-bold truncate group-hover:text-rose-200">
+                      {item.title}
+                    </h4>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400">
+                      <span>{formatTime(item.currentTime)} watched</span>
+                      <span className="text-rose-400 font-bold">{item.progressPercent}%</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Category Pills & Controls Bar */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-900/40 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-purple-900/30 backdrop-blur-xl">
         {/* Category Pills with smooth horizontal scrolling */}

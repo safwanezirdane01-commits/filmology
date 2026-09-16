@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw } from "lucide-react";
 import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
+import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
 
 export default function VideoPlayer({ 
   movieVideoUrl, 
   thumbnailUrl,
   genre,
+  title = "Movie",
   adDirectLink,
   requiredClicks = 2,
   adsEnabled = true,
@@ -16,6 +18,7 @@ export default function VideoPlayer({
   movieVideoUrl: string | null; 
   thumbnailUrl: string | null;
   genre?: string;
+  title?: string;
   adDirectLink?: string;
   requiredClicks?: number;
   adsEnabled?: boolean;
@@ -33,6 +36,10 @@ export default function VideoPlayer({
   const [loadingSubs, setLoadingSubs] = useState<boolean>(false);
   const [resolvedImdbId, setResolvedImdbId] = useState<string | null>(null);
 
+  // Watch progress tracking state
+  const [savedProgress, setSavedProgress] = useState<WatchItem | null>(null);
+  const [showResumeBanner, setShowResumeBanner] = useState<boolean>(true);
+
   // Check if title is a TV Series (strict - movies are NEVER a series)
   const isSeries = useMemo(() => {
     return isRealSeries(movieVideoUrl, genre);
@@ -45,6 +52,76 @@ export default function VideoPlayer({
   const availableEpisodesCount = useMemo(() => {
     return isSeries ? getEpisodesForSeason(movieVideoUrl, season, genre) : 0;
   }, [isSeries, movieVideoUrl, season, genre]);
+
+  // Load saved watch progress for current title/season/episode
+  useEffect(() => {
+    if (!movieVideoUrl) return;
+    const progress = getWatchProgress(movieVideoUrl, season, episode);
+    setSavedProgress(progress);
+    setShowResumeBanner(!!progress);
+  }, [movieVideoUrl, season, episode]);
+
+  // Listen for player postMessage events (e.g. VidLink or HTML5 video) for progress
+  useEffect(() => {
+    const handleMsg = (e: MessageEvent) => {
+      try {
+        if (e.data && typeof e.data === "object") {
+          const { type, data, time, duration } = e.data;
+          let curr = 0;
+          let dur = 0;
+          if (type === "MEDIA_DATA" && data) {
+            curr = data.currentTime || data.time || 0;
+            dur = data.duration || 0;
+          } else if (typeof time === "number") {
+            curr = time;
+            dur = duration || 0;
+          }
+          if (curr > 5 && movieVideoUrl) {
+            saveWatchProgress({
+              id: movieVideoUrl,
+              title: title || "Movie",
+              thumbnailUrl,
+              currentTime: Math.floor(curr),
+              duration: Math.floor(dur) || 7200,
+              genre,
+              season: isSeries ? season : undefined,
+              episode: isSeries ? episode : undefined,
+            });
+            const updated = getWatchProgress(movieVideoUrl, season, episode);
+            if (updated) setSavedProgress(updated);
+          }
+        }
+      } catch {}
+    };
+
+    window.addEventListener("message", handleMsg);
+    return () => window.removeEventListener("message", handleMsg);
+  }, [movieVideoUrl, title, thumbnailUrl, genre, isSeries, season, episode]);
+
+  // Periodic watch progress saver while user stays on player page
+  useEffect(() => {
+    if (!movieVideoUrl) return;
+    let secondsWatched = 0;
+    const interval = setInterval(() => {
+      secondsWatched += 15;
+      const existing = getWatchProgress(movieVideoUrl, season, episode);
+      const newTime = (existing?.currentTime || 0) + 15;
+      saveWatchProgress({
+        id: movieVideoUrl,
+        title: title || "Movie",
+        thumbnailUrl,
+        currentTime: newTime,
+        duration: existing?.duration || 7200,
+        genre,
+        season: isSeries ? season : undefined,
+        episode: isSeries ? episode : undefined,
+      });
+      const p = getWatchProgress(movieVideoUrl, season, episode);
+      if (p) setSavedProgress(p);
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [movieVideoUrl, title, thumbnailUrl, genre, isSeries, season, episode]);
 
   // Fetch verified Arabic subtitles from /api/subtitles & resolve IMDb ID
   useEffect(() => {
@@ -204,6 +281,53 @@ export default function VideoPlayer({
 
   return (
     <div className="flex flex-col gap-3 w-full">
+      {/* Resume Watching Progress Banner */}
+      {showResumeBanner && savedProgress && savedProgress.currentTime > 10 && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-rose-950/90 via-purple-950/90 to-slate-900/95 border border-rose-500/40 p-3.5 sm:px-5 sm:py-3 rounded-2xl backdrop-blur-md shadow-xl transition-all">
+          <div className="flex items-center space-x-3 text-slate-100">
+            <div className="p-2 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/30 shrink-0">
+              <Clock className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-bold text-white text-xs sm:text-sm">Continue Watching</span>
+                <span className="bg-rose-500/25 text-rose-300 font-extrabold px-2 py-0.5 rounded-md text-[10px]">
+                  {savedProgress.progressPercent}% Completed
+                </span>
+              </div>
+              <p className="text-slate-300 text-xs mt-0.5">
+                You stopped at <strong className="text-rose-400 font-bold">{formatTime(savedProgress.currentTime)}</strong>. Click to jump back to where you left off.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setShowResumeBanner(false);
+              }}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center space-x-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg transition-transform hover:scale-105 cursor-pointer"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Resume at {formatTime(savedProgress.currentTime)}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (movieVideoUrl) clearWatchItem(movieVideoUrl, season, episode);
+                setSavedProgress(null);
+                setShowResumeBanner(false);
+              }}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-purple-500/20 cursor-pointer"
+              title="Clear watch progress and start from 0:00"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 16:9 Video Player Screen */}
       <div id="video-player-screen" className="relative aspect-video w-full bg-black rounded-2xl sm:rounded-3xl overflow-hidden border border-purple-500/30 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
         {/* Desktop Overlay Server Bar (visible on sm+) */}
