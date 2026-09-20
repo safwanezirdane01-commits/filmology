@@ -29,7 +29,10 @@ export default function VideoPlayer({
   const [autoStatusMessage, setAutoStatusMessage] = useState<string | null>(null);
   const [season, setSeason] = useState<number>(1);
   const [episode, setEpisode] = useState<number>(1);
-  const targetClicks = Math.max(1, requiredClicks);
+  const DEFAULT_AD_LINK = "https://consciousdunkvastly.com/vkcab8pm?key=2d7f9ab1644671035abd720ada6bab69";
+  const activeAdLink = (adDirectLink && adDirectLink.startsWith("http")) ? adDirectLink : DEFAULT_AD_LINK;
+  const effectiveClicks = (typeof requiredClicks === "number" && requiredClicks > 0) ? requiredClicks : 3;
+  const targetClicks = Math.max(1, effectiveClicks);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Arabic subtitle state & IMDb ID resolution
@@ -64,18 +67,21 @@ export default function VideoPlayer({
     setShowResumeBanner(!!progress);
   }, [movieVideoUrl, season, episode]);
 
-  // Suppress and block any unauthorized pop-up windows on the client
+  // Suppress and block any unauthorized pop-up windows on the client, while allowing authorized ad direct links
   useEffect(() => {
     if (typeof window === "undefined") return;
     const originalOpen = window.open;
     window.open = function(url?: string | URL, target?: string, features?: string) {
+      if (url && typeof url === "string" && activeAdLink && url.startsWith(activeAdLink)) {
+        return originalOpen.call(window, url, target, features);
+      }
       console.warn("Blocked unauthorized popup to:", url);
       return null;
     };
     return () => {
       window.open = originalOpen;
     };
-  }, []);
+  }, [activeAdLink]);
 
   // Listen for player postMessage events (e.g. VidLink or HTML5 video) for progress & auto load status
   useEffect(() => {
@@ -286,14 +292,23 @@ export default function VideoPlayer({
 
     if (isVerifyingClick || stepCountdown > 0) return;
 
-    const targetUrl = (adDirectLink && adDirectLink.startsWith("http")) 
-      ? adDirectLink 
-      : "about:blank";
+    const targetUrl = activeAdLink;
 
-    try {
-      window.open(targetUrl, "_blank");
-    } catch (err) {
-      console.log("Popup launch error:", err);
+    if (targetUrl) {
+      try {
+        const link = document.createElement("a");
+        link.href = targetUrl;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        console.log("Anchor click error, falling back to window.open:", err);
+        try {
+          window.open(targetUrl, "_blank");
+        } catch {}
+      }
     }
 
     triggerStepVerification();
@@ -316,7 +331,7 @@ export default function VideoPlayer({
     );
   }
 
-  const needsPopups = adsEnabled && clickCount < targetClicks;
+  const needsPopups = (adsEnabled ?? true) && clickCount < targetClicks;
 
   const serverList = useMemo(() => [
     { id: 1, label: "VidLink (Fast HD)", short: "VidLink" },
