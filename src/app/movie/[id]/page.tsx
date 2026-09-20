@@ -182,7 +182,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
       )}
 
       {/* Movie Details & Action Header */}
-      <div className="bg-slate-900/70 backdrop-blur-2xl p-4 sm:p-7 md:p-10 rounded-2xl sm:rounded-3xl border border-purple-900/40 shadow-2xl relative overflow-hidden">
+      <div className="bg-slate-900/90 sm:backdrop-blur-2xl p-4 sm:p-7 md:p-10 rounded-2xl sm:rounded-3xl border border-purple-900/40 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 via-purple-500 to-rose-500"></div>
         <div className="absolute top-0 right-0 w-60 sm:w-80 h-60 sm:h-80 bg-rose-500/10 blur-[80px] sm:blur-[100px] pointer-events-none rounded-full"></div>
         
@@ -239,13 +239,14 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
                 key={rel.id}
                 className="group relative flex flex-col cursor-pointer"
               >
-                <div className="relative aspect-[2/3] bg-slate-900 rounded-xl sm:rounded-2xl overflow-hidden border border-purple-900/30 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_15px_30px_rgba(244,63,94,0.3)] group-hover:border-rose-500/50">
+                <div className="relative aspect-[2/3] bg-slate-900 rounded-xl sm:rounded-2xl overflow-hidden border border-purple-900/30 transition-all duration-300 sm:group-hover:-translate-y-1.5 sm:group-hover:shadow-[0_15px_30px_rgba(244,63,94,0.3)] sm:group-hover:border-rose-500/50 contain-paint gpu-layer">
                   {rel.thumbnailUrl ? (
                     <img
                       src={rel.thumbnailUrl}
                       alt={rel.title}
                       loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      decoding="async"
+                      className="w-full h-full object-cover transition-transform duration-300 sm:group-hover:scale-105"
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 p-3 text-center">
@@ -275,7 +276,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
       )}
 
       {/* Community Reviews & Ratings Section */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-purple-900/30 p-4 sm:p-8 md:p-10 shadow-xl">
+      <div className="bg-slate-900/90 sm:backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-purple-900/30 p-4 sm:p-8 md:p-10 shadow-xl">
         <ReviewSection movieId={movie.id} />
       </div>
     </div>

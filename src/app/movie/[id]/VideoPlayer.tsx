@@ -339,10 +339,10 @@ export default function VideoPlayer({
     <div className="flex flex-col gap-3 w-full">
       {/* Resume Watching Progress Banner */}
       {showResumeBanner && savedProgress && savedProgress.currentTime > 10 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-rose-950/90 via-purple-950/90 to-slate-900/95 border border-rose-500/40 p-3.5 sm:px-5 sm:py-3 rounded-2xl backdrop-blur-md shadow-xl transition-all">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-rose-950/90 via-purple-950/90 to-slate-900/95 border border-rose-500/40 p-3.5 sm:px-5 sm:py-3 rounded-2xl sm:backdrop-blur-md shadow-xl transition-all">
           <div className="flex items-center space-x-3 text-slate-100">
             <div className="p-2 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/30 shrink-0">
-              <Clock className="w-5 h-5 animate-pulse" />
+              <Clock className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
@@ -385,10 +385,10 @@ export default function VideoPlayer({
       )}
 
       {/* 16:9 Video Player Screen */}
-      <div id="video-player-screen" className="relative aspect-video w-full bg-black rounded-2xl sm:rounded-3xl overflow-hidden border border-purple-500/30 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
+      <div id="video-player-screen" className="relative aspect-video w-full bg-black rounded-2xl sm:rounded-3xl overflow-hidden border border-purple-500/30 shadow-[0_0_50px_rgba(139,92,246,0.3)] gpu-layer">
         {/* Desktop Overlay Server Bar (visible on sm+) */}
         {parsedSources.isImdbOrTmdb && (
-          <div className="hidden sm:flex absolute top-3 left-3 right-3 z-40 items-center justify-between bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
+          <div className="hidden sm:flex absolute top-3 left-3 right-3 z-40 items-center justify-between bg-slate-950/85 sm:backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-1.5 text-rose-300 font-medium">
                 <Server className="w-3.5 h-3.5 text-rose-400" />
@@ -404,7 +404,7 @@ export default function VideoPlayer({
                 }}
                 className={`px-2.5 py-1 rounded-lg font-bold transition-all text-xs flex items-center space-x-1 cursor-pointer ${
                   isAutoMode
-                    ? "bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm ring-1 ring-amber-300/40 animate-pulse"
+                    ? "bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm ring-1 ring-amber-300/40"
                     : "bg-slate-800/80 text-amber-300/80 hover:bg-slate-700"
                 }`}
                 title="Automatically plays the best working server"
@@ -450,7 +450,7 @@ export default function VideoPlayer({
 
         {/* Desktop Overlay TV Series Selector (visible on sm+) */}
         {isSeries && (
-          <div className="hidden sm:flex absolute top-13 left-3 right-3 z-40 flex-wrap items-center justify-between gap-2 bg-slate-950/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
+          <div className="hidden sm:flex absolute top-13 left-3 right-3 z-40 flex-wrap items-center justify-between gap-2 bg-slate-950/90 sm:backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
             <div className="flex items-center space-x-3">
               <span className="font-bold text-rose-400 uppercase tracking-wider flex items-center space-x-1">
                 <Tv className="w-3.5 h-3.5" />
@@ -507,11 +507,11 @@ export default function VideoPlayer({
         {/* Sponsor / Fake Ads Verification Screen (Anti-Bypass Enabled) */}
         {needsPopups && (
           <div 
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 text-center transition-all select-none"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 sm:backdrop-blur-md p-4 text-center transition-all select-none"
             onClick={handleFakeClick}
           >
             {/* Play Icon / Spinner */}
-            <div className="w-14 sm:w-20 h-14 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-3 sm:mb-5 animate-pulse cursor-pointer">
+            <div className="w-14 sm:w-20 h-14 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-3 sm:mb-5 cursor-pointer">
               {isVerifyingClick ? (
                 <span className="text-white font-black text-xl sm:text-2xl animate-spin">⌛</span>
               ) : (
@@ -520,7 +520,7 @@ export default function VideoPlayer({
             </div>
             
             {/* Ad Verification Card */}
-            <div className="bg-slate-900/95 border border-purple-500/40 px-5 sm:px-8 py-3.5 sm:py-6 rounded-xl sm:rounded-2xl max-w-xs sm:max-w-md shadow-2xl backdrop-blur-xl">
+            <div className="bg-slate-900/95 border border-purple-500/40 px-5 sm:px-8 py-3.5 sm:py-6 rounded-xl sm:rounded-2xl max-w-xs sm:max-w-md shadow-2xl sm:backdrop-blur-xl">
               <div className="inline-flex items-center space-x-1.5 text-rose-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1 sm:mb-2">
                 <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 <span>Stream Security Verification</span>
@@ -557,7 +557,7 @@ export default function VideoPlayer({
 
         {/* Floating Auto-Status Notification Toast */}
         {autoStatusMessage && (
-          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-950/95 border border-amber-500/60 text-amber-300 px-4 py-1.5 rounded-full text-xs font-bold shadow-2xl flex items-center space-x-2 animate-bounce backdrop-blur-md">
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-950/95 border border-amber-500/60 text-amber-300 px-4 py-1.5 rounded-full text-xs font-bold shadow-2xl flex items-center space-x-2 sm:backdrop-blur-md">
             <Zap className="w-3.5 h-3.5 text-amber-400 fill-current shrink-0" />
             <span>{autoStatusMessage}</span>
           </div>
@@ -588,7 +588,7 @@ export default function VideoPlayer({
       </div>
 
       {/* Subtitles & Quick Server Failsafe Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/95 border border-purple-500/30 p-3 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl backdrop-blur-md shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/95 border border-purple-500/30 p-3 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl sm:backdrop-blur-md shadow-lg">
         <div className="flex items-center space-x-2 text-slate-200 flex-1 min-w-0">
           <span className={`font-bold px-2.5 py-0.5 rounded-full border text-[10px] uppercase tracking-wider shrink-0 flex items-center gap-1 ${arabicSubTracks.length > 0 ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : loadingSubs ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-slate-700/50 text-slate-400 border-slate-600/30"}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${arabicSubTracks.length > 0 ? "bg-emerald-400 animate-pulse" : loadingSubs ? "bg-purple-400 animate-pulse" : "bg-slate-500"}`}></span>
@@ -634,7 +634,7 @@ export default function VideoPlayer({
       </div>
 
       {/* Dedicated Mobile Controls Bar (Servers + TV Series Episode Switcher) */}
-      <div className="flex sm:hidden flex-col gap-2.5 bg-slate-900/80 border border-purple-500/20 p-3 rounded-2xl backdrop-blur-md">
+      <div className="flex sm:hidden flex-col gap-2.5 bg-slate-900/95 border border-purple-500/20 p-3 rounded-2xl">
         {/* Mobile Server Selector */}
         {parsedSources.isImdbOrTmdb && (
           <div className="flex flex-col gap-2">

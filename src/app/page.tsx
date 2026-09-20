@@ -42,11 +42,12 @@ export default async function Home() {
     <div className="flex flex-col min-h-screen font-sans -mt-4">
       {/* Cinematic Hero Spotlight */}
       {featuredMovie && (
-        <section className="relative w-full min-h-[440px] sm:min-h-[520px] md:h-[70vh] md:max-h-[700px] flex items-center justify-center overflow-hidden rounded-2xl sm:rounded-3xl mt-1 sm:mt-2 border border-purple-500/20 shadow-[0_0_50px_rgba(139,92,246,0.15)] group">
+        <section className="relative w-full min-h-[440px] sm:min-h-[520px] md:h-[70vh] md:max-h-[700px] flex items-center justify-center overflow-hidden rounded-2xl sm:rounded-3xl mt-1 sm:mt-2 border border-purple-500/20 shadow-[0_0_50px_rgba(139,92,246,0.15)] group gpu-layer">
           {featuredMovie.thumbnailUrl ? (
             <img 
               src={featuredMovie.thumbnailUrl} 
               alt={featuredMovie.title} 
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-1000 group-hover:scale-105" 
             />
           ) : (
@@ -63,11 +64,11 @@ export default async function Home() {
           <div className="relative z-10 max-w-7xl w-full mx-auto px-4 sm:px-8 lg:px-12 flex flex-col items-start py-8 sm:py-14">
             {/* Spotlight Pills */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-5">
-              <div className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-rose-500/20 border border-rose-500/40 rounded-full px-2.5 sm:px-3.5 py-0.5 sm:py-1 backdrop-blur-md">
-                <span className="flex h-1.5 sm:h-2 w-1.5 sm:w-2 rounded-full bg-rose-500 animate-pulse"></span>
+              <div className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-rose-500/20 border border-rose-500/40 rounded-full px-2.5 sm:px-3.5 py-0.5 sm:py-1 sm:backdrop-blur-md">
+                <span className="flex h-1.5 sm:h-2 w-1.5 sm:w-2 rounded-full bg-rose-500"></span>
                 <span className="text-rose-200 text-[10px] sm:text-xs font-bold tracking-wider uppercase">#1 Trending Movie</span>
               </div>
-              <div className="inline-flex items-center space-x-1 bg-amber-500/10 border border-amber-500/30 rounded-full px-2 sm:px-3 py-0.5 sm:py-1 backdrop-blur-md text-amber-300 text-[10px] sm:text-xs font-bold">
+              <div className="inline-flex items-center space-x-1 bg-amber-500/10 border border-amber-500/30 rounded-full px-2 sm:px-3 py-0.5 sm:py-1 sm:backdrop-blur-md text-amber-300 text-[10px] sm:text-xs font-bold">
                 <Star className="w-3 sm:w-3.5 h-3 sm:h-3.5 fill-current text-amber-400" />
                 <span>8.9 / 10 IMDb</span>
               </div>
@@ -95,7 +96,7 @@ export default async function Home() {
               </Link>
               <Link 
                 href={`/movie/${featuredMovie.id}`}
-                className="flex-1 sm:flex-none bg-slate-900/80 hover:bg-slate-800/90 text-slate-200 border border-purple-500/30 px-4 sm:px-6 py-3 sm:py-3.5 rounded-full font-semibold flex items-center justify-center transition-all hover:border-rose-500/50 backdrop-blur-md text-xs sm:text-sm min-h-[44px]"
+                className="flex-1 sm:flex-none bg-slate-900/80 hover:bg-slate-800/90 text-slate-200 border border-purple-500/30 px-4 sm:px-6 py-3 sm:py-3.5 rounded-full font-semibold flex items-center justify-center transition-all hover:border-rose-500/50 sm:backdrop-blur-md text-xs sm:text-sm min-h-[44px]"
               >
                 <Info className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-1.5 sm:mr-2 text-rose-400" />
                 <span>Details</span>
@@ -114,7 +115,7 @@ export default async function Home() {
               type="text" 
               name="q" 
               placeholder="Search by title, genre, actor..." 
-              className="w-full bg-slate-900/95 backdrop-blur-2xl border border-purple-500/30 text-slate-100 pl-11 sm:pl-16 pr-24 sm:pr-32 py-3.5 sm:py-5 rounded-full focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 shadow-[0_15px_50px_rgba(0,0,0,0.6)] text-xs sm:text-base md:text-lg transition-all placeholder:text-purple-300/40"
+              className="w-full bg-slate-900/95 sm:backdrop-blur-2xl border border-purple-500/30 text-slate-100 pl-11 sm:pl-16 pr-24 sm:pr-32 py-3.5 sm:py-5 rounded-full focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 shadow-[0_15px_50px_rgba(0,0,0,0.6)] text-xs sm:text-base md:text-lg transition-all placeholder:text-purple-300/40"
             />
             <button 
               type="submit" 
@@ -129,7 +130,7 @@ export default async function Home() {
       {/* Feature Highlights Bar */}
       <section className="max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 mb-8 sm:mb-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4">
-          <div className="bg-slate-900/40 border border-purple-900/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center space-x-3 backdrop-blur-md">
+          <div className="bg-slate-900/40 border border-purple-900/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center space-x-3 sm:backdrop-blur-md">
             <div className="bg-rose-500/10 p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-rose-400 border border-rose-500/20 shrink-0">
               <Zap className="w-4 sm:w-5 h-4 sm:h-5" />
             </div>
@@ -139,7 +140,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="bg-slate-900/40 border border-purple-900/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center space-x-3 backdrop-blur-md">
+          <div className="bg-slate-900/40 border border-purple-900/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center space-x-3 sm:backdrop-blur-md">
             <div className="bg-purple-500/10 p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-purple-400 border border-purple-500/20 shrink-0">
               <Clapperboard className="w-4 sm:w-5 h-4 sm:h-5" />
             </div>
@@ -149,7 +150,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="bg-slate-900/40 border border-purple-900/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center space-x-3 backdrop-blur-md sm:col-span-2 md:col-span-1">
+          <div className="bg-slate-900/40 border border-purple-900/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center space-x-3 sm:backdrop-blur-md sm:col-span-2 md:col-span-1">
             <div className="bg-emerald-500/10 p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-emerald-400 border border-emerald-500/20 shrink-0">
               <ShieldCheck className="w-4 sm:w-5 h-4 sm:h-5" />
             </div>

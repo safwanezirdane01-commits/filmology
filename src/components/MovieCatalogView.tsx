@@ -189,10 +189,10 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
     <div className="space-y-6 sm:space-y-8">
       {/* Continue Watching Row (renders when user has unfinished titles) */}
       {continueWatchingList.length > 0 && (
-        <div className="space-y-3 sm:space-y-4 bg-slate-900/50 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-rose-500/30 backdrop-blur-xl">
+        <div className="space-y-3 sm:space-y-4 bg-slate-900/90 sm:backdrop-blur-xl p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-rose-500/30 shadow-lg">
           <div className="flex items-center justify-between">
             <h3 className="text-base sm:text-xl font-bold text-white flex items-center space-x-2">
-              <Clock className="w-4 sm:w-5 h-4 sm:h-5 text-rose-400 animate-pulse" />
+              <Clock className="w-4 sm:w-5 h-4 sm:h-5 text-rose-400" />
               <span>Continue Watching</span>
               <span className="bg-rose-500/20 text-rose-300 text-xs px-2 py-0.5 rounded-full font-bold">
                 {continueWatchingList.length}
@@ -208,7 +208,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
               return (
                 <div
                   key={`${item.id}-${item.season}-${item.episode}`}
-                  className="group relative flex-none w-48 sm:w-56 bg-slate-950 rounded-2xl overflow-hidden border border-purple-900/40 shadow-lg hover:border-rose-500/50 transition-all duration-300"
+                  className="group relative flex-none w-48 sm:w-56 bg-slate-950 rounded-2xl overflow-hidden border border-purple-900/40 shadow-lg hover:border-rose-500/50 transition-all duration-300 gpu-layer contain-paint"
                 >
                   <Link href={url} className="block relative aspect-video w-full overflow-hidden bg-slate-900">
                     {item.thumbnailUrl ? (
@@ -216,7 +216,8 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                         src={item.thumbnailUrl}
                         alt={item.title}
                         loading="lazy"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        decoding="async"
+                        className="w-full h-full object-cover transition-transform duration-300 sm:group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center">
@@ -276,7 +277,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
       )}
 
       {/* Category Pills & Controls Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-900/40 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-purple-900/30 backdrop-blur-xl">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-900/90 sm:backdrop-blur-xl p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-purple-900/30 shadow-md">
         {/* Category Pills with smooth horizontal scrolling */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none touch-pan-x">
           {categories.map((cat) => {
@@ -322,7 +323,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
 
       {/* Quick Search Deep Link Banner */}
       {filterSearch.trim().length > 1 && (
-        <div className="flex items-center justify-between bg-gradient-to-r from-rose-950/40 via-purple-950/40 to-slate-950/40 border border-rose-500/30 p-3 sm:p-4 rounded-xl sm:rounded-2xl backdrop-blur-md">
+        <div className="flex items-center justify-between bg-gradient-to-r from-rose-950/40 via-purple-950/40 to-slate-950/40 border border-rose-500/30 p-3 sm:p-4 rounded-xl sm:rounded-2xl sm:backdrop-blur-md">
           <div className="flex items-center space-x-2 text-white text-xs sm:text-sm">
             <Sparkles className="w-4 h-4 text-rose-400 shrink-0" />
             <span>
@@ -354,7 +355,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
 
       {/* Movies Grid */}
       {filteredMovies.length === 0 && !loadingMore ? (
-        <div className="text-center text-purple-300 py-16 sm:py-24 bg-slate-900/30 backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-purple-900/30">
+        <div className="text-center text-purple-300 py-16 sm:py-24 bg-slate-900/30 sm:backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-purple-900/30">
           <Film className="w-10 sm:w-14 h-10 sm:h-14 mx-auto mb-3 text-purple-500/40 animate-pulse" />
           <h3 className="text-lg sm:text-xl font-bold text-white mb-1">No movies found in this view</h3>
           <p className="text-xs sm:text-sm text-slate-400 mb-4">
@@ -381,13 +382,14 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                 className="group relative flex flex-col cursor-pointer"
               >
                 {/* Poster Container */}
-                <div className="relative aspect-[2/3] bg-slate-900 rounded-xl sm:rounded-2xl overflow-hidden border border-purple-900/30 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_15px_30px_rgba(244,63,94,0.25)] group-hover:border-rose-500/50">
+                <div className="relative aspect-[2/3] bg-slate-900 rounded-xl sm:rounded-2xl overflow-hidden border border-purple-900/30 transition-all duration-300 sm:group-hover:-translate-y-1.5 sm:group-hover:shadow-[0_15px_30px_rgba(244,63,94,0.25)] sm:group-hover:border-rose-500/50 contain-paint gpu-layer">
                   {movie.thumbnailUrl ? (
                     <img
                       src={movie.thumbnailUrl}
                       alt={movie.title}
                       loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      decoding="async"
+                      className="w-full h-full object-cover transition-transform duration-300 sm:group-hover:scale-105"
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 p-3 text-center">
@@ -401,11 +403,11 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
 
                   {/* Top Badges */}
                   <div className="absolute top-2 sm:top-2.5 left-2 sm:left-2.5 right-2 sm:right-2.5 flex items-center justify-between z-10">
-                    <span className="inline-flex items-center space-x-1 bg-slate-950/85 backdrop-blur-md px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold text-amber-300 border border-amber-500/20 shadow">
+                    <span className="inline-flex items-center space-x-1 bg-slate-950/90 sm:backdrop-blur-md px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold text-amber-300 border border-amber-500/20 shadow">
                       <Star className="w-2.5 sm:w-3 h-2.5 sm:h-3 fill-current text-amber-400" />
                       <span>{rating}</span>
                     </span>
-                    <span className="bg-gradient-to-r from-rose-600/90 to-purple-600/90 backdrop-blur-md px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-white shadow-sm">
+                    <span className="bg-gradient-to-r from-rose-600/90 to-purple-600/90 px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-white shadow-sm">
                       {movie.mediaType === "tv" ? "SERIES" : "4K UHD"}
                     </span>
                   </div>
