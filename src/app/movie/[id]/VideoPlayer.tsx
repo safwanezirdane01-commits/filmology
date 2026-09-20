@@ -41,6 +41,7 @@ export default function VideoPlayer({
   // Watch progress tracking state
   const [savedProgress, setSavedProgress] = useState<WatchItem | null>(null);
   const [showResumeBanner, setShowResumeBanner] = useState<boolean>(true);
+  const [isServerLoaded, setIsServerLoaded] = useState<boolean>(false);
 
   // Check if title is a TV Series (strict - movies are NEVER a series)
   const isSeries = useMemo(() => {
@@ -76,11 +77,12 @@ export default function VideoPlayer({
     };
   }, []);
 
-  // Listen for player postMessage events (e.g. VidLink or HTML5 video) for progress
+  // Listen for player postMessage events (e.g. VidLink or HTML5 video) for progress & auto load status
   useEffect(() => {
     const handleMsg = (e: MessageEvent) => {
       try {
         if (e.data && typeof e.data === "object") {
+          setIsServerLoaded(true);
           const { type, data, time, duration } = e.data;
           let curr = 0;
           let dur = 0;
@@ -335,6 +337,21 @@ export default function VideoPlayer({
     });
   }, [serverList]);
 
+  // Watchdog timer: automatically switch to next server if current server doesn't respond or load within 8s in Auto mode
+  useEffect(() => {
+    if (!isAutoMode || needsPopups || !parsedSources?.isImdbOrTmdb) return;
+
+    setIsServerLoaded(false);
+
+    const watchdog = setTimeout(() => {
+      if (!isServerLoaded) {
+        handleNextServer("Server unreachable");
+      }
+    }, 8000);
+
+    return () => clearTimeout(watchdog);
+  }, [selectedServer, isAutoMode, needsPopups, parsedSources, handleNextServer, isServerLoaded]);
+
   return (
     <div className="flex flex-col gap-3 w-full">
       {/* Resume Watching Progress Banner */}
@@ -582,6 +599,10 @@ export default function VideoPlayer({
               className="w-full h-full border-0"
               allowFullScreen
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              onLoad={() => setIsServerLoaded(true)}
+              onError={() => {
+                if (isAutoMode) handleNextServer("Server error");
+              }}
             />
           )}
         </div>
