@@ -67,21 +67,9 @@ export default function VideoPlayer({
     setShowResumeBanner(!!progress);
   }, [movieVideoUrl, season, episode]);
 
-  // Suppress and block any unauthorized pop-up windows on the client, while allowing authorized ad direct links
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const originalOpen = window.open;
-    window.open = function(url?: string | URL, target?: string, features?: string) {
-      if (url && typeof url === "string" && activeAdLink && url.startsWith(activeAdLink)) {
-        return originalOpen.call(window, url, target, features);
-      }
-      console.warn("Blocked unauthorized popup to:", url);
-      return null;
-    };
-    return () => {
-      window.open = originalOpen;
-    };
-  }, [activeAdLink]);
+  // NOTE: No window.open override here — the iframe sandbox attribute on the player
+  // already blocks streaming servers from opening unauthorized popups.
+  // Our own ad clicks use window.open directly from user gesture (onClick) so they work fine.
 
   // Listen for player postMessage events (e.g. VidLink or HTML5 video) for progress & auto load status
   useEffect(() => {
@@ -292,24 +280,8 @@ export default function VideoPlayer({
 
     if (isVerifyingClick || stepCountdown > 0) return;
 
-    const targetUrl = activeAdLink;
-
-    if (targetUrl) {
-      try {
-        const link = document.createElement("a");
-        link.href = targetUrl;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (err) {
-        console.log("Anchor click error, falling back to window.open:", err);
-        try {
-          window.open(targetUrl, "_blank");
-        } catch {}
-      }
-    }
+    // Open the ad link directly — this is a real user gesture (onClick), so browsers allow it
+    window.open(activeAdLink, "_blank", "noopener,noreferrer");
 
     triggerStepVerification();
   };
