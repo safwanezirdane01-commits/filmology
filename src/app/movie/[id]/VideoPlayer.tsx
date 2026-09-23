@@ -219,17 +219,13 @@ export default function VideoPlayer({
 
     if (isSeries && (isDirectImdb || isDirectTmdb || resolvedImdbId)) {
       server1 = `https://www.nontongo.win/embed/tv/${tmdbParam}/${season}/${episode}`;
-      server2 = effectiveTmdb 
-        ? `https://anyembed.xyz/embed/tmdb-tv-${effectiveTmdb}-${season}-${episode}`
-        : `https://anyembed.xyz/embed/imdb-tv-${imdbParam}-${season}-${episode}`;
+      server2 = `https://vidsrc.io/embed/tv/${tmdbParam}/${season}/${episode}`;
       server3 = `https://vidsrc.sh/embed/tv?tmdb=${tmdbParam}&season=${season}&episode=${episode}`;
       server4 = `https://vidsrc.pm/embed/tv/${tmdbParam}/${season}/${episode}`;
       server5 = `https://vidsrc.in/embed/tv/${tmdbParam}/${season}/${episode}`;
     } else if (isDirectImdb || isDirectTmdb || resolvedImdbId) {
       server1 = `https://www.nontongo.win/embed/movie/${tmdbParam}`;
-      server2 = effectiveTmdb
-        ? `https://anyembed.xyz/embed/tmdb-movie-${effectiveTmdb}`
-        : `https://anyembed.xyz/embed/imdb-movie-${imdbParam}`;
+      server2 = `https://vidsrc.io/embed/movie/${tmdbParam}`;
       server3 = `https://vidsrc.sh/embed/movie?tmdb=${tmdbParam}`;
       server4 = `https://vidsrc.pm/embed/movie/${tmdbParam}`;
       server5 = `https://vidsrc.in/embed/movie/${tmdbParam}`;
@@ -302,7 +298,7 @@ export default function VideoPlayer({
 
   const serverList = useMemo(() => [
     { id: 1, label: "Nontongo (Fast HD)", short: "Nontongo" },
-    { id: 2, label: "AnyEmbed (Multi-Source)", short: "AnyEmbed" },
+    { id: 2, label: "VidSrc IO (Stream 2)", short: "VidSrc IO" },
     { id: 3, label: "VidSrc (Stream 3)", short: "VidSrc" },
     { id: 4, label: "VidSrc Pro (Stream 4)", short: "VidSrc Pro" },
     { id: 5, label: "VidSrc IN (Stream 5)", short: "VidSrc IN" },
