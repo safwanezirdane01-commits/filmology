@@ -574,21 +574,15 @@ export default function VideoPlayer({
 
       {/* Subtitles & Quick Server Failsafe Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/95 border border-purple-500/30 p-3 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl sm:backdrop-blur-md shadow-lg">
-        <div className="flex items-center space-x-2 text-slate-200 flex-1 min-w-0">
-          <span className={`font-bold px-2.5 py-0.5 rounded-full border text-[10px] uppercase tracking-wider shrink-0 flex items-center gap-1 ${arabicSubTracks.length > 0 ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : loadingSubs ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-slate-700/50 text-slate-400 border-slate-600/30"}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${arabicSubTracks.length > 0 ? "bg-emerald-400 animate-pulse" : loadingSubs ? "bg-purple-400 animate-pulse" : "bg-slate-500"}`}></span>
-            <span>Arabic Subs</span>
+        <div className="flex items-center space-x-2.5 text-slate-200 flex-1 min-w-0">
+          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>[CC] Auto Subtitles</span>
           </span>
           <span className="text-slate-300 text-xs truncate">
-            {loadingSubs ? (
-              <span className="text-purple-300">Searching Arabic subtitles...</span>
-            ) : arabicSubTracks.length > 0 ? (
-              <span>
-                <strong className="text-emerald-400">{arabicSubTracks.length} Arabic subtitle file{arabicSubTracks.length > 1 ? "s" : ""} available</strong>. Download to use with player's "Upload" button if needed.
-              </span>
-            ) : (
-              <span className="text-slate-400">Stream buffering or black screen? Try switching servers.</span>
-            )}
+            <span>
+              <strong className="text-emerald-400">Arabic & English built-in</strong>: Click the <span className="bg-slate-800 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30 font-mono text-[10px] font-bold">CC</span> icon on the video player to select your language.
+            </span>
           </span>
         </div>
 
@@ -597,24 +591,12 @@ export default function VideoPlayer({
           <button
             type="button"
             onClick={() => handleNextServer()}
-            className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-200 hover:text-white px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow"
+            className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow hover:scale-[1.02]"
             title="Stream stuck or buffering? Click to switch to next server instantly"
           >
             <RefreshCw className="w-3.5 h-3.5 text-rose-400" />
             <span>Switch Server (↻)</span>
           </button>
-
-          {/* Download Arabic Subtitles Button on the Side */}
-          {arabicSubTracks.length > 0 && activeArabicSubUrl && (
-            <a
-              href={`${activeArabicSubUrl}&download=true&filename=Arabic_Subtitles.vtt`}
-              download="Arabic_Subtitles.vtt"
-              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition-all hover:scale-105 cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download Subs</span>
-            </a>
-          )}
         </div>
       </div>
 
