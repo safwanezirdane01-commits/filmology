@@ -35,6 +35,7 @@ export default function VideoPlayer({
   const targetClicks = Math.max(1, effectiveClicks);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+
   // Arabic subtitle state & IMDb ID resolution
   const [arabicSubTracks, setArabicSubTracks] = useState<Array<{ id: string; label: string; url: string }>>([]);
   const [activeArabicSubUrl, setActiveArabicSubUrl] = useState<string | null>(null);
@@ -67,9 +68,12 @@ export default function VideoPlayer({
     setShowResumeBanner(!!progress);
   }, [movieVideoUrl, season, episode]);
 
+
+
   // NOTE: No window.open override here — the iframe sandbox attribute on the player
   // already blocks streaming servers from opening unauthorized popups.
   // Our own ad clicks use window.open directly from user gesture (onClick) so they work fine.
+
 
   // Listen for player postMessage events (e.g. VidLink or HTML5 video) for progress & auto load status
   useEffect(() => {
@@ -208,16 +212,16 @@ export default function VideoPlayer({
     let server5 = "";
 
     if (isSeries && (isImdbId || isTmdbId)) {
-      server1 = `https://www.2embed.skin/embedtv/${effectiveId}&s=${season}&e=${episode}`;
-      server2 = `https://anyembed.xyz/embed/tmdb-tv-${effectiveId}-${season}-${episode}`;
-      server3 = `https://vidsrc.sh/embed/tv?tmdb=${effectiveId}&season=${season}&episode=${episode}`;
-      server4 = `https://frembed.pro/api/serie.php?id=${effectiveId}&sa=${season}&epi=${episode}`;
+      server1 = `https://www.vidcore.org/embed/tv/${effectiveId}/${season}/${episode}`;
+      server2 = `https://www.nontongo.win/embed/tv/${effectiveId}/${season}/${episode}`;
+      server3 = `https://anyembed.xyz/embed/tmdb-tv-${effectiveId}-${season}-${episode}`;
+      server4 = `https://vidsrc.sh/embed/tv?tmdb=${effectiveId}&season=${season}&episode=${episode}`;
       server5 = `https://autoembed.co/tv/tmdb/${effectiveId}/${season}/${episode}`;
     } else if (isImdbId || isTmdbId) {
-      server1 = `https://www.2embed.skin/embed/${effectiveId}`;
-      server2 = `https://anyembed.xyz/embed/tmdb-movie-${effectiveId}`;
-      server3 = `https://vidsrc.sh/embed/movie?tmdb=${effectiveId}`;
-      server4 = `https://frembed.pro/api/film.php?id=${effectiveId}`;
+      server1 = `https://www.vidcore.org/embed/movie/${effectiveId}`;
+      server2 = `https://www.nontongo.win/embed/movie/${effectiveId}`;
+      server3 = `https://anyembed.xyz/embed/tmdb-movie-${effectiveId}`;
+      server4 = `https://vidsrc.sh/embed/movie?tmdb=${effectiveId}`;
       server5 = `https://autoembed.co/movie/tmdb/${effectiveId}`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
@@ -287,10 +291,10 @@ export default function VideoPlayer({
   const needsPopups = (adsEnabled ?? true) && clickCount < targetClicks;
 
   const serverList = useMemo(() => [
-    { id: 1, label: "2Embed (Stream 1)", short: "2Embed" },
-    { id: 2, label: "AnyEmbed (Stream 2)", short: "AnyEmbed" },
-    { id: 3, label: "VidSrc (Stream 3)", short: "VidSrc" },
-    { id: 4, label: "FrEmbed (Stream 4)", short: "FrEmbed" },
+    { id: 1, label: "VidCore (Fast HD)", short: "VidCore" },
+    { id: 2, label: "Nontongo (Ultra HD)", short: "Nontongo" },
+    { id: 3, label: "AnyEmbed (HD Stream)", short: "AnyEmbed" },
+    { id: 4, label: "VidSrc (Stream 4)", short: "VidSrc" },
     { id: 5, label: "AutoEmbed (Stream 5)", short: "AutoEmbed" },
   ], []);
 
@@ -541,21 +545,22 @@ export default function VideoPlayer({
         {/* Video Player Frame */}
         <div className="w-full h-full relative">
           {parsedSources.isDirectVideo ? (
-            <video 
+            <video
               ref={videoRef}
               key={`direct-${parsedSources.currentUrl}`}
               controls={!needsPopups}
-              className="w-full h-full object-contain" 
+              className="w-full h-full object-contain"
               poster={thumbnailUrl || undefined}
               src={parsedSources.currentUrl}
               playsInline
             />
           ) : (
-            <iframe 
+            <iframe
               key={`embed-${parsedSources.currentUrl}`}
               src={needsPopups ? undefined : parsedSources.currentUrl}
               className="w-full h-full border-0"
               allowFullScreen
+              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               onLoad={() => setIsServerLoaded(true)}
               onError={() => {
@@ -564,6 +569,7 @@ export default function VideoPlayer({
             />
           )}
         </div>
+
       </div>
 
       {/* Subtitles & Quick Server Failsafe Bar */}
