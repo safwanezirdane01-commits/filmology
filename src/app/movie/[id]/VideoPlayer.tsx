@@ -251,39 +251,20 @@ export default function VideoPlayer({
     };
   }, [movieVideoUrl, resolvedImdbId, selectedServer, isSeries, season, episode]);
 
-  // Anti-bypass ad verification state (stops Brave Shields / AdBlockers from bypassing)
-  const [blockedByAdBlocker, setBlockedByAdBlocker] = useState<boolean>(false);
-  const [isVerifyingClick, setIsVerifyingClick] = useState<boolean>(false);
-  const [stepCountdown, setStepCountdown] = useState<number>(0);
 
-  const triggerStepVerification = () => {
-    setBlockedByAdBlocker(false);
-    setIsVerifyingClick(true);
-    setStepCountdown(3);
-
-    const timer = setInterval(() => {
-      setStepCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setIsVerifyingClick(false);
-          setClickCount((c) => c + 1);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
 
   const handleFakeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isVerifyingClick || stepCountdown > 0) return;
+    // Immediately trigger the ad tab upon direct user click
+    try {
+      window.open(activeAdLink, "_blank");
+    } catch (err) {
+      console.error("Popup launch error:", err);
+    }
 
-    // Open the ad link directly — this is a real user gesture (onClick), so browsers allow it
-    window.open(activeAdLink, "_blank", "noopener,noreferrer");
-
-    triggerStepVerification();
+    setClickCount((prev) => prev + 1);
   };
 
   // Auto-play when direct video becomes unblocked
@@ -514,13 +495,9 @@ export default function VideoPlayer({
             className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 sm:backdrop-blur-md p-4 text-center transition-all select-none"
             onClick={handleFakeClick}
           >
-            {/* Play Icon / Spinner */}
-            <div className="w-14 sm:w-20 h-14 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-3 sm:mb-5 cursor-pointer">
-              {isVerifyingClick ? (
-                <span className="text-white font-black text-xl sm:text-2xl animate-spin">⌛</span>
-              ) : (
-                <Play className="w-6 sm:w-9 h-6 sm:h-9 text-white fill-current ml-0.5 sm:ml-1" />
-              )}
+            {/* Play Icon */}
+            <div className="w-14 sm:w-20 h-14 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-3 sm:mb-5 cursor-pointer hover:scale-105">
+              <Play className="w-6 sm:w-9 h-6 sm:h-9 text-white fill-current ml-0.5 sm:ml-1" />
             </div>
             
             {/* Ad Verification Card */}
@@ -531,17 +508,11 @@ export default function VideoPlayer({
               </div>
               
               <h3 className="text-base sm:text-xl font-bold text-white mb-1">
-                {isVerifyingClick ? (
-                  <span className="text-purple-300">Verifying Step {clickCount + 1}... ({stepCountdown}s)</span>
-                ) : (
-                  "Unlock HD Stream"
-                )}
+                Unlock HD Stream
               </h3>
 
               <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed">
-                {isVerifyingClick
-                  ? "Please wait a moment while your step is verified..."
-                  : `Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
+                {`Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
               </p>
               
               {/* Progress Bar */}
@@ -585,7 +556,6 @@ export default function VideoPlayer({
               src={needsPopups ? undefined : parsedSources.currentUrl}
               className="w-full h-full border-0"
               allowFullScreen
-              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               onLoad={() => setIsServerLoaded(true)}
               onError={() => {
