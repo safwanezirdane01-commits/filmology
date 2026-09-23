@@ -190,11 +190,14 @@ export default function VideoPlayer({
       trimmed = trimmed.replace("tv:", "");
     }
 
-    const effectiveId = resolvedImdbId || trimmed;
+    // Check whether trimmed is an IMDb ID (e.g. tt0816692) or TMDb ID (e.g. 157336 or 1399)
+    const isDirectImdb = /^tt\d+$/i.test(trimmed);
+    const isDirectTmdb = /^\d+$/.test(trimmed);
 
-    // Check if it's an IMDb ID (e.g. tt0816692) or TMDb ID (e.g. 157336)
-    const isImdbId = /^tt\d+$/i.test(effectiveId);
-    const isTmdbId = /^\d+$/.test(effectiveId);
+    // Keep TMDb ID clean (numeric) and IMDb ID clean (starts with tt)
+    const effectiveTmdb = isDirectTmdb ? trimmed : "";
+    const effectiveImdb = isDirectImdb ? trimmed : (resolvedImdbId || "");
+    const effectiveId = effectiveTmdb || effectiveImdb || trimmed;
 
     // Check if it's a direct video link (.mp4, .webm, .ogg, .m3u8, etc.)
     const isDirectVideo = /\.(mp4|webm|ogg|m4v|m3u8)($|\?)/i.test(trimmed) || 
@@ -211,18 +214,25 @@ export default function VideoPlayer({
     let server4 = "";
     let server5 = "";
 
-    if (isSeries && (isImdbId || isTmdbId)) {
-      server1 = `https://www.vidcore.org/embed/tv/${effectiveId}/${season}/${episode}`;
-      server2 = `https://www.nontongo.win/embed/tv/${effectiveId}/${season}/${episode}`;
-      server3 = `https://anyembed.xyz/embed/tmdb-tv-${effectiveId}-${season}-${episode}`;
-      server4 = `https://vidsrc.sh/embed/tv?tmdb=${effectiveId}&season=${season}&episode=${episode}`;
-      server5 = `https://autoembed.co/tv/tmdb/${effectiveId}/${season}/${episode}`;
-    } else if (isImdbId || isTmdbId) {
-      server1 = `https://www.vidcore.org/embed/movie/${effectiveId}`;
-      server2 = `https://www.nontongo.win/embed/movie/${effectiveId}`;
-      server3 = `https://anyembed.xyz/embed/tmdb-movie-${effectiveId}`;
-      server4 = `https://vidsrc.sh/embed/movie?tmdb=${effectiveId}`;
-      server5 = `https://autoembed.co/movie/tmdb/${effectiveId}`;
+    const tmdbParam = effectiveTmdb || trimmed;
+    const imdbParam = effectiveImdb || trimmed;
+
+    if (isSeries && (isDirectImdb || isDirectTmdb || resolvedImdbId)) {
+      server1 = `https://www.nontongo.win/embed/tv/${tmdbParam}/${season}/${episode}`;
+      server2 = effectiveTmdb 
+        ? `https://anyembed.xyz/embed/tmdb-tv-${effectiveTmdb}-${season}-${episode}`
+        : `https://anyembed.xyz/embed/imdb-tv-${imdbParam}-${season}-${episode}`;
+      server3 = `https://vidsrc.sh/embed/tv?tmdb=${tmdbParam}&season=${season}&episode=${episode}`;
+      server4 = `https://vidsrc.pm/embed/tv/${tmdbParam}/${season}/${episode}`;
+      server5 = `https://vidsrc.in/embed/tv/${tmdbParam}/${season}/${episode}`;
+    } else if (isDirectImdb || isDirectTmdb || resolvedImdbId) {
+      server1 = `https://www.nontongo.win/embed/movie/${tmdbParam}`;
+      server2 = effectiveTmdb
+        ? `https://anyembed.xyz/embed/tmdb-movie-${effectiveTmdb}`
+        : `https://anyembed.xyz/embed/imdb-movie-${imdbParam}`;
+      server3 = `https://vidsrc.sh/embed/movie?tmdb=${tmdbParam}`;
+      server4 = `https://vidsrc.pm/embed/movie/${tmdbParam}`;
+      server5 = `https://vidsrc.in/embed/movie/${tmdbParam}`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
       server2 = youtubeEmbed;
@@ -244,7 +254,7 @@ export default function VideoPlayer({
     }
 
     return {
-      isImdbOrTmdb: isImdbId || isTmdbId,
+      isImdbOrTmdb: isDirectImdb || isDirectTmdb || !!resolvedImdbId,
       isDirectVideo,
       server1,
       server2,
@@ -291,11 +301,11 @@ export default function VideoPlayer({
   const needsPopups = (adsEnabled ?? true) && clickCount < targetClicks;
 
   const serverList = useMemo(() => [
-    { id: 1, label: "VidCore (Fast HD)", short: "VidCore" },
-    { id: 2, label: "Nontongo (Ultra HD)", short: "Nontongo" },
-    { id: 3, label: "AnyEmbed (HD Stream)", short: "AnyEmbed" },
-    { id: 4, label: "VidSrc (Stream 4)", short: "VidSrc" },
-    { id: 5, label: "AutoEmbed (Stream 5)", short: "AutoEmbed" },
+    { id: 1, label: "Nontongo (Fast HD)", short: "Nontongo" },
+    { id: 2, label: "AnyEmbed (Multi-Source)", short: "AnyEmbed" },
+    { id: 3, label: "VidSrc (Stream 3)", short: "VidSrc" },
+    { id: 4, label: "VidSrc Pro (Stream 4)", short: "VidSrc Pro" },
+    { id: 5, label: "VidSrc IN (Stream 5)", short: "VidSrc IN" },
   ], []);
 
   const handleNextServer = useCallback((reason?: string) => {
@@ -560,7 +570,6 @@ export default function VideoPlayer({
               src={needsPopups ? undefined : parsedSources.currentUrl}
               className="w-full h-full border-0"
               allowFullScreen
-              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               onLoad={() => setIsServerLoaded(true)}
               onError={() => {
