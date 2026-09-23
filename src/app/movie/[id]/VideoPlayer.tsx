@@ -211,13 +211,13 @@ export default function VideoPlayer({
       server1 = `https://autoembed.co/tv/tmdb/${effectiveId}/${season}/${episode}`;
       server2 = `https://rivestream.live/embed?type=serie&id=${effectiveId}&season=${season}&episode=${episode}`;
       server3 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
-      server4 = `https://vidsrc.to/embed/tv/${effectiveId}/${season}/${episode}`;
+      server4 = `https://embed.smashystream.com/playere.php?tmdb=${effectiveId}&season=${season}&episode=${episode}`;
       server5 = `https://player.videasy.to/tv/${effectiveId}/${season}/${episode}?color=e11d48`;
     } else if (isImdbId || isTmdbId) {
       server1 = `https://autoembed.co/movie/tmdb/${effectiveId}`;
       server2 = `https://rivestream.live/embed?type=movie&id=${effectiveId}`;
       server3 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
-      server4 = `https://vidsrc.to/embed/movie/${effectiveId}`;
+      server4 = `https://embed.smashystream.com/playere.php?tmdb=${effectiveId}`;
       server5 = `https://player.videasy.to/movie/${effectiveId}?color=e11d48`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
@@ -290,7 +290,7 @@ export default function VideoPlayer({
     { id: 1, label: "AutoEmbed (1080p)", short: "AutoEmbed" },
     { id: 2, label: "RiveStream (Fast HD)", short: "RiveStream" },
     { id: 3, label: "MultiEmbed (HD)", short: "MultiEmbed" },
-    { id: 4, label: "VidSrc (Stream 4)", short: "VidSrc" },
+    { id: 4, label: "SmashyStream (Stream 4)", short: "SmashyStream" },
     { id: 5, label: "Videasy (Stream 5)", short: "Videasy" },
   ], []);
 
