@@ -208,17 +208,17 @@ export default function VideoPlayer({
     let server5 = "";
 
     if (isSeries && (isImdbId || isTmdbId)) {
-      server1 = `https://player.videasy.to/tv/${effectiveId}/${season}/${episode}?color=e11d48`;
-      server2 = `https://vidlink.pro/tv/${effectiveId}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server3 = `https://embed.su/embed/tv/${effectiveId}/${season}/${episode}`;
-      server4 = `https://autoembed.co/tv/tmdb/${effectiveId}/${season}/${episode}`;
-      server5 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
+      server1 = `https://autoembed.co/tv/tmdb/${effectiveId}/${season}/${episode}`;
+      server2 = `https://rivestream.live/embed?type=serie&id=${effectiveId}&season=${season}&episode=${episode}`;
+      server3 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
+      server4 = `https://vidsrc.to/embed/tv/${effectiveId}/${season}/${episode}`;
+      server5 = `https://player.videasy.to/tv/${effectiveId}/${season}/${episode}?color=e11d48`;
     } else if (isImdbId || isTmdbId) {
-      server1 = `https://player.videasy.to/movie/${effectiveId}?color=e11d48`;
-      server2 = `https://vidlink.pro/movie/${effectiveId}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
-      server3 = `https://embed.su/embed/movie/${effectiveId}`;
-      server4 = `https://autoembed.co/movie/tmdb/${effectiveId}`;
-      server5 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
+      server1 = `https://autoembed.co/movie/tmdb/${effectiveId}`;
+      server2 = `https://rivestream.live/embed?type=movie&id=${effectiveId}`;
+      server3 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
+      server4 = `https://vidsrc.to/embed/movie/${effectiveId}`;
+      server5 = `https://player.videasy.to/movie/${effectiveId}?color=e11d48`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
       server2 = youtubeEmbed;
@@ -287,11 +287,11 @@ export default function VideoPlayer({
   const needsPopups = (adsEnabled ?? true) && clickCount < targetClicks;
 
   const serverList = useMemo(() => [
-    { id: 1, label: "Videasy (Ad-Free HD)", short: "Videasy" },
-    { id: 2, label: "VidLink (Fast HD)", short: "VidLink" },
-    { id: 3, label: "EmbedSu (1080p)", short: "EmbedSu" },
-    { id: 4, label: "AutoEmbed (Fast)", short: "AutoEmbed" },
-    { id: 5, label: "MultiEmbed (HD)", short: "MultiEmbed" },
+    { id: 1, label: "AutoEmbed (1080p)", short: "AutoEmbed" },
+    { id: 2, label: "RiveStream (Fast HD)", short: "RiveStream" },
+    { id: 3, label: "MultiEmbed (HD)", short: "MultiEmbed" },
+    { id: 4, label: "VidSrc (Stream 4)", short: "VidSrc" },
+    { id: 5, label: "Videasy (Stream 5)", short: "Videasy" },
   ], []);
 
   const handleNextServer = useCallback((reason?: string) => {
@@ -384,7 +384,7 @@ export default function VideoPlayer({
                 onClick={() => {
                   setIsAutoMode(true);
                   setSelectedServer(1);
-                  setAutoStatusMessage("⚡ Auto Mode: Playing Ad-Free stream (Videasy)");
+                  setAutoStatusMessage("⚡ Auto Mode: Playing fastest stream (AutoEmbed)");
                   setTimeout(() => setAutoStatusMessage(null), 3500);
                 }}
                 className={`px-2.5 py-1 rounded-lg font-bold transition-all text-xs flex items-center space-x-1 cursor-pointer ${
