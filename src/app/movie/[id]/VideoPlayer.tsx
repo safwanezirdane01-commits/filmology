@@ -70,9 +70,37 @@ export default function VideoPlayer({
 
 
 
-  // NOTE: No window.open override here — the iframe sandbox attribute on the player
-  // already blocks streaming servers from opening unauthorized popups.
-  // Our own ad clicks use window.open directly from user gesture (onClick) so they work fine.
+  // 🛡️ Option C: Client-Side Pop-under Defuser & Window Shield
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // 1. Intercept and neutralize any rogue window.open calls from escaping scripts
+    const originalOpen = window.open;
+    window.open = function (url?: string | URL, target?: string, features?: string) {
+      const urlStr = typeof url === "string" ? url : url?.toString() || "";
+      // Only permit our authorized monetization ad link
+      if (urlStr && activeAdLink && (urlStr === activeAdLink || urlStr.startsWith(activeAdLink.split("?")[0]))) {
+        return originalOpen.call(window, url, target, features);
+      }
+      console.warn("🛡️ FilmologyX Defuser: Blocked unauthorized popup to:", urlStr);
+      return null;
+    };
+
+    // 2. Auto-Reclaim Focus: If an embed attempts to open a pop-under tab and steal focus, immediately bring focus back
+    const handleBlur = () => {
+      setTimeout(() => {
+        window.focus();
+      }, 50);
+    };
+
+    window.addEventListener("blur", handleBlur);
+
+    return () => {
+      window.open = originalOpen;
+      window.removeEventListener("blur", handleBlur);
+    };
+  }, [activeAdLink]);
+
 
 
   // Listen for player postMessage events (e.g. VidLink or HTML5 video) for progress & auto load status
