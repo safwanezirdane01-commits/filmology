@@ -209,13 +209,13 @@ export default function VideoPlayer({
 
     if (isSeries && (isImdbId || isTmdbId)) {
       server1 = `https://autoembed.co/tv/tmdb/${effectiveId}/${season}/${episode}`;
-      server2 = `https://rivestream.live/embed?type=serie&id=${effectiveId}&season=${season}&episode=${episode}`;
+      server2 = `https://embed.rgshows.me/api/1/tv/?id=${effectiveId}&s=${season}&e=${episode}`;
       server3 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
       server4 = `https://embed.smashystream.com/playere.php?tmdb=${effectiveId}&season=${season}&episode=${episode}`;
       server5 = `https://player.videasy.to/tv/${effectiveId}/${season}/${episode}?color=e11d48`;
     } else if (isImdbId || isTmdbId) {
       server1 = `https://autoembed.co/movie/tmdb/${effectiveId}`;
-      server2 = `https://rivestream.live/embed?type=movie&id=${effectiveId}`;
+      server2 = `https://embed.rgshows.me/api/1/movie/?id=${effectiveId}`;
       server3 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
       server4 = `https://embed.smashystream.com/playere.php?tmdb=${effectiveId}`;
       server5 = `https://player.videasy.to/movie/${effectiveId}?color=e11d48`;
@@ -288,7 +288,7 @@ export default function VideoPlayer({
 
   const serverList = useMemo(() => [
     { id: 1, label: "AutoEmbed (1080p)", short: "AutoEmbed" },
-    { id: 2, label: "RiveStream (Fast HD)", short: "RiveStream" },
+    { id: 2, label: "RGShows (Fast Stream)", short: "RGShows" },
     { id: 3, label: "MultiEmbed (HD)", short: "MultiEmbed" },
     { id: 4, label: "SmashyStream (Stream 4)", short: "SmashyStream" },
     { id: 5, label: "Videasy (Stream 5)", short: "Videasy" },
