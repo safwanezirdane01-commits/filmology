@@ -208,17 +208,17 @@ export default function VideoPlayer({
     let server5 = "";
 
     if (isSeries && (isImdbId || isTmdbId)) {
-      server1 = `https://autoembed.co/tv/tmdb/${effectiveId}/${season}/${episode}`;
-      server2 = `https://embed.rgshows.me/api/1/tv/?id=${effectiveId}&s=${season}&e=${episode}`;
-      server3 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1&s=${season}&e=${episode}`;
-      server4 = `https://embed.smashystream.com/playere.php?tmdb=${effectiveId}&season=${season}&episode=${episode}`;
-      server5 = `https://player.videasy.to/tv/${effectiveId}/${season}/${episode}?color=e11d48`;
+      server1 = `https://www.2embed.skin/embedtv/${effectiveId}&s=${season}&e=${episode}`;
+      server2 = `https://anyembed.xyz/embed/tmdb-tv-${effectiveId}-${season}-${episode}`;
+      server3 = `https://vidsrc.sh/embed/tv?tmdb=${effectiveId}&season=${season}&episode=${episode}`;
+      server4 = `https://frembed.pro/api/serie.php?id=${effectiveId}&sa=${season}&epi=${episode}`;
+      server5 = `https://autoembed.co/tv/tmdb/${effectiveId}/${season}/${episode}`;
     } else if (isImdbId || isTmdbId) {
-      server1 = `https://autoembed.co/movie/tmdb/${effectiveId}`;
-      server2 = `https://embed.rgshows.me/api/1/movie/?id=${effectiveId}`;
-      server3 = `https://multiembed.mov/?video_id=${effectiveId}&tmdb=1`;
-      server4 = `https://embed.smashystream.com/playere.php?tmdb=${effectiveId}`;
-      server5 = `https://player.videasy.to/movie/${effectiveId}?color=e11d48`;
+      server1 = `https://www.2embed.skin/embed/${effectiveId}`;
+      server2 = `https://anyembed.xyz/embed/tmdb-movie-${effectiveId}`;
+      server3 = `https://vidsrc.sh/embed/movie?tmdb=${effectiveId}`;
+      server4 = `https://frembed.pro/api/film.php?id=${effectiveId}`;
+      server5 = `https://autoembed.co/movie/tmdb/${effectiveId}`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
       server2 = youtubeEmbed;
@@ -287,11 +287,11 @@ export default function VideoPlayer({
   const needsPopups = (adsEnabled ?? true) && clickCount < targetClicks;
 
   const serverList = useMemo(() => [
-    { id: 1, label: "AutoEmbed (1080p)", short: "AutoEmbed" },
-    { id: 2, label: "RGShows (Fast Stream)", short: "RGShows" },
-    { id: 3, label: "MultiEmbed (HD)", short: "MultiEmbed" },
-    { id: 4, label: "SmashyStream (Stream 4)", short: "SmashyStream" },
-    { id: 5, label: "Videasy (Stream 5)", short: "Videasy" },
+    { id: 1, label: "2Embed (Stream 1)", short: "2Embed" },
+    { id: 2, label: "AnyEmbed (Stream 2)", short: "AnyEmbed" },
+    { id: 3, label: "VidSrc (Stream 3)", short: "VidSrc" },
+    { id: 4, label: "FrEmbed (Stream 4)", short: "FrEmbed" },
+    { id: 5, label: "AutoEmbed (Stream 5)", short: "AutoEmbed" },
   ], []);
 
   const handleNextServer = useCallback((reason?: string) => {
