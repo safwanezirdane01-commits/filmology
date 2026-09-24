@@ -165,6 +165,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
         <div className="absolute -inset-2 sm:-inset-6 bg-gradient-to-r from-rose-600/30 via-purple-600/25 to-rose-600/30 rounded-2xl sm:rounded-3xl blur-xl sm:blur-2xl opacity-60 group-hover:opacity-90 transition-opacity duration-1000 -z-10" />
 
         <VideoPlayer 
+          movieId={movie.id}
           movieVideoUrl={movie.videoUrl} 
           thumbnailUrl={movie.thumbnailUrl} 
           genre={movie.genre}

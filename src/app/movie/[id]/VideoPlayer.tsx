@@ -7,6 +7,7 @@ import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
 
 export default function VideoPlayer({ 
+  movieId,
   movieVideoUrl, 
   thumbnailUrl,
   genre,
@@ -15,6 +16,7 @@ export default function VideoPlayer({
   requiredClicks = 2,
   adsEnabled = true,
 }: { 
+  movieId: string;
   movieVideoUrl: string | null; 
   thumbnailUrl: string | null;
   genre?: string;
@@ -62,11 +64,11 @@ export default function VideoPlayer({
 
   // Load saved watch progress for current title/season/episode
   useEffect(() => {
-    if (!movieVideoUrl) return;
-    const progress = getWatchProgress(movieVideoUrl, season, episode);
+    if (!movieId) return;
+    const progress = getWatchProgress(movieId, season, episode);
     setSavedProgress(progress);
     setShowResumeBanner(!!progress);
-  }, [movieVideoUrl, season, episode]);
+  }, [movieId, season, episode]);
 
 
 
@@ -109,9 +111,9 @@ export default function VideoPlayer({
             curr = time;
             dur = duration || 0;
           }
-          if (curr > 5 && movieVideoUrl) {
+          if (curr > 5 && movieId) {
             saveWatchProgress({
-              id: movieVideoUrl,
+              id: movieId,
               title: title || "Movie",
               thumbnailUrl,
               currentTime: Math.floor(curr),
@@ -120,7 +122,7 @@ export default function VideoPlayer({
               season: isSeries ? season : undefined,
               episode: isSeries ? episode : undefined,
             });
-            const updated = getWatchProgress(movieVideoUrl, season, episode);
+            const updated = getWatchProgress(movieId, season, episode);
             if (updated) setSavedProgress(updated);
           }
         }
@@ -129,18 +131,16 @@ export default function VideoPlayer({
 
     window.addEventListener("message", handleMsg);
     return () => window.removeEventListener("message", handleMsg);
-  }, [movieVideoUrl, title, thumbnailUrl, genre, isSeries, season, episode]);
+  }, [movieId, movieVideoUrl, title, thumbnailUrl, genre, isSeries, season, episode]);
 
   // Periodic watch progress saver while user stays on player page
   useEffect(() => {
-    if (!movieVideoUrl) return;
-    let secondsWatched = 0;
+    if (!movieId) return;
     const interval = setInterval(() => {
-      secondsWatched += 15;
-      const existing = getWatchProgress(movieVideoUrl, season, episode);
+      const existing = getWatchProgress(movieId, season, episode);
       const newTime = (existing?.currentTime || 0) + 15;
       saveWatchProgress({
-        id: movieVideoUrl,
+        id: movieId,
         title: title || "Movie",
         thumbnailUrl,
         currentTime: newTime,
@@ -149,12 +149,12 @@ export default function VideoPlayer({
         season: isSeries ? season : undefined,
         episode: isSeries ? episode : undefined,
       });
-      const p = getWatchProgress(movieVideoUrl, season, episode);
+      const p = getWatchProgress(movieId, season, episode);
       if (p) setSavedProgress(p);
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [movieVideoUrl, title, thumbnailUrl, genre, isSeries, season, episode]);
+  }, [movieId, title, thumbnailUrl, genre, isSeries, season, episode]);
 
   // Fetch verified Arabic subtitles from /api/subtitles & resolve IMDb ID
   useEffect(() => {
@@ -385,7 +385,7 @@ export default function VideoPlayer({
             <button
               type="button"
               onClick={() => {
-                if (movieVideoUrl) clearWatchItem(movieVideoUrl, season, episode);
+                clearWatchItem(movieId, season, episode);
                 setSavedProgress(null);
                 setShowResumeBanner(false);
               }}
