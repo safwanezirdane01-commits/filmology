@@ -10,20 +10,48 @@ import { Star, Sparkles, Film, Play, Tv, Share2 } from "lucide-react";
 import { CURATED_CATALOG } from "@/lib/catalog";
 
 async function getMovieSafely(id: string) {
+  let cleanId = id.trim();
   try {
-    const movie = await prisma.movie.findUnique({ where: { id } });
+    cleanId = decodeURIComponent(cleanId).trim();
+  } catch {}
+  cleanId = cleanId.replace(/%3a/gi, ":").replace(/%2d/gi, "-");
+
+  const normalizedLower = cleanId.toLowerCase();
+  const tvStripped = normalizedLower.replace(/^tv[:-]/i, "");
+
+  // 1. Database query with multiple ID format fallbacks
+  try {
+    const movie = await prisma.movie.findFirst({
+      where: {
+        OR: [
+          { id: cleanId },
+          { id: id },
+          { videoUrl: cleanId },
+          { videoUrl: id },
+          ...(normalizedLower.startsWith("tv:") || normalizedLower.startsWith("tv-") ? [
+            { id: `tv-${tvStripped}` },
+            { id: `tv:${tvStripped}` },
+            { videoUrl: `tv:${tvStripped}` },
+            { videoUrl: `tv-${tvStripped}` },
+            { videoUrl: tvStripped },
+          ] : [])
+        ]
+      }
+    });
     if (movie) return movie;
   } catch (err) {
     console.warn("Database query failed in getMovieSafely, using catalog fallback:", err);
   }
 
-  // Fallback to CURATED_CATALOG matching by exact id, videoUrl (TMDb ID), or title slug
-  const cleanId = id.trim().toLowerCase();
+  // 2. Fallback to CURATED_CATALOG matching by exact id, videoUrl (TMDb ID), or title slug
   const foundInCatalog = CURATED_CATALOG.find(
     (c) =>
-      c.id.toLowerCase() === cleanId ||
-      c.videoUrl.toLowerCase() === cleanId ||
-      c.title.toLowerCase().replace(/[^a-z0-9]/g, "") === cleanId
+      c.id.toLowerCase() === normalizedLower ||
+      c.id.toLowerCase() === tvStripped ||
+      c.videoUrl.toLowerCase() === normalizedLower ||
+      c.videoUrl.toLowerCase() === tvStripped ||
+      c.videoUrl.toLowerCase() === `tv:${tvStripped}` ||
+      c.title.toLowerCase().replace(/[^a-z0-9]/g, "") === normalizedLower
   );
 
   if (foundInCatalog) {
@@ -43,7 +71,7 @@ async function getMovieSafely(id: string) {
   // 3. Universal Resolver: Fetch from entire global IMDb & TMDb library
   try {
     const { getUniversalMovieOrShow } = await import("@/lib/tmdb");
-    const universal = await getUniversalMovieOrShow(id);
+    const universal = await getUniversalMovieOrShow(cleanId);
     if (universal) {
       return {
         id: universal.id,

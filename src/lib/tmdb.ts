@@ -131,7 +131,11 @@ export async function searchUniversal(query: string, page: number = 1): Promise<
  */
 export async function getUniversalMovieOrShow(id: string): Promise<UniversalItem | null> {
   if (!id) return null;
-  const clean = id.trim();
+  let clean = id.trim();
+  try {
+    clean = decodeURIComponent(clean).trim();
+  } catch {}
+  clean = clean.replace(/%3a/gi, ":").replace(/%2d/gi, "-");
 
   // 1. Check if IMDb ID (e.g. tt0816692)
   if (/^tt\d+$/i.test(clean)) {
@@ -155,8 +159,8 @@ export async function getUniversalMovieOrShow(id: string): Promise<UniversalItem
   }
 
   // 2. Check if explicit TV ID (e.g. tv-1396 or tv:1396)
-  const isTvPrefix = clean.startsWith("tv-") || clean.startsWith("tv:");
-  const numericId = clean.replace(/^tv[-:]/i, "");
+  const isTvPrefix = clean.toLowerCase().startsWith("tv-") || clean.toLowerCase().startsWith("tv:");
+  const numericId = clean.replace(/^tv[:-]/i, "");
 
   if (isTvPrefix) {
     try {

@@ -202,9 +202,10 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
 
           <div className="flex items-center gap-3.5 overflow-x-auto pb-2 scrollbar-none touch-pan-x">
             {continueWatchingList.map((item) => {
+              const safeId = (item.id || "").replace(/^tv:/i, "tv-");
               const url = item.season && item.episode 
-                ? `/movie/${item.id}?season=${item.season}&episode=${item.episode}`
-                : `/movie/${item.id}`;
+                ? `/movie/${safeId}?season=${item.season}&episode=${item.episode}`
+                : `/movie/${safeId}`;
               return (
                 <div
                   key={`${item.id}-${item.season}-${item.episode}`}

@@ -13,11 +13,26 @@ export interface WatchItem {
 
 const STORAGE_KEY = "filmologyx_watch_history_v1";
 
+export function normalizeWatchId(id: string): string {
+  if (!id) return id;
+  let clean = id.trim();
+  try {
+    clean = decodeURIComponent(clean);
+  } catch {}
+  return clean.replace(/%3a/gi, ":").replace(/^tv:/i, "tv-");
+}
+
 export function getWatchHistory(): WatchItem[] {
   if (typeof window === "undefined") return [];
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (!data) return [];
+    const parsed: WatchItem[] = JSON.parse(data);
+    // Auto-migrate legacy items that were stored with 'tv:...' to 'tv-...'
+    return parsed.map((item) => ({
+      ...item,
+      id: normalizeWatchId(item.id),
+    }));
   } catch {
     return [];
   }
@@ -35,6 +50,7 @@ export function saveWatchProgress(item: {
 }) {
   if (typeof window === "undefined" || !item.id) return;
   try {
+    const cleanId = normalizeWatchId(item.id);
     const history = getWatchHistory();
     const duration = Math.max(1, item.duration || 1);
     const currentTime = Math.max(0, item.currentTime || 0);
@@ -47,11 +63,11 @@ export function saveWatchProgress(item: {
     const keyEpisode = item.episode || 1;
 
     const filtered = history.filter(
-      (h) => !(h.id === item.id && (h.season || 1) === keySeason && (h.episode || 1) === keyEpisode)
+      (h) => !(normalizeWatchId(h.id) === cleanId && (h.season || 1) === keySeason && (h.episode || 1) === keyEpisode)
     );
 
     const newItem: WatchItem = {
-      id: item.id,
+      id: cleanId,
       title: item.title,
       thumbnailUrl: item.thumbnailUrl,
       currentTime,
@@ -70,10 +86,11 @@ export function saveWatchProgress(item: {
 }
 
 export function getWatchProgress(id: string, season = 1, episode = 1): WatchItem | null {
+  const cleanId = normalizeWatchId(id);
   const history = getWatchHistory();
   return (
     history.find(
-      (h) => h.id === id && (h.season || 1) === season && (h.episode || 1) === episode
+      (h) => normalizeWatchId(h.id) === cleanId && (h.season || 1) === season && (h.episode || 1) === episode
     ) || null
   );
 }
@@ -81,9 +98,10 @@ export function getWatchProgress(id: string, season = 1, episode = 1): WatchItem
 export function clearWatchItem(id: string, season = 1, episode = 1) {
   if (typeof window === "undefined") return;
   try {
+    const cleanId = normalizeWatchId(id);
     const history = getWatchHistory();
     const filtered = history.filter(
-      (h) => !(h.id === id && (h.season || 1) === season && (h.episode || 1) === episode)
+      (h) => !(normalizeWatchId(h.id) === cleanId && (h.season || 1) === season && (h.episode || 1) === episode)
     );
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   } catch {}
