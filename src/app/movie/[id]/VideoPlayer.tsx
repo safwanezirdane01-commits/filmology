@@ -74,7 +74,7 @@ export default function VideoPlayer({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // 1. Intercept and neutralize any rogue window.open calls from escaping scripts
+    // Intercept and neutralize any rogue window.open calls from escaping scripts
     const originalOpen = window.open;
     window.open = function (url?: string | URL, target?: string, features?: string) {
       const urlStr = typeof url === "string" ? url : url?.toString() || "";
@@ -86,18 +86,8 @@ export default function VideoPlayer({
       return null;
     };
 
-    // 2. Auto-Reclaim Focus: If an embed attempts to open a pop-under tab and steal focus, immediately bring focus back
-    const handleBlur = () => {
-      setTimeout(() => {
-        window.focus();
-      }, 50);
-    };
-
-    window.addEventListener("blur", handleBlur);
-
     return () => {
       window.open = originalOpen;
-      window.removeEventListener("blur", handleBlur);
     };
   }, [activeAdLink]);
 
@@ -278,7 +268,7 @@ export default function VideoPlayer({
     }
 
     return {
-      isImdbOrTmdb: isDirectImdb || isDirectTmdb || !!resolvedImdbId,
+      isImdbOrTmdb: isDirectImdb || isDirectTmdb || !!resolvedImdbId || (!isDirectVideo && !youtubeEmbed),
       isDirectVideo,
       server1,
       server2,
@@ -353,10 +343,11 @@ export default function VideoPlayer({
       if (!isServerLoaded) {
         handleNextServer("Server unreachable");
       }
-    }, 8000);
+    }, 20000);
 
     return () => clearTimeout(watchdog);
-  }, [selectedServer, isAutoMode, needsPopups, parsedSources, handleNextServer, isServerLoaded]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedServer, isAutoMode, needsPopups, parsedSources?.isImdbOrTmdb, handleNextServer]);
 
   return (
     <div className="flex flex-col gap-3 w-full">
