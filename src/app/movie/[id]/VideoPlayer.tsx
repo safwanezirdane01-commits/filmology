@@ -236,17 +236,17 @@ export default function VideoPlayer({
     const imdbParam = effectiveImdb || trimmed;
 
     if (isSeries && (isDirectImdb || isDirectTmdb || resolvedImdbId)) {
-      server1 = `https://www.nontongo.win/embed/tv/${tmdbParam}/${season}/${episode}`;
-      server2 = `https://vidsrc.io/embed/tv/${tmdbParam}/${season}/${episode}`;
-      server3 = `https://vidsrc.sh/embed/tv?tmdb=${tmdbParam}&season=${season}&episode=${episode}`;
-      server4 = `https://vidsrc.pm/embed/tv/${tmdbParam}/${season}/${episode}`;
-      server5 = `https://vidsrc.in/embed/tv/${tmdbParam}/${season}/${episode}`;
+      server1 = `https://vidlink.pro/tv/${tmdbParam}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7`;
+      server2 = `https://player.videasy.net/tv/${tmdbParam}/${season}/${episode}?color=e11d48`;
+      server3 = `https://vidsrc.su/embed/tv/${tmdbParam}/${season}/${episode}`;
+      server4 = `https://vidsrc.net/embed/tv/${tmdbParam}/${season}/${episode}`;
+      server5 = `https://www.nontongo.win/embed/tv/${tmdbParam}/${season}/${episode}`;
     } else if (isDirectImdb || isDirectTmdb || resolvedImdbId) {
-      server1 = `https://www.nontongo.win/embed/movie/${tmdbParam}`;
-      server2 = `https://vidsrc.io/embed/movie/${tmdbParam}`;
-      server3 = `https://vidsrc.sh/embed/movie?tmdb=${tmdbParam}`;
-      server4 = `https://vidsrc.pm/embed/movie/${tmdbParam}`;
-      server5 = `https://vidsrc.in/embed/movie/${tmdbParam}`;
+      server1 = `https://vidlink.pro/movie/${tmdbParam}?primaryColor=e11d48&secondaryColor=a855f7`;
+      server2 = `https://player.videasy.net/movie/${tmdbParam}?color=e11d48`;
+      server3 = `https://vidsrc.su/embed/movie/${tmdbParam}`;
+      server4 = `https://vidsrc.net/embed/movie/${tmdbParam}`;
+      server5 = `https://www.nontongo.win/embed/movie/${tmdbParam}`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
       server2 = youtubeEmbed;
@@ -315,11 +315,11 @@ export default function VideoPlayer({
   const needsPopups = (adsEnabled ?? true) && clickCount < targetClicks;
 
   const serverList = useMemo(() => [
-    { id: 1, label: "Nontongo (Fast HD)", short: "Nontongo" },
-    { id: 2, label: "VidSrc IO (Stream 2)", short: "VidSrc IO" },
-    { id: 3, label: "VidSrc (Stream 3)", short: "VidSrc" },
-    { id: 4, label: "VidSrc Pro (Stream 4)", short: "VidSrc Pro" },
-    { id: 5, label: "VidSrc IN (Stream 5)", short: "VidSrc IN" },
+    { id: 1, label: "VidLink (Ad-Free HD)", short: "VidLink" },
+    { id: 2, label: "Videasy (Clean Stream)", short: "Videasy" },
+    { id: 3, label: "VidSrc SU (Fast HD)", short: "VidSrc SU" },
+    { id: 4, label: "VidSrc NET (Stream 4)", short: "VidSrc NET" },
+    { id: 5, label: "Nontongo (Stream 5)", short: "Nontongo" },
   ], []);
 
   const handleNextServer = useCallback((reason?: string) => {
@@ -413,7 +413,7 @@ export default function VideoPlayer({
                 onClick={() => {
                   setIsAutoMode(true);
                   setSelectedServer(1);
-                  setAutoStatusMessage("⚡ Auto Mode: Playing fastest stream (AutoEmbed)");
+                  setAutoStatusMessage("⚡ Auto Mode: Playing fastest stream (VidLink)");
                   setTimeout(() => setAutoStatusMessage(null), 3500);
                 }}
                 className={`px-2.5 py-1 rounded-lg font-bold transition-all text-xs flex items-center space-x-1 cursor-pointer ${
