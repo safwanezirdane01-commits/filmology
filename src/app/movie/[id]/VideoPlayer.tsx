@@ -5,6 +5,7 @@ import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Downloa
 import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
+import NativeArabicPlayer from "@/components/NativeArabicPlayer";
 
 export default function VideoPlayer({ 
   movieId,
@@ -49,6 +50,11 @@ export default function VideoPlayer({
   const [showResumeBanner, setShowResumeBanner] = useState<boolean>(true);
   const [isServerLoaded, setIsServerLoaded] = useState<boolean>(false);
 
+  // Direct stream (ad-free native player) state
+  const [directStream, setDirectStream] = useState<{ url: string; type: string } | null>(null);
+  const [directLoading, setDirectLoading] = useState<boolean>(true);
+  const [directFailed, setDirectFailed] = useState<boolean>(false);
+
   // Check if title is a TV Series (strict - movies are NEVER a series)
   const isSeries = useMemo(() => {
     return isRealSeries(movieVideoUrl, genre);
@@ -70,6 +76,53 @@ export default function VideoPlayer({
     setShowResumeBanner(!!progress);
   }, [movieId, season, episode]);
 
+  // 🎯 Direct ad-free stream: try /api/stream first, fall back to iframes if it fails
+  useEffect(() => {
+    if (!movieVideoUrl) {
+      setDirectLoading(false);
+      setDirectFailed(true);
+      return;
+    }
+
+    setDirectLoading(true);
+    setDirectStream(null);
+    setDirectFailed(false);
+
+    // Determine type and clean id
+    const tvPrefix = /^tv[-:]/i.test(movieVideoUrl) || /^tv%3A/i.test(movieVideoUrl);
+    const mediaType = tvPrefix || isSeries ? "tv" : "movie";
+    const cleanId = movieVideoUrl.replace(/^tv[-:%3A]+/i, "").trim();
+
+    const params = new URLSearchParams({
+      id: cleanId,
+      type: mediaType,
+      season: String(season),
+      episode: String(episode),
+    });
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    fetch(`/api/stream?${params}`, { signal: controller.signal })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.url) {
+          setDirectStream({ url: data.url, type: data.type || "application/x-mpegURL" });
+        } else {
+          setDirectFailed(true);
+        }
+      })
+      .catch(() => setDirectFailed(true))
+      .finally(() => {
+        clearTimeout(timeout);
+        setDirectLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [movieVideoUrl, isSeries, season, episode]);
 
 
   // 🛡️ Option C: Client-Side Pop-under Defuser & Window Shield
@@ -569,7 +622,24 @@ export default function VideoPlayer({
 
         {/* Video Player Frame */}
         <div className="w-full h-full relative">
-          {parsedSources.isDirectVideo ? (
+          {/* 🎯 Native ad-free player — shown when /api/stream returns a direct URL */}
+          {!directLoading && directStream && !needsPopups ? (
+            <NativeArabicPlayer
+              key={`native-${directStream.url}`}
+              streamUrl={directStream.url}
+              streamType={directStream.type}
+              subtitleUrl={activeArabicSubUrl}
+              poster={thumbnailUrl}
+            />
+          ) : directLoading && !directFailed ? (
+            /* Loading spinner while we attempt to extract a direct stream */
+            <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-3">
+              <div className="w-10 h-10 rounded-full border-4 border-purple-600 border-t-rose-500 animate-spin" />
+              <span className="text-purple-300/70 text-xs font-semibold tracking-wide">
+                Finding best stream…
+              </span>
+            </div>
+          ) : parsedSources.isDirectVideo ? (
             <video
               ref={videoRef}
               key={`direct-${parsedSources.currentUrl}`}
@@ -595,6 +665,7 @@ export default function VideoPlayer({
         </div>
 
       </div>
+
 
       {/* Subtitles & Quick Server Failsafe Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/95 border border-purple-500/30 p-3 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl sm:backdrop-blur-md shadow-lg">

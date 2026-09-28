@@ -3,12 +3,24 @@ import { NextRequest, NextResponse } from "next/server";
 const TMDB_KEY = process.env.TMDB_API_KEY || "4e44d9029b1270a757cddc766a1bcb63";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
+const FETCH_OPTS = {
+  headers: {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    Referer: "https://www.google.com/",
+  },
+};
+
+// ─── TMDb helpers ────────────────────────────────────────────────────────────
+
 async function getImdbId(tmdbId: string, isTv: boolean): Promise<string | null> {
   try {
     const endpoint = isTv
       ? `${TMDB_BASE}/tv/${tmdbId}/external_ids?api_key=${TMDB_KEY}`
-      : `${TMDB_BASE}/movie/${tmdbId}?api_key=${TMDB_KEY}`;
-    const res = await fetch(endpoint);
+      : `${TMDB_BASE}/movie/${tmdbId}/external_ids?api_key=${TMDB_KEY}`;
+    const res = await fetch(endpoint, { signal: AbortSignal.timeout(6000) });
     if (res.ok) {
       const data = await res.json();
       return data.imdb_id || null;
@@ -17,81 +29,173 @@ async function getImdbId(tmdbId: string, isTv: boolean): Promise<string | null> 
   return null;
 }
 
-async function tryVidsrcExtract(imdbId: string, isTv: boolean, season: number, episode: number) {
-  // vidsrc.me embed pages — we fetch and extract the source iframe/stream
+// ─── Stream extractors ────────────────────────────────────────────────────────
+
+/** Extract direct URL from an HTML page by scanning for .m3u8 / .mp4 */
+function extractUrlFromHtml(html: string): { url: string; type: string } | null {
+  // Priority: .m3u8 (HLS adaptive) > .mp4
+  const m3u8 = html.match(/https?:\/\/[^"'\s,]+\.m3u8[^"'\s,]*/);
+  if (m3u8) return { url: m3u8[0], type: "application/x-mpegURL" };
+  const mp4 = html.match(/https?:\/\/[^"'\s,]+\.mp4[^"'\s,]*/);
+  if (mp4) return { url: mp4[0], type: "video/mp4" };
+  return null;
+}
+
+/**
+ * Provider 1: VidSrc.xyz — known JSON API
+ * GET https://vidsrc.xyz/embed/movie/{imdbId}  (also supports tv/{imdbId}/{s}/{e})
+ * The page exposes a __NEXT_DATA__ or sources array we can parse.
+ */
+async function tryVidSrcXyz(
+  imdbId: string,
+  isTv: boolean,
+  season: number,
+  episode: number
+): Promise<{ url: string; type: string } | null> {
+  const embedUrl = isTv
+    ? `https://vidsrc.xyz/embed/tv/${imdbId}/${season}/${episode}`
+    : `https://vidsrc.xyz/embed/movie/${imdbId}`;
+  try {
+    const res = await fetch(embedUrl, {
+      ...FETCH_OPTS,
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    return extractUrlFromHtml(html);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Provider 2: VidSrc.to  (uses a sources endpoint)
+ * GET https://vidsrc.to/embed/movie/{imdbId}
+ */
+async function tryVidSrcTo(
+  imdbId: string,
+  isTv: boolean,
+  season: number,
+  episode: number
+): Promise<{ url: string; type: string } | null> {
+  const embedUrl = isTv
+    ? `https://vidsrc.to/embed/tv/${imdbId}/${season}/${episode}`
+    : `https://vidsrc.to/embed/movie/${imdbId}`;
+  try {
+    const res = await fetch(embedUrl, {
+      ...FETCH_OPTS,
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    return extractUrlFromHtml(html);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Provider 3: VidSrc.me  (classic reliable API)
+ */
+async function tryVidSrcMe(
+  imdbId: string,
+  isTv: boolean,
+  season: number,
+  episode: number
+): Promise<{ url: string; type: string } | null> {
   const embedUrl = isTv
     ? `https://vidsrc.me/embed/tv?imdb=${imdbId}&season=${season}&episode=${episode}`
     : `https://vidsrc.me/embed/movie?imdb=${imdbId}`;
   try {
     const res = await fetch(embedUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
-      signal: AbortSignal.timeout(8000),
+      ...FETCH_OPTS,
+      signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) return null;
     const html = await res.text();
-    // Look for .m3u8 or direct mp4 in the response
-    const m3u8Match = html.match(/https?:\/\/[^"'\s]+\.m3u8[^"'\s]*/);
-    if (m3u8Match) return { url: m3u8Match[0], type: "application/x-mpegURL" };
-    const mp4Match = html.match(/https?:\/\/[^"'\s]+\.mp4[^"'\s]*/);
-    if (mp4Match) return { url: mp4Match[0], type: "video/mp4" };
-  } catch {}
-  return null;
+    return extractUrlFromHtml(html);
+  } catch {
+    return null;
+  }
 }
 
-async function tryConsumetFlixhq(imdbId: string, isTv: boolean, season: number, episode: number) {
-  // Consumet API - tries to get stream URL from FlixHQ via IMDb ID
+/**
+ * Provider 4: Embed.su  — often has clean HLS streams
+ * GET https://embed.su/embed/movie/{imdbId}
+ */
+async function tryEmbedSu(
+  imdbId: string,
+  isTv: boolean,
+  season: number,
+  episode: number
+): Promise<{ url: string; type: string } | null> {
+  const embedUrl = isTv
+    ? `https://embed.su/embed/tv/${imdbId}/${season}/${episode}`
+    : `https://embed.su/embed/movie/${imdbId}`;
   try {
-    const infoUrl = `https://api.consumet.org/movies/flixhq/info?id=${imdbId}`;
-    const infoRes = await fetch(infoUrl, { signal: AbortSignal.timeout(10000) });
-    if (!infoRes.ok) return null;
-    const info = await infoRes.json();
-
-    let episodeId: string | null = null;
-    let mediaId = info.id;
-
-    if (isTv) {
-      const seasons = info.seasons || [];
-      const seasonData = seasons.find((s: any) => s.season === season);
-      if (!seasonData) return null;
-      const ep = seasonData.episodes?.find((e: any) => e.number === episode);
-      episodeId = ep?.id || null;
-    } else {
-      episodeId = info.episodes?.[0]?.id || null;
-    }
-
-    if (!episodeId || !mediaId) return null;
-
-    const watchUrl = `https://api.consumet.org/movies/flixhq/watch?episodeId=${encodeURIComponent(episodeId)}&mediaId=${encodeURIComponent(mediaId)}&server=vidcloud`;
-    const watchRes = await fetch(watchUrl, { signal: AbortSignal.timeout(10000) });
-    if (!watchRes.ok) return null;
-    const watchData = await watchRes.json();
-
-    const sources: any[] = watchData.sources || [];
-    // Prefer m3u8 quality
-    const m3u8 = sources.find((s) => s.url?.includes(".m3u8")) || sources[0];
-    if (!m3u8?.url) return null;
-
-    return { url: m3u8.url, type: m3u8.isM3U8 ? "application/x-mpegURL" : "video/mp4" };
-  } catch {}
-  return null;
-}
-
-async function tryVidSrcIcu(imdbId: string, isTv: boolean, season: number, episode: number) {
-  // vidsrc.icu provides stream data in JSON
-  try {
-    const apiUrl = isTv
-      ? `https://vidsrc.icu/api/movie/${imdbId}/${season}/${episode}`
-      : `https://vidsrc.icu/api/movie/${imdbId}`;
-    const res = await fetch(apiUrl, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(embedUrl, {
+      ...FETCH_OPTS,
+      signal: AbortSignal.timeout(10000),
+    });
     if (!res.ok) return null;
-    const data = await res.json();
-    const url = data?.url || data?.stream || data?.sources?.[0]?.file;
-    if (!url) return null;
-    const type = url.includes(".m3u8") ? "application/x-mpegURL" : "video/mp4";
-    return { url, type };
-  } catch {}
-  return null;
+    const html = await res.text();
+    return extractUrlFromHtml(html);
+  } catch {
+    return null;
+  }
 }
+
+/**
+ * Provider 5: SuperEmbed via embed.smashystream.com
+ */
+async function trySmashyStream(
+  tmdbId: string,
+  isTv: boolean,
+  season: number,
+  episode: number
+): Promise<{ url: string; type: string } | null> {
+  const embedUrl = isTv
+    ? `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}&season=${season}&episode=${episode}`
+    : `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}`;
+  try {
+    const res = await fetch(embedUrl, {
+      ...FETCH_OPTS,
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    return extractUrlFromHtml(html);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Provider 6: VidSrc.in  (alternate domain, same protocol as vidsrc.me)
+ */
+async function tryVidSrcIn(
+  imdbId: string,
+  isTv: boolean,
+  season: number,
+  episode: number
+): Promise<{ url: string; type: string } | null> {
+  const embedUrl = isTv
+    ? `https://vidsrc.in/embed/tv?imdb=${imdbId}&season=${season}&episode=${episode}`
+    : `https://vidsrc.in/embed/movie?imdb=${imdbId}`;
+  try {
+    const res = await fetch(embedUrl, {
+      ...FETCH_OPTS,
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    return extractUrlFromHtml(html);
+  } catch {
+    return null;
+  }
+}
+
+// ─── Main route handler ───────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -105,21 +209,54 @@ export async function GET(request: NextRequest) {
   }
 
   const isTv = type === "tv" || type === "series";
-  let imdbId = /^tt\d+$/i.test(rawId) ? rawId : await getImdbId(rawId, isTv);
 
-  if (!imdbId) {
-    return NextResponse.json({ success: false, error: "Could not resolve IMDb ID" }, { status: 404 });
+  // Strip any "tv-" or "tv:" prefix to get numeric TMDb ID
+  let tmdbId = rawId
+    .replace(/^tv[-:]/i, "")
+    .replace(/^tv%3A/i, "");
+
+  // Resolve IMDb ID from TMDb
+  const isImdb = /^tt\d+$/i.test(rawId);
+  let imdbId = isImdb ? rawId : await getImdbId(tmdbId, isTv);
+
+  if (!imdbId && !isImdb) {
+    // Try one more time treating the raw id differently
+    imdbId = await getImdbId(rawId, isTv);
   }
 
-  // Try multiple providers in order
-  const stream =
-    (await tryConsumetFlixhq(imdbId, isTv, season, episode)) ||
-    (await tryVidSrcIcu(imdbId, isTv, season, episode)) ||
-    (await tryVidsrcExtract(imdbId, isTv, season, episode));
+  // Run IMDb-based providers in parallel (they need the tt ID)
+  // and TMDb-based providers separately
+  const imdbProviders: Array<Promise<{ url: string; type: string } | null>> = imdbId
+    ? [
+        tryVidSrcXyz(imdbId, isTv, season, episode),
+        tryVidSrcTo(imdbId, isTv, season, episode),
+        tryVidSrcMe(imdbId, isTv, season, episode),
+        tryEmbedSu(imdbId, isTv, season, episode),
+        tryVidSrcIn(imdbId, isTv, season, episode),
+      ]
+    : [];
+
+  const tmdbProviders: Array<Promise<{ url: string; type: string } | null>> = [
+    trySmashyStream(tmdbId, isTv, season, episode),
+  ];
+
+  // Race all providers — take the first non-null result
+  const results = await Promise.allSettled([...imdbProviders, ...tmdbProviders]);
+
+  let stream: { url: string; type: string } | null = null;
+  for (const r of results) {
+    if (r.status === "fulfilled" && r.value) {
+      stream = r.value;
+      break;
+    }
+  }
 
   if (!stream) {
-    return NextResponse.json({ success: false, error: "No stream found", imdbId }, { status: 404 });
+    return NextResponse.json(
+      { success: false, error: "No stream found", imdbId, tmdbId },
+      { status: 404 }
+    );
   }
 
-  return NextResponse.json({ success: true, imdbId, ...stream });
+  return NextResponse.json({ success: true, imdbId, tmdbId, ...stream });
 }
