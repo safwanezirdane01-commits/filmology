@@ -48,7 +48,6 @@ export default function VideoPlayer({
   const [savedProgress, setSavedProgress] = useState<WatchItem | null>(null);
   const [showResumeBanner, setShowResumeBanner] = useState<boolean>(true);
   const [isServerLoaded, setIsServerLoaded] = useState<boolean>(false);
-  const [isShieldEnabled, setIsShieldEnabled] = useState<boolean>(true);
 
   // Check if title is a TV Series (strict - movies are NEVER a series)
   const isSeries = useMemo(() => {
@@ -582,11 +581,11 @@ export default function VideoPlayer({
             />
           ) : (
             <iframe
-              key={`embed-${parsedSources.currentUrl}-${isShieldEnabled ? "shield" : "raw"}`}
+              key={`embed-${parsedSources.currentUrl}`}
               src={needsPopups ? undefined : parsedSources.currentUrl}
               className="w-full h-full border-0"
               allowFullScreen
-              sandbox={isShieldEnabled ? "allow-scripts allow-same-origin allow-forms allow-presentation" : undefined}
+              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               onLoad={() => setIsServerLoaded(true)}
               onError={() => {
@@ -613,25 +612,6 @@ export default function VideoPlayer({
         </div>
 
         <div className="flex items-center space-x-2 shrink-0">
-          {/* Ad Shield Strict Sandbox Toggle */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsShieldEnabled((prev) => !prev);
-              setAutoStatusMessage(!isShieldEnabled ? "🛡️ Ad Shield ON: Popups & redirects blocked" : "⚠️ Ad Shield OFF: Standard embed mode");
-              setTimeout(() => setAutoStatusMessage(null), 3500);
-            }}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow border ${
-              isShieldEnabled
-                ? "bg-emerald-950/80 border-emerald-500/50 text-emerald-300 hover:bg-emerald-900"
-                : "bg-amber-950/80 border-amber-500/50 text-amber-300 hover:bg-amber-900"
-            }`}
-            title={isShieldEnabled ? "Ad Shield is ON: all pop-ups & redirects blocked at browser level" : "Ad Shield is OFF: click to re-enable strict popup protection"}
-          >
-            <ShieldCheck className={`w-3.5 h-3.5 ${isShieldEnabled ? "text-emerald-400" : "text-amber-400"}`} />
-            <span>{isShieldEnabled ? "Ad Shield: ON" : "Ad Shield: OFF"}</span>
-          </button>
-
           {/* Quick Failsafe Next Server Button */}
           <button
             type="button"
