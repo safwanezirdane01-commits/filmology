@@ -326,3 +326,41 @@ export async function searchTmdb(query: string, apiKey?: string): Promise<Univer
   return await searchUniversal(query);
 }
 
+/**
+ * Get dynamic recommendations for a movie or TV show from TMDb
+ */
+export async function getRecommendations(videoUrlOrId: string, isTv: boolean = false): Promise<UniversalItem[]> {
+  try {
+    let clean = videoUrlOrId.trim();
+    clean = clean.replace(/^tv[:-]/i, "").trim();
+    if (!/^\d+$/.test(clean)) return [];
+
+    const endpoint = isTv
+      ? `${TMDB_BASE}/tv/${clean}/recommendations?api_key=${TMDB_KEY}`
+      : `${TMDB_BASE}/movie/${clean}/recommendations?api_key=${TMDB_KEY}`;
+
+    const res = await fetch(endpoint, { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.results || data.results.length === 0) {
+      // Fallback to similar endpoint
+      const simEndpoint = isTv
+        ? `${TMDB_BASE}/tv/${clean}/similar?api_key=${TMDB_KEY}`
+        : `${TMDB_BASE}/movie/${clean}/similar?api_key=${TMDB_KEY}`;
+      const simRes = await fetch(simEndpoint, { next: { revalidate: 3600 } });
+      if (!simRes.ok) return [];
+      const simData = await simRes.json();
+      return (simData.results || [])
+        .map((item: any) => formatTmdbItem(item, isTv ? "tv" : "movie"))
+        .filter((item: UniversalItem | null): item is UniversalItem => item !== null && item.thumbnailUrl !== "/placeholder.png");
+    }
+
+    return data.results
+      .map((item: any) => formatTmdbItem(item, isTv ? "tv" : "movie"))
+      .filter((item: UniversalItem | null): item is UniversalItem => item !== null && item.thumbnailUrl !== "/placeholder.png");
+  } catch (err) {
+    console.error("getRecommendations error:", err);
+    return [];
+  }
+}
+

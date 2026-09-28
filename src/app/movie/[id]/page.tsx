@@ -134,30 +134,52 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
     notFound();
   }
 
-  // Fetch Recommended / Related Movies (same genre or other top movies)
+  // Fetch dynamic, variable Recommended / Related Movies specifically for this title
+  const isTv = movie.genre?.toLowerCase().includes("series") || movie.videoUrl?.startsWith("tv:");
   let relatedMovies: Array<{ id: string; title: string; genre: string; thumbnailUrl: string | null }> = [];
+
   try {
-    relatedMovies = await prisma.movie.findMany({
-      where: {
-        NOT: { id: movie.id }
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5
-    });
+    const { getRecommendations } = await import("@/lib/tmdb");
+    const recs = await getRecommendations(movie.videoUrl || movie.id, Boolean(isTv));
+    if (recs && recs.length > 0) {
+      relatedMovies = recs
+        .filter((r) => r.title.toLowerCase() !== movie.title.toLowerCase() && r.id !== movie.id)
+        .slice(0, 5)
+        .map((r) => ({
+          id: r.id,
+          title: r.title,
+          genre: r.genre,
+          thumbnailUrl: r.thumbnailUrl,
+        }));
+    }
   } catch (err) {
-    console.warn("Failed to fetch related movies from DB, using catalog fallback:", err);
+    console.warn("Failed to fetch TMDb recommendations:", err);
   }
 
-  if (!relatedMovies || relatedMovies.length === 0) {
-    relatedMovies = CURATED_CATALOG
-      .filter((c) => c.title !== movie.title && c.id !== movie.id)
-      .slice(0, 5)
-      .map((c) => ({
-        id: c.id,
-        title: c.title,
-        genre: c.genre,
-        thumbnailUrl: c.thumbnailUrl
-      }));
+  // Fallback or fill: match by genre from CURATED_CATALOG & database, shuffled so it's always variable
+  if (relatedMovies.length < 5) {
+    const genreWord = (movie.genre || "").split(/[\s,&/-]+/)[0].toLowerCase();
+
+    const candidates = CURATED_CATALOG.filter((c) => {
+      if (c.title.toLowerCase() === movie.title.toLowerCase() || c.id === movie.id) return false;
+      if (isTv) return c.category === "series" || /series|show/i.test(c.genre);
+      return !(/series|show/i.test(c.genre)) && c.genre.toLowerCase().includes(genreWord);
+    });
+
+    // Random shuffle to make it truly variable and fresh
+    const shuffled = [...candidates].sort(() => 0.5 - Math.random());
+
+    for (const c of shuffled) {
+      if (relatedMovies.length >= 5) break;
+      if (!relatedMovies.some((r) => r.title.toLowerCase() === c.title.toLowerCase())) {
+        relatedMovies.push({
+          id: c.id,
+          title: c.title,
+          genre: c.genre,
+          thumbnailUrl: c.thumbnailUrl,
+        });
+      }
+    }
   }
 
   const { getAdSettings } = await import("@/lib/ads");
