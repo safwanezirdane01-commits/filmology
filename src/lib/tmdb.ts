@@ -271,8 +271,20 @@ export async function getPopularMovies(page: number = 1): Promise<UniversalItem[
 export async function discoverByFilter(category: string = "all", page: number = 1): Promise<UniversalItem[]> {
   try {
     let url = "";
-    if (category === "series") {
+    if (category === "series" || category === "all_series") {
       url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "series_action") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=10759&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "series_scifi") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=10765&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "series_comedy") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=35&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "series_drama") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=18&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "series_crime") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=80&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "series_top") {
+      url = `${TMDB_BASE}/tv/top_rated?api_key=${TMDB_KEY}&page=${page}`;
     } else if (category === "arabic") {
       url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ar&sort_by=popularity.desc&page=${page}&include_adult=false`;
     } else if (category === "action") {
@@ -300,7 +312,7 @@ export async function discoverByFilter(category: string = "all", page: number = 
     const data = await res.json();
     if (!data.results) return [];
 
-    const isTv = category === "series";
+    const isTv = category.startsWith("series");
     return data.results
       .map((item: any) => formatTmdbItem(item, isTv ? "tv" : "movie"))
       .filter((item: UniversalItem | null): item is UniversalItem => item !== null && item.thumbnailUrl !== "/placeholder.png");
@@ -360,6 +372,79 @@ export async function getRecommendations(videoUrlOrId: string, isTv: boolean = f
       .filter((item: UniversalItem | null): item is UniversalItem => item !== null && item.thumbnailUrl !== "/placeholder.png");
   } catch (err) {
     console.error("getRecommendations error:", err);
+    return [];
+  }
+}
+
+/**
+ * Get YouTube trailer key for a movie or TV show
+ */
+export async function getMovieTrailer(videoUrlOrId: string, isTv: boolean = false): Promise<string | null> {
+  try {
+    let clean = videoUrlOrId.trim();
+    clean = clean.replace(/^tv[:-]/i, "").trim();
+    if (!/^\d+$/.test(clean)) return null;
+
+    const endpoint = isTv
+      ? `${TMDB_BASE}/tv/${clean}/videos?api_key=${TMDB_KEY}`
+      : `${TMDB_BASE}/movie/${clean}/videos?api_key=${TMDB_KEY}`;
+
+    const res = await fetch(endpoint, { next: { revalidate: 86400 } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.results || data.results.length === 0) return null;
+
+    // Priority: Official Trailer -> Trailer -> Teaser -> Clip (YouTube only)
+    const ytVideos = data.results.filter((v: any) => v.site === "YouTube");
+    const officialTrailer = ytVideos.find((v: any) => v.type === "Trailer" && v.official);
+    if (officialTrailer) return officialTrailer.key;
+
+    const anyTrailer = ytVideos.find((v: any) => v.type === "Trailer");
+    if (anyTrailer) return anyTrailer.key;
+
+    const teaser = ytVideos.find((v: any) => v.type === "Teaser");
+    if (teaser) return teaser.key;
+
+    return ytVideos[0]?.key || null;
+  } catch {
+    return null;
+  }
+}
+
+export interface CastMember {
+  id: number;
+  name: string;
+  character: string;
+  profileUrl: string | null;
+}
+
+/**
+ * Get top cast members for a movie or TV show (lightweight w185 images for mobile performance)
+ */
+export async function getMovieCredits(videoUrlOrId: string, isTv: boolean = false): Promise<CastMember[]> {
+  try {
+    let clean = videoUrlOrId.trim();
+    clean = clean.replace(/^tv[:-]/i, "").trim();
+    if (!/^\d+$/.test(clean)) return [];
+
+    const endpoint = isTv
+      ? `${TMDB_BASE}/tv/${clean}/credits?api_key=${TMDB_KEY}`
+      : `${TMDB_BASE}/movie/${clean}/credits?api_key=${TMDB_KEY}`;
+
+    const res = await fetch(endpoint, { next: { revalidate: 86400 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.cast || data.cast.length === 0) return [];
+
+    return data.cast
+      .slice(0, 12)
+      .map((c: any) => ({
+        id: c.id,
+        name: c.name || "Actor",
+        character: c.character || "",
+        profileUrl: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null,
+      }));
+  } catch {
     return [];
   }
 }

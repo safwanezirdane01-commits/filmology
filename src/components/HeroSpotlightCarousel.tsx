@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Play, Info, Star, ChevronLeft, ChevronRight, Film, Flame } from "lucide-react";
+import WatchTrailerButton from "@/components/WatchTrailerButton";
 
 export interface SpotlightItem {
   id: string;
@@ -138,7 +139,7 @@ export default function HeroSpotlightCarousel({ movies }: { movies: SpotlightIte
         </p>
 
         {/* Action Buttons */}
-        <div className="flex flex-row items-center gap-2.5 sm:gap-4 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 w-full sm:w-auto">
           <Link 
             href={`/movie/${current.id}`}
             className="flex-1 sm:flex-none bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white px-5 sm:px-8 py-3 sm:py-3.5 rounded-full font-bold flex items-center justify-center transition-all hover:scale-105 shadow-[0_0_30px_rgba(244,63,94,0.4)] group/btn text-xs sm:text-base min-h-[44px]"
@@ -146,6 +147,13 @@ export default function HeroSpotlightCarousel({ movies }: { movies: SpotlightIte
             <Play className="w-4 sm:w-5 h-4 sm:h-5 mr-1.5 sm:mr-2.5 fill-current group-hover/btn:scale-110 transition-transform" /> 
             <span className="tracking-wide">Watch Free</span>
           </Link>
+          <WatchTrailerButton
+            id={current.id}
+            title={current.title}
+            isTv={current.id.startsWith("tv-")}
+            className="flex-1 sm:flex-none rounded-full min-h-[44px]"
+            variant="pill"
+          />
           <Link 
             href={`/movie/${current.id}`}
             className="flex-1 sm:flex-none bg-slate-900/80 hover:bg-slate-800/90 text-slate-200 border border-purple-500/30 px-4 sm:px-6 py-3 sm:py-3.5 rounded-full font-semibold flex items-center justify-center transition-all hover:border-rose-500/50 sm:backdrop-blur-md text-xs sm:text-sm min-h-[44px]"

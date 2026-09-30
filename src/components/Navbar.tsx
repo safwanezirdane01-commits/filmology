@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Film, Search, Menu, X, User, ShieldCheck, LogOut, Clapperboard, Tv } from "lucide-react";
+import { Film, Search, Menu, X, User, ShieldCheck, LogOut, Clapperboard, Tv, Star, Loader2, ArrowRight } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -12,7 +12,13 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Instant autocomplete state
+  const [liveResults, setLiveResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     if (mobileSearchOpen && mobileSearchInputRef.current) {
@@ -20,9 +26,49 @@ export default function Navbar() {
     }
   }, [mobileSearchOpen]);
 
+  // Debounced live search
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q || q.length < 2) {
+      setLiveResults([]);
+      setIsSearching(false);
+      setShowDropdown(false);
+      return;
+    }
+
+    setIsSearching(true);
+    setShowDropdown(true);
+
+    const timer = setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(q)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.results) {
+            setLiveResults(data.results.slice(0, 5));
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsSearching(false));
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Click outside listener to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowDropdown(false);
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setMobileSearchOpen(false);
       setMobileMenuOpen(false);
@@ -30,17 +76,18 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-slate-950/95 sm:bg-slate-950/90 sm:backdrop-blur-md border-b border-purple-900/30 shadow-[0_4px_25px_rgba(0,0,0,0.4)]">
+    <nav className="sticky top-0 z-50 bg-slate-950/95 border-b border-purple-900/30 shadow-[0_4px_25px_rgba(0,0,0,0.4)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2">
-          {/* Logo & Brand */}
-          <div className="flex items-center shrink-0">
+          {/* Logo & Navigation Links */}
+          <div className="flex items-center space-x-4 sm:space-x-6 shrink-0">
             <Link 
               href="/" 
               className="flex items-center space-x-2 text-white group"
               onClick={() => {
                 setMobileMenuOpen(false);
                 setMobileSearchOpen(false);
+                setShowDropdown(false);
               }}
             >
               <Film className="w-7 h-7 sm:w-8 sm:h-8 text-rose-500 group-hover:text-rose-400 transition-colors drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
@@ -48,10 +95,28 @@ export default function Navbar() {
                 Filmology<span className="text-rose-500 group-hover:text-rose-400 transition-colors">X</span>
               </span>
             </Link>
+
+            {/* Desktop Navigation Links */}
+            <div className="hidden lg:flex items-center space-x-1">
+              <Link
+                href="/movies"
+                className="text-slate-300 hover:text-white hover:bg-purple-900/30 px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5"
+              >
+                <Clapperboard className="w-3.5 h-3.5 text-rose-400" />
+                <span>Movies</span>
+              </Link>
+              <Link
+                href="/series"
+                className="text-slate-300 hover:text-white hover:bg-purple-900/30 px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5"
+              >
+                <Tv className="w-3.5 h-3.5 text-purple-400" />
+                <span>TV Series</span>
+              </Link>
+            </div>
           </div>
           
-          {/* Desktop Search Bar (hidden on mobile) */}
-          <div className="hidden md:flex flex-1 max-w-md mx-6">
+          {/* Desktop Search Bar with Live Instant Autocomplete */}
+          <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-md mx-4 lg:mx-6 relative">
             <form onSubmit={handleSearch} className="w-full relative group">
               <div className="relative flex items-center">
                 <Search className="absolute left-3.5 w-4 h-4 text-purple-300/60 group-focus-within:text-rose-400 transition-colors" />
@@ -59,11 +124,84 @@ export default function Navbar() {
                   type="text" 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => {
+                    if (searchQuery.trim().length >= 2) setShowDropdown(true);
+                  }}
                   placeholder="Search movies, series, genres..." 
-                  className="w-full bg-slate-900/60 border border-purple-900/50 text-slate-100 pl-10 pr-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 focus:bg-slate-900/90 text-sm transition-all placeholder:text-purple-300/40"
+                  className="w-full bg-slate-900/70 border border-purple-900/50 text-slate-100 pl-10 pr-10 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 focus:bg-slate-900 text-sm transition-all placeholder:text-purple-300/40"
                 />
+                {isSearching && (
+                  <Loader2 className="absolute right-3.5 w-4 h-4 text-rose-400 animate-spin" />
+                )}
               </div>
             </form>
+
+            {/* Live Autocomplete Dropdown */}
+            {showDropdown && searchQuery.trim().length >= 2 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-purple-500/30 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                {liveResults.length > 0 ? (
+                  <div className="divide-y divide-purple-900/20">
+                    {liveResults.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={`/movie/${item.id}`}
+                        onClick={() => {
+                          setShowDropdown(false);
+                          setSearchQuery("");
+                        }}
+                        className="flex items-center space-x-3 p-2.5 hover:bg-slate-800 transition-colors"
+                      >
+                        <div className="w-9 h-12 bg-slate-800 rounded-md overflow-hidden shrink-0 border border-purple-500/20">
+                          {item.thumbnailUrl && item.thumbnailUrl !== "/placeholder.png" ? (
+                            <img
+                              src={item.thumbnailUrl}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-500">
+                              <Film className="w-4 h-4" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-white text-xs font-bold truncate">{item.title}</h4>
+                          <div className="flex items-center space-x-2 text-[10px] text-slate-400 mt-0.5">
+                            <span className="text-rose-400 font-semibold">{item.genre}</span>
+                            <span>•</span>
+                            <span>{item.releaseYear}</span>
+                            {item.mediaType === "tv" && (
+                              <span className="bg-purple-900/40 text-purple-300 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                                TV
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {item.voteAverage && (
+                          <div className="flex items-center space-x-1 text-[11px] text-amber-300 font-bold bg-amber-500/10 px-2 py-0.5 rounded-full shrink-0">
+                            <Star className="w-3 h-3 fill-current text-amber-400" />
+                            <span>{item.voteAverage.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </Link>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={(e) => handleSearch(e)}
+                      className="w-full py-2.5 px-4 text-xs font-bold text-rose-400 hover:text-white hover:bg-rose-600/20 transition-colors flex items-center justify-center space-x-1 text-center"
+                    >
+                      <span>See all results for "{searchQuery}"</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : !isSearching ? (
+                  <div className="p-4 text-center text-xs text-slate-400">
+                    No matching titles found. Press Enter to search everywhere.
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
 
           {/* Desktop Auth Controls */}
@@ -160,6 +298,42 @@ export default function Navbar() {
                 Search
               </button>
             </form>
+
+            {/* Mobile Search Live Autocomplete Dropdown */}
+            {searchQuery.trim().length >= 2 && liveResults.length > 0 && (
+              <div className="mt-2 bg-slate-900 border border-purple-500/30 rounded-xl overflow-hidden shadow-xl divide-y divide-purple-900/20">
+                {liveResults.map((item) => (
+                  <Link
+                    key={`m-${item.id}`}
+                    href={`/movie/${item.id}`}
+                    onClick={() => {
+                      setMobileSearchOpen(false);
+                      setSearchQuery("");
+                    }}
+                    className="flex items-center space-x-3 p-2.5 hover:bg-slate-800 transition-colors"
+                  >
+                    <div className="w-8 h-11 bg-slate-800 rounded overflow-hidden shrink-0 border border-purple-500/20">
+                      {item.thumbnailUrl && item.thumbnailUrl !== "/placeholder.png" ? (
+                        <img
+                          src={item.thumbnailUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-500">
+                          <Film className="w-3.5 h-3.5" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-white text-xs font-bold truncate">{item.title}</h4>
+                      <p className="text-[10px] text-slate-400">{item.genre} • {item.releaseYear}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -169,17 +343,17 @@ export default function Navbar() {
             {/* Quick Links */}
             <div className="grid grid-cols-2 gap-2 pb-2">
               <Link
-                href="/search"
+                href="/movies"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center space-x-2 p-3 rounded-xl bg-slate-900/80 border border-purple-500/20 text-slate-200 hover:text-white hover:border-rose-500/40 text-sm font-medium"
+                className="flex items-center space-x-2 p-3 rounded-xl bg-slate-900 border border-purple-500/20 text-slate-200 hover:text-white hover:border-rose-500/40 text-sm font-medium"
               >
                 <Clapperboard className="w-4 h-4 text-rose-400" />
                 <span>All Movies</span>
               </Link>
               <Link
-                href="/search?q=series"
+                href="/series"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center space-x-2 p-3 rounded-xl bg-slate-900/80 border border-purple-500/20 text-slate-200 hover:text-white hover:border-rose-500/40 text-sm font-medium"
+                className="flex items-center space-x-2 p-3 rounded-xl bg-slate-900 border border-purple-500/20 text-slate-200 hover:text-white hover:border-rose-500/40 text-sm font-medium"
               >
                 <Tv className="w-4 h-4 text-purple-400" />
                 <span>TV Series</span>

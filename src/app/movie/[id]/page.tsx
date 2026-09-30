@@ -5,7 +5,8 @@ import Link from "next/link";
 import WatchlistButton from "./WatchlistButton";
 import ReviewSection from "./ReviewSection";
 import VideoPlayer from "./VideoPlayer";
-import { Star, Sparkles, Film, Play, Tv, Share2 } from "lucide-react";
+import { Star, Sparkles, Film, Play, Tv, Share2, Users } from "lucide-react";
+import WatchTrailerButton from "@/components/WatchTrailerButton";
 
 import { CURATED_CATALOG } from "@/lib/catalog";
 
@@ -137,10 +138,19 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
   // Fetch dynamic, variable Recommended / Related Movies specifically for this title
   const isTv = movie.genre?.toLowerCase().includes("series") || movie.videoUrl?.startsWith("tv:");
   let relatedMovies: Array<{ id: string; title: string; genre: string; thumbnailUrl: string | null }> = [];
+  let castMembers: Array<{ id: number; name: string; character: string; profileUrl: string | null }> = [];
 
   try {
-    const { getRecommendations } = await import("@/lib/tmdb");
-    const recs = await getRecommendations(movie.videoUrl || movie.id, Boolean(isTv));
+    const { getRecommendations, getMovieCredits } = await import("@/lib/tmdb");
+    const [recs, credits] = await Promise.all([
+      getRecommendations(movie.videoUrl || movie.id, Boolean(isTv)),
+      getMovieCredits(movie.videoUrl || movie.id, Boolean(isTv))
+    ]);
+
+    if (credits && credits.length > 0) {
+      castMembers = credits;
+    }
+
     if (recs && recs.length > 0) {
       relatedMovies = recs
         .filter((r) => r.title.toLowerCase() !== movie.title.toLowerCase() && r.id !== movie.id)
@@ -153,7 +163,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
         }));
     }
   } catch (err) {
-    console.warn("Failed to fetch TMDb recommendations:", err);
+    console.warn("Failed to fetch TMDb data:", err);
   }
 
   // Fallback or fill: match by genre from CURATED_CATALOG & database, shuffled so it's always variable
@@ -264,7 +274,8 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
             </h1>
           </div>
 
-          <div className="flex items-center space-x-3 shrink-0 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0 w-full sm:w-auto">
+            <WatchTrailerButton id={movie.videoUrl || movie.id} title={movie.title} isTv={Boolean(isTv)} variant="primary" />
             <WatchlistButton movieId={movie.id} />
           </div>
         </div>
@@ -273,6 +284,51 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
           {movie.description}
         </p>
       </div>
+
+      {/* Top Cast Shelf */}
+      {castMembers.length > 0 && (
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center space-x-2">
+              <Users className="w-4 sm:w-5 h-4 sm:h-5 text-rose-400" />
+              <span>Top Cast</span>
+            </h2>
+          </div>
+
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-none contain-paint">
+            {castMembers.map((actor) => (
+              <div
+                key={actor.id}
+                className="flex flex-col items-center text-center shrink-0 w-24 sm:w-28 group"
+              >
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-slate-800 border-2 border-purple-500/20 group-hover:border-rose-500/60 transition-colors mb-2 shadow-md">
+                  {actor.profileUrl ? (
+                    <img
+                      src={actor.profileUrl}
+                      alt={actor.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500">
+                      <Users className="w-6 h-6" />
+                    </div>
+                  )}
+                </div>
+                <h4 className="text-white text-xs font-semibold line-clamp-1 group-hover:text-rose-300 transition-colors">
+                  {actor.name}
+                </h4>
+                {actor.character && (
+                  <p className="text-[10px] text-slate-400 line-clamp-1">
+                    {actor.character}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* "More Like This" Recommended Movies Row */}
       {relatedMovies.length > 0 && (
