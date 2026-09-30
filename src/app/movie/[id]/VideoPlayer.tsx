@@ -52,7 +52,7 @@ export default function VideoPlayer({
 
   // Direct stream (ad-free native player) state
   const [directStream, setDirectStream] = useState<{ url: string; type: string } | null>(null);
-  const [directLoading, setDirectLoading] = useState<boolean>(true);
+  const [directLoading, setDirectLoading] = useState<boolean>(false);
   const [directFailed, setDirectFailed] = useState<boolean>(false);
 
   // Check if title is a TV Series (strict - movies are NEVER a series)
@@ -289,19 +289,17 @@ export default function VideoPlayer({
     const imdbParam = effectiveImdb || trimmed;
 
     if (isSeries && (isDirectImdb || isDirectTmdb || resolvedImdbId)) {
-      // TV Series — cleanest providers first
-      server1 = `https://multiembed.mov/?video_id=${tmdbParam}&tmdb=1&s=${season}&e=${episode}`;
-      server2 = `https://autoembed.cc/tv/tmdb/${tmdbParam}-${season}-${episode}`;
-      server3 = `https://vidfast.pro/tv/${tmdbParam}/${season}/${episode}?autoPlay=true`;
-      server4 = `https://www.2embed.cc/embedtv/${imdbParam}&s=${season}&e=${episode}`;
-      server5 = `https://moviesapi.club/tv/${tmdbParam}-${season}-${episode}`;
+      server1 = `https://vidlink.pro/tv/${tmdbParam}/${season}/${episode}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
+      server2 = `https://player.videasy.net/tv/${tmdbParam}/${season}/${episode}?color=e11d48`;
+      server3 = `https://vidsrc.su/embed/tv/${tmdbParam}/${season}/${episode}`;
+      server4 = `https://autoembed.cc/tv/tmdb/${tmdbParam}-${season}-${episode}`;
+      server5 = `https://vidfast.pro/tv/${tmdbParam}/${season}/${episode}?autoPlay=true`;
     } else if (isDirectImdb || isDirectTmdb || resolvedImdbId) {
-      // Movie — cleanest providers first
-      server1 = `https://multiembed.mov/?video_id=${tmdbParam}&tmdb=1`;
-      server2 = `https://autoembed.cc/movie/tmdb/${tmdbParam}`;
-      server3 = `https://vidfast.pro/movie/${tmdbParam}?autoPlay=true`;
-      server4 = `https://www.2embed.cc/embed/${imdbParam}`;
-      server5 = `https://moviesapi.club/movie/${tmdbParam}`;
+      server1 = `https://vidlink.pro/movie/${tmdbParam}?primaryColor=e11d48&secondaryColor=a855f7&autoplay=true`;
+      server2 = `https://player.videasy.net/movie/${tmdbParam}?color=e11d48`;
+      server3 = `https://vidsrc.su/embed/movie/${tmdbParam}`;
+      server4 = `https://autoembed.cc/movie/tmdb/${tmdbParam}`;
+      server5 = `https://vidfast.pro/movie/${tmdbParam}?autoPlay=true`;
     } else if (youtubeEmbed) {
       server1 = youtubeEmbed;
       server2 = youtubeEmbed;
@@ -370,11 +368,11 @@ export default function VideoPlayer({
   const needsPopups = (adsEnabled ?? true) && clickCount < targetClicks;
 
   const serverList = useMemo(() => [
-    { id: 1, label: "MultiEmbed (Clean)", short: "MultiEmbed" },
-    { id: 2, label: "AutoEmbed (No Ads)", short: "AutoEmbed" },
-    { id: 3, label: "VidFast (HD)", short: "VidFast" },
-    { id: 4, label: "2Embed (Stream 4)", short: "2Embed" },
-    { id: 5, label: "MoviesAPI (Stream 5)", short: "MoviesAPI" },
+    { id: 1, label: "VidLink (Fast HD)", short: "VidLink" },
+    { id: 2, label: "Videasy (Clean)", short: "Videasy" },
+    { id: 3, label: "VidSrc SU (Backup)", short: "VidSrc SU" },
+    { id: 4, label: "AutoEmbed (Stream 4)", short: "AutoEmbed" },
+    { id: 5, label: "VidFast (Stream 5)", short: "VidFast" },
   ], []);
 
   const handleNextServer = useCallback((reason?: string) => {
@@ -468,7 +466,7 @@ export default function VideoPlayer({
                 onClick={() => {
                   setIsAutoMode(true);
                   setSelectedServer(1);
-                  setAutoStatusMessage("⚡ Auto Mode: Playing fastest stream (MultiEmbed)");
+                  setAutoStatusMessage("⚡ Auto Mode: Playing fastest stream (VidLink)");
                   setTimeout(() => setAutoStatusMessage(null), 3500);
                 }}
                 className={`px-2.5 py-1 rounded-lg font-bold transition-all text-xs flex items-center space-x-1 cursor-pointer ${
@@ -624,8 +622,8 @@ export default function VideoPlayer({
 
         {/* Video Player Frame */}
         <div className="w-full h-full relative">
-          {/* 🎯 Native ad-free player — shown when /api/stream returns a direct URL */}
-          {!directLoading && directStream && !needsPopups ? (
+          {/* 🎯 Native ad-free player — shown when a direct stream URL is found */}
+          {directStream && !needsPopups ? (
             <NativeArabicPlayer
               key={`native-${directStream.url}`}
               streamUrl={directStream.url}
@@ -633,14 +631,6 @@ export default function VideoPlayer({
               subtitleUrl={activeArabicSubUrl}
               poster={thumbnailUrl}
             />
-          ) : directLoading && !directFailed ? (
-            /* Loading spinner while we attempt to extract a direct stream */
-            <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-3">
-              <div className="w-10 h-10 rounded-full border-4 border-purple-600 border-t-rose-500 animate-spin" />
-              <span className="text-purple-300/70 text-xs font-semibold tracking-wide">
-                Finding best stream…
-              </span>
-            </div>
           ) : parsedSources.isDirectVideo ? (
             <video
               ref={videoRef}
