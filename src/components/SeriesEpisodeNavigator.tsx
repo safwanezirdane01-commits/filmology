@@ -10,6 +10,7 @@ interface SeriesEpisodeNavigatorProps {
   currentSeason: number;
   currentEpisode: number;
   onSelectEpisode: (season: number, episode: number) => void;
+  liveMeta?: { totalSeasons: number; seasons: Record<number, number> } | null;
 }
 
 export default function SeriesEpisodeNavigator({
@@ -18,8 +19,10 @@ export default function SeriesEpisodeNavigator({
   currentSeason,
   currentEpisode,
   onSelectEpisode,
+  liveMeta,
 }: SeriesEpisodeNavigatorProps) {
-  const meta = getSeriesMetadata(movieVideoUrl, genre);
+  const staticMeta = getSeriesMetadata(movieVideoUrl, genre);
+  const meta = liveMeta || staticMeta;
   const [jumpInput, setJumpInput] = useState<string>("");
 
   if (!meta) return null;
@@ -28,7 +31,7 @@ export default function SeriesEpisodeNavigator({
   const seasonsList = Array.from({ length: totalSeasons }, (_, i) => i + 1);
 
   // Episode count for the currently selected season
-  const episodesCount = meta.seasons[currentSeason] || 24;
+  const episodesCount = meta.seasons[currentSeason] || 10;
   const episodesList = Array.from({ length: episodesCount }, (_, i) => i + 1);
 
   const handlePrev = () => {

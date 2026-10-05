@@ -456,3 +456,43 @@ export async function getMovieCredits(videoUrlOrId: string, isTv: boolean = fals
   }
 }
 
+
+export interface TvSeasonInfo {
+  totalSeasons: number;
+  seasons: Record<number, number>; // seasonNumber -> episodeCount
+}
+
+/**
+ * Fetch real season + episode counts for a TV show from TMDB.
+ * Skips specials (season 0) automatically.
+ */
+export async function getTvSeasonInfo(tmdbId: string): Promise<TvSeasonInfo | null> {
+  try {
+    const clean = tmdbId.replace(/^tv[:-]/i, "").trim();
+    if (!/^\d+$/.test(clean)) return null;
+
+    const res = await fetch(
+      `${TMDB_BASE}/tv/${clean}?api_key=${TMDB_KEY}&language=en-US`,
+      { next: { revalidate: 86400 } } // cache for 24h
+    );
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    if (!data.number_of_seasons || !data.seasons) return null;
+
+    const seasons: Record<number, number> = {};
+    for (const s of data.seasons) {
+      if (s.season_number === 0) continue; // skip specials
+      if (s.episode_count > 0) {
+        seasons[s.season_number] = s.episode_count;
+      }
+    }
+
+    const totalSeasons = Object.keys(seasons).length;
+    if (totalSeasons === 0) return null;
+
+    return { totalSeasons, seasons };
+  } catch {
+    return null;
+  }
+}

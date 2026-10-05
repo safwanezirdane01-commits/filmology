@@ -63,9 +63,32 @@ export default function VideoPlayer({
     return isSeries ? getSeriesMetadata(movieVideoUrl, genre) : null;
   }, [isSeries, movieVideoUrl, genre]);
 
+  // Live season/episode data fetched from TMDB — always accurate for every show
+  const [liveMeta, setLiveMeta] = useState<{ totalSeasons: number; seasons: Record<number, number> } | null>(null);
+
+  useEffect(() => {
+    if (!isSeries || !movieVideoUrl) return;
+    const tmdbId = movieVideoUrl.replace(/^tv[:-]/i, "").trim();
+    if (!/^\d+$/.test(tmdbId)) return;
+
+    fetch(`/api/tv-info?id=${tmdbId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.totalSeasons && data.seasons) {
+          setLiveMeta({ totalSeasons: data.totalSeasons, seasons: data.seasons });
+        }
+      })
+      .catch(() => {});
+  }, [isSeries, movieVideoUrl]);
+
+  // Effective meta: prefer live TMDB data, fall back to static
+  const effectiveMeta = liveMeta || seriesMeta;
+
   const availableEpisodesCount = useMemo(() => {
-    return isSeries ? getEpisodesForSeason(movieVideoUrl, season, genre) : 0;
-  }, [isSeries, movieVideoUrl, season, genre]);
+    if (!isSeries) return 0;
+    if (effectiveMeta) return effectiveMeta.seasons[season] || 10;
+    return getEpisodesForSeason(movieVideoUrl, season, genre);
+  }, [isSeries, effectiveMeta, movieVideoUrl, season, genre]);
 
   // Load saved watch progress for current title/season/episode
   useEffect(() => {
@@ -491,7 +514,7 @@ export default function VideoPlayer({
                   }}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded px-2 py-0.5 font-semibold focus:outline-none focus:border-rose-500 text-xs"
                 >
-                  {Array.from({ length: Math.max(1, seriesMeta?.totalSeasons || 10) }, (_, i) => i + 1).map((s) => (
+                  {Array.from({ length: Math.max(1, effectiveMeta?.totalSeasons || seriesMeta?.totalSeasons || 1) }, (_, i) => i + 1).map((s) => (
                     <option key={s} value={s}>Season {s}</option>
                   ))}
                 </select>
@@ -684,7 +707,7 @@ export default function VideoPlayer({
                   }}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded-xl px-2.5 py-2 text-xs font-bold flex-1 focus:outline-none focus:border-rose-500 min-h-[40px]"
                 >
-                  {Array.from({ length: Math.max(1, seriesMeta?.totalSeasons || 1) }, (_, i) => i + 1).map((s) => (
+                  {Array.from({ length: Math.max(1, effectiveMeta?.totalSeasons || seriesMeta?.totalSeasons || 1) }, (_, i) => i + 1).map((s) => (
                     <option key={s} value={s}>Season {s}</option>
                   ))}
                 </select>
@@ -734,6 +757,7 @@ export default function VideoPlayer({
             genre={genre}
             currentSeason={season}
             currentEpisode={episode}
+            liveMeta={liveMeta}
             onSelectEpisode={(newSeason, newEpisode) => {
               setSeason(newSeason);
               setEpisode(newEpisode);
