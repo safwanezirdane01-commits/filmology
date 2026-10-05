@@ -159,6 +159,9 @@ Tired of paying $20/month for streaming? 🍿 Watch thousands of movies and full
       }
     ];
 
+    const brandLogoImg = new Image();
+    brandLogoImg.src = "/logo.png";
+
     // Preload all real images
     movieData.forEach((m) => {
       const img = new Image();
@@ -435,20 +438,30 @@ Tired of paying $20/month for streaming? 🍿 Watch thousands of movies and full
         ctx.fillRect(0, 0, w, h);
 
         ctx.fillStyle = "#38bdf8";
-        ctx.font = "bold 32px system-ui, sans-serif";
+        ctx.font = "bold 30px system-ui, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("THE SOLUTION IS HERE", w / 2, h * 0.28);
+        ctx.fillText("THE SOLUTION IS HERE", w / 2, h * 0.23);
+
+        // Official App Icon Logo
+        if (brandLogoImg.complete && brandLogoImg.naturalWidth > 0) {
+          const lSize = 120;
+          ctx.save();
+          ctx.shadowColor = "rgba(244, 63, 94, 0.8)";
+          ctx.shadowBlur = 30;
+          drawRoundedImage(brandLogoImg, (w - lSize) / 2, h * 0.26, lSize, lSize, 28);
+          ctx.restore();
+        }
 
         // Huge Neon Brand Logo
-        ctx.font = "900 86px system-ui, sans-serif";
+        ctx.font = "900 76px system-ui, sans-serif";
         ctx.fillStyle = "#ffffff";
-        ctx.fillText("Filmology", w / 2 - 35, h * 0.38);
+        ctx.fillText("Filmology", w / 2 - 30, h * 0.40);
         ctx.fillStyle = "#f43f5e";
-        ctx.fillText("X", w / 2 + 205, h * 0.38);
+        ctx.fillText("X", w / 2 + 185, h * 0.40);
 
         ctx.fillStyle = "#c084fc";
-        ctx.font = "bold 32px system-ui, sans-serif";
-        ctx.fillText("100% Free Cinema & Shows", w / 2, h * 0.44);
+        ctx.font = "bold 30px system-ui, sans-serif";
+        ctx.fillText("100% Free Cinema & Shows", w / 2, h * 0.45);
 
         // Feature checklist pills with camera snap feel
         const perks = [

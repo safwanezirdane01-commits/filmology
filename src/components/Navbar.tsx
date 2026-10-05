@@ -90,7 +90,11 @@ export default function Navbar() {
                 setShowDropdown(false);
               }}
             >
-              <Film className="w-7 h-7 sm:w-8 sm:h-8 text-rose-500 group-hover:text-rose-400 transition-colors drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
+              <img 
+                src="/logo.png" 
+                alt="FilmologyX Logo" 
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-contain drop-shadow-[0_0_12px_rgba(244,63,94,0.6)] group-hover:scale-105 transition-transform" 
+              />
               <span className="font-bold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-200">
                 Filmology<span className="text-rose-500 group-hover:text-rose-400 transition-colors">X</span>
               </span>

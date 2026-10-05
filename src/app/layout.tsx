@@ -21,11 +21,31 @@ export const metadata: Metadata = {
   title: "FilmologyX | Watch Movies Free",
   description: "The ultimate platform for streaming the best movies. Watch high-quality animation, sci-fi, horror, and action films for free on FilmologyX.",
   keywords: ["streaming", "movies", "watch free", "filmologyx", "cinema"],
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
-    title: "FilmologyX",
-    description: "The ultimate platform for streaming the best movies.",
+    title: "FilmologyX | Watch Movies & TV Series Free in HD",
+    description: "Stream 10,000+ movies & full TV series in 1080p HD completely free on FilmologyX.",
+    url: "https://filmologyx.vercel.app",
     siteName: "FilmologyX",
+    images: [
+      {
+        url: "/banner.png",
+        width: 1280,
+        height: 720,
+        alt: "FilmologyX - Free Movie & TV Series Streaming",
+      },
+    ],
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FilmologyX | Watch Movies & TV Series Free in HD",
+    description: "Stream 10,000+ movies & full TV series in 1080p HD completely free on FilmologyX.",
+    images: ["/banner.png"],
   },
   verification: {
     google: "BjT37pboaQsm68KPq3wiRCm1gq7EmuX7c5IPaxVASaE",
