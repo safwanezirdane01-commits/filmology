@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, RefreshCw } from "lucide-react";
+import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, RefreshCw, Maximize2, Minimize2, PictureInPicture2, FastForward, X } from "lucide-react";
 import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
@@ -53,6 +53,56 @@ export default function VideoPlayer({
   const [directStream, setDirectStream] = useState<{ url: string; type: string } | null>(null);
   const [directLoading, setDirectLoading] = useState<boolean>(false);
   const [directFailed, setDirectFailed] = useState<boolean>(false);
+
+  // Cinema Theater Mode & PiP states
+  const [isTheaterMode, setIsTheaterMode] = useState<boolean>(false);
+  const [isFloatingPiP, setIsFloatingPiP] = useState<boolean>(false);
+
+  // Auto-play Next Episode (Binge-Watching Mode)
+  const [autoNextEnabled, setAutoNextEnabled] = useState<boolean>(true);
+  const [showNextCountdown, setShowNextCountdown] = useState<boolean>(false);
+  const [countdownRemaining, setCountdownRemaining] = useState<number>(5);
+
+  // Handle ESC key to exit Cinema Mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isTheaterMode) {
+        setIsTheaterMode(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isTheaterMode]);
+
+  // Countdown timer for next episode
+  useEffect(() => {
+    let timer: any;
+    if (showNextCountdown && countdownRemaining > 0) {
+      timer = setTimeout(() => {
+        setCountdownRemaining((prev) => prev - 1);
+      }, 1000);
+    } else if (showNextCountdown && countdownRemaining <= 0) {
+      setShowNextCountdown(false);
+      setEpisode((prev) => prev + 1);
+    }
+    return () => clearTimeout(timer);
+  }, [showNextCountdown, countdownRemaining]);
+
+  const handleTogglePiP = async () => {
+    if (parsedSources?.isDirectVideo && videoRef.current) {
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else {
+          await videoRef.current.requestPictureInPicture();
+        }
+      } catch {
+        setIsFloatingPiP((prev) => !prev);
+      }
+    } else {
+      setIsFloatingPiP((prev) => !prev);
+    }
+  };
 
   // Check if title is a TV Series (strict - movies are NEVER a series)
   const isSeries = useMemo(() => {
@@ -459,6 +509,43 @@ export default function VideoPlayer({
 
       {/* 16:9 Video Player Screen */}
       <div id="video-player-screen" className="relative aspect-video w-full bg-black rounded-2xl sm:rounded-3xl overflow-hidden border border-purple-500/30 shadow-[0_0_50px_rgba(139,92,246,0.3)] gpu-layer">
+        {/* Netflix-style Binge Mode Next Episode Countdown Overlay */}
+        {showNextCountdown && isSeries && (
+          <div className="absolute inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
+            <div className="bg-slate-900/95 border border-purple-500/40 p-6 rounded-2xl max-w-xs sm:max-w-sm w-full shadow-2xl flex flex-col items-center">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1">
+                Up Next in Binge Mode
+              </span>
+              <h4 className="text-base sm:text-lg font-bold text-white mb-2">
+                Season {season} : Episode {episode + 1}
+              </h4>
+              <div className="w-14 h-14 rounded-full border-4 border-rose-500/20 border-t-rose-500 flex items-center justify-center my-2 animate-spin">
+                <span className="text-lg font-extrabold text-white animate-none">{countdownRemaining}</span>
+              </div>
+              <p className="text-xs text-slate-400 mb-4">Starting next episode automatically...</p>
+              <div className="flex items-center space-x-2.5 w-full">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNextCountdown(false);
+                    setEpisode((prev) => prev + 1);
+                  }}
+                  className="flex-1 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold py-2 rounded-xl shadow cursor-pointer"
+                >
+                  Play Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNextCountdown(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Desktop Overlay Server Bar (visible on sm+) */}
         {parsedSources.isImdbOrTmdb && (
           <div className="hidden sm:flex absolute top-3 left-3 right-3 z-40 items-center justify-between bg-slate-950/85 sm:backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
@@ -651,12 +738,59 @@ export default function VideoPlayer({
           </span>
         </div>
 
-        <div className="flex items-center space-x-2 shrink-0">
+        <div className="flex items-center space-x-2 shrink-0 flex-wrap gap-y-1.5">
+          {/* Auto-Next Ep (Binge Mode) toggle for series */}
+          {isSeries && (
+            <button
+              type="button"
+              onClick={() => setAutoNextEnabled((prev) => !prev)}
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow ${
+                autoNextEnabled
+                  ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/40"
+                  : "bg-slate-800 text-slate-400 border border-slate-700"
+              }`}
+              title={autoNextEnabled ? "Binge Mode: Auto-play next episode is ON" : "Binge Mode is OFF"}
+            >
+              <FastForward className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Auto-Next: {autoNextEnabled ? "ON" : "OFF"}</span>
+            </button>
+          )}
+
+          {/* Cinema Theater Mode Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsTheaterMode((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow ${
+              isTheaterMode
+                ? "bg-rose-600 text-white"
+                : "bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-200 hover:text-white"
+            }`}
+            title="Expand Theater Lights-Off Mode"
+          >
+            <Maximize2 className="w-3.5 h-3.5 text-rose-400" />
+            <span className="hidden sm:inline">Theater</span>
+          </button>
+
+          {/* Picture-in-Picture Mini-Player Toggle */}
+          <button
+            type="button"
+            onClick={handleTogglePiP}
+            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow ${
+              isFloatingPiP
+                ? "bg-purple-600 text-white"
+                : "bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-200 hover:text-white"
+            }`}
+            title="Picture-in-Picture Mini-Player while browsing"
+          >
+            <PictureInPicture2 className="w-3.5 h-3.5 text-purple-300" />
+            <span className="hidden sm:inline">{isFloatingPiP ? "Close Mini" : "Mini PiP"}</span>
+          </button>
+
           {/* Quick Failsafe Next Server Button */}
           <button
             type="button"
             onClick={() => handleNextServer()}
-            className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow hover:scale-[1.02]"
+            className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-200 hover:text-white px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow hover:scale-[1.02]"
             title="Stream stuck or buffering? Click to switch to next server instantly"
           >
             <RefreshCw className="w-3.5 h-3.5 text-rose-400" />
@@ -664,6 +798,88 @@ export default function VideoPlayer({
           </button>
         </div>
       </div>
+
+      {/* Cinema Theater Lights-Off Fullscreen Mode */}
+      {isTheaterMode && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-2 sm:p-4 backdrop-blur-2xl">
+          <div className="w-full max-w-6xl flex items-center justify-between pb-2 px-2 text-white">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+              <span className="font-bold text-xs sm:text-sm">Cinema Theater Mode • {title} {isSeries ? `(S${season} : E${episode})` : ""}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsTheaterMode(false)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-purple-500/20 cursor-pointer shadow"
+            >
+              <Minimize2 className="w-3.5 h-3.5 text-rose-400" />
+              <span>Exit (ESC)</span>
+            </button>
+          </div>
+          <div className="w-full max-w-6xl aspect-video bg-black rounded-2xl overflow-hidden border border-purple-500/30 shadow-2xl relative">
+            {parsedSources.isDirectVideo ? (
+              <video
+                controls
+                autoPlay
+                className="w-full h-full object-contain"
+                src={parsedSources.currentUrl}
+                playsInline
+              />
+            ) : (
+              <iframe
+                src={parsedSources.currentUrl}
+                className="w-full h-full border-0"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Floating Picture-in-Picture Mini-Player */}
+      {isFloatingPiP && (
+        <div className="fixed bottom-4 right-4 z-50 w-72 sm:w-84 aspect-video bg-black rounded-2xl shadow-2xl border-2 border-purple-500/50 overflow-hidden group">
+          <div className="absolute top-2 right-2 z-10 flex items-center space-x-1 opacity-80 group-hover:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={() => {
+                setIsFloatingPiP(false);
+                const el = document.getElementById("video-player-screen");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="p-1.5 bg-black/80 hover:bg-slate-800 text-white rounded-lg text-xs cursor-pointer shadow"
+              title="Expand back to main screen"
+            >
+              <Maximize2 className="w-3 h-3 text-purple-300" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsFloatingPiP(false)}
+              className="p-1.5 bg-black/80 hover:bg-rose-900 text-white rounded-lg text-xs cursor-pointer shadow"
+              title="Close mini player"
+            >
+              <X className="w-3 h-3 text-rose-300" />
+            </button>
+          </div>
+          {parsedSources.isDirectVideo ? (
+            <video
+              controls
+              autoPlay
+              className="w-full h-full object-contain"
+              src={parsedSources.currentUrl}
+              playsInline
+            />
+          ) : (
+            <iframe
+              src={parsedSources.currentUrl}
+              className="w-full h-full border-0"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            />
+          )}
+        </div>
+      )}
 
       {/* Dedicated Mobile Controls Bar (Servers + TV Series Episode Switcher) */}
       <div className="flex sm:hidden flex-col gap-2.5 bg-slate-900/95 border border-purple-500/20 p-3 rounded-2xl">

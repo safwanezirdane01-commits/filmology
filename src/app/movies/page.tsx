@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { discoverByFilter, UniversalItem } from "@/lib/tmdb";
-import { Film, Star, Play, ChevronLeft, ChevronRight, Clapperboard, Filter } from "lucide-react";
+import { Film, Star, ChevronLeft, ChevronRight, Clapperboard, Filter } from "lucide-react";
 import QuickWatchlistHeart from "@/components/QuickWatchlistHeart";
+import CatalogSortBar from "@/components/CatalogSortBar";
 
 export const metadata: Metadata = {
   title: "Watch Movies Free in 1080p Full HD | FilmologyX",
@@ -25,13 +26,22 @@ const GENRES = [
 export default async function MoviesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ genre?: string; page?: string }>;
+  searchParams: Promise<{ genre?: string; page?: string; sort?: string }>;
 }) {
-  const { genre = "all", page = "1" } = await searchParams;
+  const { genre = "all", page = "1", sort = "popular" } = await searchParams;
   const currentPage = Math.max(1, parseInt(page, 10) || 1);
   const activeGenre = GENRES.some((g) => g.id === genre) ? genre : "all";
 
   const movies: UniversalItem[] = await discoverByFilter(activeGenre, currentPage);
+
+  // Apply sorting
+  if (sort === "rating") {
+    movies.sort((a, b) => (b.voteAverage || 0) - (a.voteAverage || 0));
+  } else if (sort === "year") {
+    movies.sort((a, b) => (b.releaseYear || 0) - (a.releaseYear || 0));
+  } else if (sort === "title") {
+    movies.sort((a, b) => a.title.localeCompare(b.title));
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-16">
@@ -50,9 +60,12 @@ export default async function MoviesPage({
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-slate-900 border border-purple-500/20 px-3.5 py-1.5 rounded-full text-xs font-semibold text-purple-300">
-          <Film className="w-3.5 h-3.5 text-rose-400" />
-          <span>Page {currentPage}</span>
+        <div className="flex items-center space-x-2.5">
+          <CatalogSortBar currentSort={sort} basePath="/movies" currentGenre={activeGenre} />
+          <div className="flex items-center space-x-1.5 bg-slate-900 border border-purple-500/20 px-3 py-1.5 rounded-full text-xs font-semibold text-purple-300">
+            <Film className="w-3.5 h-3.5 text-rose-400" />
+            <span>Page {currentPage}</span>
+          </div>
         </div>
       </div>
 
@@ -65,7 +78,7 @@ export default async function MoviesPage({
         {GENRES.map((g) => (
           <Link
             key={g.id}
-            href={`/movies?genre=${g.id}&page=1`}
+            href={`/movies?genre=${g.id}&page=1&sort=${sort}`}
             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 active:scale-95 ${
               activeGenre === g.id
                 ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-md shadow-rose-600/30"
@@ -117,7 +130,6 @@ export default async function MoviesPage({
                   HD
                 </div>
 
-                {/* Play Hover Overlay */}
                 {/* Quick Watchlist Heart Button */}
                 <div className="absolute bottom-2 right-2 z-20">
                   <QuickWatchlistHeart
@@ -160,7 +172,7 @@ export default async function MoviesPage({
       <div className="flex items-center justify-center space-x-3 pt-6">
         {currentPage > 1 && (
           <Link
-            href={`/movies?genre=${activeGenre}&page=${currentPage - 1}`}
+            href={`/movies?genre=${activeGenre}&page=${currentPage - 1}&sort=${sort}`}
             className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-purple-500/20 text-slate-200 text-xs font-bold transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -171,7 +183,7 @@ export default async function MoviesPage({
           Page <strong className="text-white">{currentPage}</strong>
         </span>
         <Link
-          href={`/movies?genre=${activeGenre}&page=${currentPage + 1}`}
+          href={`/movies?genre=${activeGenre}&page=${currentPage + 1}&sort=${sort}`}
           className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold transition-all shadow"
         >
           <span>Next</span>
