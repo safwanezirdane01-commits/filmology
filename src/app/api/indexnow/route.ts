@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { CURATED_CATALOG } from "@/lib/catalog";
 
 const INDEXNOW_KEY = "9f4a8b72c1e64901ba538d3ef7182904";
-const HOST = "streaming-web-ochre.vercel.app";
+const HOST = "filmologyx.vercel.app";
 
 export async function GET() {
   return handleSubmit();

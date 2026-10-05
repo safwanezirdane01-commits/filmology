@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://streaming-web-ochre.vercel.app"),
+  metadataBase: new URL("https://filmologyx.vercel.app"),
   title: "FilmologyX | Watch Movies Free",
   description: "The ultimate platform for streaming the best movies. Watch high-quality animation, sci-fi, horror, and action films for free on FilmologyX.",
   keywords: ["streaming", "movies", "watch free", "filmologyx", "cinema"],
