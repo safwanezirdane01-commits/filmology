@@ -5,7 +5,6 @@ import { Providers } from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import AdBlockDetector from "@/components/AdBlockDetector";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
-import { Analytics } from "@vercel/analytics/react";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -47,7 +46,6 @@ export default function RootLayout({
             {children}
           </main>
           <PWAInstallPrompt />
-          <Analytics />
           <AnalyticsTracker />
         </Providers>
       </body>

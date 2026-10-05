@@ -15,8 +15,32 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    // 1. If admin session is active on this request, do not track
+    const session = await getServerSession(authOptions);
+    if (session?.user && (session.user as any).role === "ADMIN") {
+      return NextResponse.json({ success: true, ignored: true });
+    }
+
+    // 2. Check exclusion cookie or header
+    const cookieHeader = req.headers.get("cookie") || "";
+    if (
+      cookieHeader.includes("filmology_exclude_analytics=1") ||
+      req.headers.get("x-exclude-analytics") === "1"
+    ) {
+      return NextResponse.json({ success: true, ignored: true });
+    }
+
     const body = await req.json();
-    const { path, title, referrer, device } = body || {};
+    const { path, title, referrer, device, exclude } = body || {};
+
+    if (exclude) {
+      return NextResponse.json({ success: true, ignored: true });
+    }
+
+    // 3. Never record admin panel or api routes
+    if (!path || path.startsWith("/admin") || path.startsWith("/api")) {
+      return NextResponse.json({ success: true, ignored: true });
+    }
 
     const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
     const userAgent = req.headers.get("user-agent") || "";

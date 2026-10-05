@@ -13,7 +13,8 @@ import {
   Activity, 
   Clock, 
   TrendingUp,
-  Trash2
+  Trash2,
+  ShieldCheck
 } from "lucide-react";
 import { AnalyticsSummary } from "@/lib/analytics";
 
@@ -25,6 +26,7 @@ export default function AnalyticsPanel({
   const [data, setData] = useState<AnalyticsSummary | null>(initialData || null);
   const [loading, setLoading] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<string>("Just now");
+  const [isExcluded, setIsExcluded] = useState<boolean>(true);
 
   const fetchStats = async () => {
     setLoading(true);
@@ -43,6 +45,18 @@ export default function AnalyticsPanel({
   };
 
   useEffect(() => {
+    // Automatically exclude admin device on this browser
+    try {
+      const stored = localStorage.getItem("filmology_exclude_analytics");
+      if (stored === null || stored === "true") {
+        localStorage.setItem("filmology_exclude_analytics", "true");
+        document.cookie = "filmology_exclude_analytics=1; path=/; max-age=31536000; SameSite=Lax";
+        setIsExcluded(true);
+      } else {
+        setIsExcluded(false);
+      }
+    } catch {}
+
     if (!initialData) {
       fetchStats();
     }
@@ -50,6 +64,20 @@ export default function AnalyticsPanel({
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const toggleExclusion = () => {
+    const next = !isExcluded;
+    setIsExcluded(next);
+    try {
+      if (next) {
+        localStorage.setItem("filmology_exclude_analytics", "true");
+        document.cookie = "filmology_exclude_analytics=1; path=/; max-age=31536000; SameSite=Lax";
+      } else {
+        localStorage.setItem("filmology_exclude_analytics", "false");
+        document.cookie = "filmology_exclude_analytics=0; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      }
+    } catch {}
+  };
 
   const handleReset = async () => {
     if (!window.confirm("Are you sure you want to reset analytics test data?")) return;
@@ -106,6 +134,19 @@ export default function AnalyticsPanel({
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-rose-400" : ""}`} />
             <span>{loading ? "Updating..." : `Refreshed ${lastRefreshed}`}</span>
+          </button>
+          <button
+            type="button"
+            onClick={toggleExclusion}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all shadow ${
+              isExcluded
+                ? "bg-emerald-900/50 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/70"
+                : "bg-slate-800/80 border-purple-500/20 text-slate-400 hover:text-white"
+            }`}
+            title={isExcluded ? "Your device is excluded from analytics" : "Click to exclude your device from analytics"}
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>{isExcluded ? "My device excluded" : "Exclude my device"}</span>
           </button>
           <button
             type="button"
