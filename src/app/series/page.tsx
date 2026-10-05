@@ -10,7 +10,6 @@ export const metadata: Metadata = {
 
 const TV_GENRES = [
   { id: "series", label: "All Series" },
-  { id: "anime", label: "Anime" },
   { id: "series_action", label: "Action & Adventure" },
   { id: "series_scifi", label: "Sci-Fi & Fantasy" },
   { id: "series_comedy", label: "Comedy" },
