@@ -112,6 +112,13 @@ export default function Navbar() {
                 <Tv className="w-3.5 h-3.5 text-purple-400" />
                 <span>TV Series</span>
               </Link>
+              <Link
+                href="/anime"
+                className="text-slate-300 hover:text-white hover:bg-orange-900/30 px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5"
+              >
+                <span className="text-sm leading-none">⛩️</span>
+                <span>Anime</span>
+              </Link>
             </div>
           </div>
           
@@ -341,22 +348,30 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-purple-900/30 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[calc(100vh-4.5rem)] overflow-y-auto pb-6">
             {/* Quick Links */}
-            <div className="grid grid-cols-2 gap-2 pb-2">
+            <div className="grid grid-cols-3 gap-2 pb-2">
               <Link
                 href="/movies"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center space-x-2 p-3 rounded-xl bg-slate-900 border border-purple-500/20 text-slate-200 hover:text-white hover:border-rose-500/40 text-sm font-medium"
+                className="flex flex-col items-center space-y-1 p-3 rounded-xl bg-slate-900 border border-purple-500/20 text-slate-200 hover:text-white hover:border-rose-500/40 text-xs font-medium"
               >
-                <Clapperboard className="w-4 h-4 text-rose-400" />
-                <span>All Movies</span>
+                <Clapperboard className="w-5 h-5 text-rose-400" />
+                <span>Movies</span>
               </Link>
               <Link
                 href="/series"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center space-x-2 p-3 rounded-xl bg-slate-900 border border-purple-500/20 text-slate-200 hover:text-white hover:border-rose-500/40 text-sm font-medium"
+                className="flex flex-col items-center space-y-1 p-3 rounded-xl bg-slate-900 border border-purple-500/20 text-slate-200 hover:text-white hover:border-purple-500/40 text-xs font-medium"
               >
-                <Tv className="w-4 h-4 text-purple-400" />
+                <Tv className="w-5 h-5 text-purple-400" />
                 <span>TV Series</span>
+              </Link>
+              <Link
+                href="/anime"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex flex-col items-center space-y-1 p-3 rounded-xl bg-slate-900 border border-orange-500/20 text-slate-200 hover:text-white hover:border-orange-500/40 text-xs font-medium"
+              >
+                <span className="text-xl leading-none">⛩️</span>
+                <span>Anime</span>
               </Link>
             </div>
 

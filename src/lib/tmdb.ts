@@ -289,8 +289,18 @@ export async function discoverByFilter(category: string = "all", page: number = 
       url = `${TMDB_BASE}/tv/top_rated?api_key=${TMDB_KEY}&page=${page}`;
     } else if (category === "anime") {
       url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "anime_action") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=16,10759&with_original_language=ja&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "anime_scifi") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=16,10765&with_original_language=ja&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "anime_drama") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=16,18&with_original_language=ja&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "anime_comedy") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=16,35&with_original_language=ja&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "anime_top") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=200&page=${page}&include_adult=false`;
     } else if (category === "animation" || category === "anime_movies") {
-      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_genres=16&sort_by=popularity.desc&page=${page}&include_adult=false`;
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc&page=${page}&include_adult=false`;
     } else if (category === "arabic") {
       url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ar&sort_by=popularity.desc&page=${page}&include_adult=false`;
     } else if (category === "action") {
@@ -318,7 +328,7 @@ export async function discoverByFilter(category: string = "all", page: number = 
     const data = await res.json();
     if (!data.results) return [];
 
-    const isTv = category.startsWith("series") || category === "anime";
+    const isTv = category.startsWith("series") || (category.startsWith("anime") && category !== "anime_movies" && category !== "animation");
     return data.results
       .map((item: any) => formatTmdbItem(item, isTv ? "tv" : "movie"))
       .filter((item: UniversalItem | null): item is UniversalItem => item !== null && item.thumbnailUrl !== "/placeholder.png");
