@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, RefreshCw, Maximize2, Minimize2, PictureInPicture2, FastForward, X } from "lucide-react";
+import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, RefreshCw, Maximize2, Minimize2, PictureInPicture2, FastForward, X, Keyboard } from "lucide-react";
 import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
@@ -63,16 +63,9 @@ export default function VideoPlayer({
   const [showNextCountdown, setShowNextCountdown] = useState<boolean>(false);
   const [countdownRemaining, setCountdownRemaining] = useState<number>(5);
 
-  // Handle ESC key to exit Cinema Mode
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isTheaterMode) {
-        setIsTheaterMode(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isTheaterMode]);
+  // Cinema Keyboard Shortcuts & Toast state
+  const [showHotkeysModal, setShowHotkeysModal] = useState<boolean>(false);
+  const [hotkeyToast, setHotkeyToast] = useState<string | null>(null);
 
   // Countdown timer for next episode
   useEffect(() => {
@@ -458,6 +451,130 @@ export default function VideoPlayer({
     });
   }, [serverList]);
 
+  // Pro Cinema Keyboard Shortcuts Handler
+  useEffect(() => {
+    let toastTimer: any;
+    const triggerToast = (msg: string) => {
+      setHotkeyToast(msg);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => setHotkeyToast(null), 1800);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is currently typing in an input, textarea, or select
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      // ESC: Exit Theater mode, close hotkeys modal, close PiP
+      if (e.key === "Escape") {
+        if (showHotkeysModal) {
+          setShowHotkeysModal(false);
+          return;
+        }
+        if (isTheaterMode) {
+          setIsTheaterMode(false);
+          triggerToast("Theater Mode: OFF");
+          return;
+        }
+        if (isFloatingPiP) {
+          setIsFloatingPiP(false);
+          return;
+        }
+      }
+
+      // '?' or Shift + '/': Toggle Hotkeys Help Modal
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setShowHotkeysModal((prev) => !prev);
+        return;
+      }
+
+      // 't' or 'T': Toggle Cinema Theater Mode
+      if (e.key === "t" || e.key === "T") {
+        e.preventDefault();
+        setIsTheaterMode((prev) => {
+          triggerToast(!prev ? "🎬 Cinema Theater: ON" : "Cinema Theater: OFF");
+          return !prev;
+        });
+        return;
+      }
+
+      // 'f' or 'F': Toggle Browser Fullscreen on Player
+      if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        const screenEl = document.getElementById("video-player-screen");
+        if (!document.fullscreenElement && screenEl) {
+          screenEl.requestFullscreen().catch(() => {});
+          triggerToast("⛶ Fullscreen");
+        } else if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        return;
+      }
+
+      // 'p' or 'P': Toggle Mini-Player PiP
+      if (e.key === "p" || e.key === "P") {
+        e.preventDefault();
+        handleTogglePiP();
+        triggerToast("📺 Mini-Player PiP");
+        return;
+      }
+
+      // 'n' or 'N': Advance to Next Episode (for TV series)
+      if ((e.key === "n" || e.key === "N") && isSeries) {
+        e.preventDefault();
+        setEpisode((prev) => {
+          triggerToast(`⏭️ Episode ${prev + 1}`);
+          return prev + 1;
+        });
+        return;
+      }
+
+      // Native / Direct Video Shortcuts
+      if (videoRef.current) {
+        if (e.code === "Space" || e.key === "k" || e.key === "K") {
+          e.preventDefault();
+          if (videoRef.current.paused) {
+            videoRef.current.play().catch(() => {});
+            triggerToast("▶ Play");
+          } else {
+            videoRef.current.pause();
+            triggerToast("⏸ Pause");
+          }
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
+          triggerToast("⏪ -10s");
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault();
+          videoRef.current.currentTime = Math.min(
+            videoRef.current.duration || 99999,
+            videoRef.current.currentTime + 10
+          );
+          triggerToast("⏩ +10s");
+        } else if (e.key === "m" || e.key === "M") {
+          e.preventDefault();
+          videoRef.current.muted = !videoRef.current.muted;
+          triggerToast(videoRef.current.muted ? "🔇 Muted" : "🔊 Unmuted");
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      clearTimeout(toastTimer);
+    };
+  }, [isTheaterMode, showHotkeysModal, isFloatingPiP, isSeries, episode, handleTogglePiP]);
+
   return (
     <div className="flex flex-col gap-3 w-full">
       {/* Resume Watching Progress Banner */}
@@ -688,6 +805,14 @@ export default function VideoPlayer({
           </div>
         )}
 
+        {/* Floating Hotkey HUD Toast Notification */}
+        {hotkeyToast && (
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-950/95 border border-rose-500/60 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-2xl flex items-center space-x-2 pointer-events-none animate-pulse">
+            <span className="text-rose-400">⌨️</span>
+            <span>{hotkeyToast}</span>
+          </div>
+        )}
+
         {/* Video Player Frame */}
         <div className="w-full h-full relative">
           {/* 🎯 Native ad-free player — shown when a direct stream URL is found */}
@@ -780,10 +905,21 @@ export default function VideoPlayer({
                 ? "bg-purple-600 text-white"
                 : "bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-200 hover:text-white"
             }`}
-            title="Picture-in-Picture Mini-Player while browsing"
+            title="Picture-in-Picture Mini-Player while browsing [Hotkey: P]"
           >
             <PictureInPicture2 className="w-3.5 h-3.5 text-purple-300" />
             <span className="hidden sm:inline">{isFloatingPiP ? "Close Mini" : "Mini PiP"}</span>
+          </button>
+
+          {/* Cinema Hotkeys Guide Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowHotkeysModal(true)}
+            className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-200 hover:text-white px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow hover:scale-[1.02]"
+            title="Cinema Keyboard Shortcuts [Hotkey: ?]"
+          >
+            <Keyboard className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Hotkeys (?)</span>
           </button>
 
           {/* Quick Failsafe Next Server Button */}
@@ -878,6 +1014,77 @@ export default function VideoPlayer({
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             />
           )}
+        </div>
+      )}
+
+      {/* Cinema Keyboard Shortcuts Cheatsheet Modal */}
+      {showHotkeysModal && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 backdrop-blur-md"
+          onClick={() => setShowHotkeysModal(false)}
+        >
+          <div 
+            className="bg-slate-900 border border-purple-500/40 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-white relative animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowHotkeysModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex items-center space-x-2.5 mb-4">
+              <div className="p-2 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl">
+                <Keyboard className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Cinema Hotkeys</h3>
+                <p className="text-[11px] text-purple-300/60">Quick desktop player shortcuts</p>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 text-xs">
+              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-purple-500/15">
+                <span className="text-slate-300">Play / Pause</span>
+                <kbd className="px-2 py-0.5 bg-slate-950 border border-purple-500/40 rounded text-[11px] font-mono font-bold text-rose-300">Space / K</kbd>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-purple-500/15">
+                <span className="text-slate-300">Cinema Theater Mode</span>
+                <kbd className="px-2 py-0.5 bg-slate-950 border border-purple-500/40 rounded text-[11px] font-mono font-bold text-rose-300">T</kbd>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-purple-500/15">
+                <span className="text-slate-300">Fullscreen</span>
+                <kbd className="px-2 py-0.5 bg-slate-950 border border-purple-500/40 rounded text-[11px] font-mono font-bold text-rose-300">F</kbd>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-purple-500/15">
+                <span className="text-slate-300">Mini Floating PiP</span>
+                <kbd className="px-2 py-0.5 bg-slate-950 border border-purple-500/40 rounded text-[11px] font-mono font-bold text-rose-300">P</kbd>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-purple-500/15">
+                <span className="text-slate-300">Seek 10s Backward / Forward</span>
+                <kbd className="px-2 py-0.5 bg-slate-950 border border-purple-500/40 rounded text-[11px] font-mono font-bold text-rose-300">← / →</kbd>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-purple-500/15">
+                <span className="text-slate-300">Mute / Unmute</span>
+                <kbd className="px-2 py-0.5 bg-slate-950 border border-purple-500/40 rounded text-[11px] font-mono font-bold text-rose-300">M</kbd>
+              </div>
+              {isSeries && (
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-purple-500/15">
+                  <span className="text-slate-300">Next Episode</span>
+                  <kbd className="px-2 py-0.5 bg-slate-950 border border-purple-500/40 rounded text-[11px] font-mono font-bold text-rose-300">N</kbd>
+                </div>
+              )}
+              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-purple-500/15">
+                <span className="text-slate-300">Close Modals / Theater</span>
+                <kbd className="px-2 py-0.5 bg-slate-950 border border-purple-500/40 rounded text-[11px] font-mono font-bold text-rose-300">ESC</kbd>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-purple-300/50 mt-3 text-center">
+              Press <kbd className="px-1.5 py-0.5 bg-slate-950 rounded border border-slate-700 font-mono text-[10px] text-white">?</kbd> anytime to toggle this modal
+            </p>
+          </div>
         </div>
       )}
 

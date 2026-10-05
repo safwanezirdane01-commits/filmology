@@ -6,6 +6,7 @@ import { Search, Zap, ShieldCheck, Clapperboard, Flame, Star, Tv, Film } from "l
 import MovieCatalogView from "@/components/MovieCatalogView";
 import HeroSpotlightCarousel, { SpotlightItem } from "@/components/HeroSpotlightCarousel";
 import MovieShelf from "@/components/MovieShelf";
+import ContinueWatchingRow from "@/components/ContinueWatchingRow";
 
 export const dynamic = "force-dynamic";
 
@@ -135,6 +136,9 @@ export default async function Home() {
           </div>
         </form>
       </section>
+
+      {/* Continue Watching Row (Active Playback History) */}
+      <ContinueWatchingRow />
 
       {/* Feature Highlights Bar */}
       <section className="max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8">
