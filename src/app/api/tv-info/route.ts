@@ -7,29 +7,35 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id")?.replace(/^tv[:-]/i, "").trim() || "";
 
-    if (!id || !/^\d+$/.test(id)) {
+    if (!id) {
       return NextResponse.json({ error: "Invalid TV ID" }, { status: 400 });
     }
 
-    // 1. Check hardcoded metadata first (instant, no API call needed)
-    if (SERIES_METADATA[id]) {
+    // 1. Fetch from TMDB first (live, real data with latest seasons and aired episodes)
+    const info: TvSeasonInfo | null = await getTvSeasonInfo(id);
+    if (info && info.totalSeasons > 0) {
       return NextResponse.json({
-        source: "static",
-        totalSeasons: SERIES_METADATA[id].totalSeasons,
-        seasons: SERIES_METADATA[id].seasons,
+        source: "tmdb",
+        totalSeasons: info.totalSeasons,
+        seasons: info.seasons,
       });
     }
 
-    // 2. Fetch from TMDB (live, real data)
-    const info: TvSeasonInfo | null = await getTvSeasonInfo(id);
-    if (!info) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    // 2. Fall back to curated static metadata if TMDB request fails
+    const cleanNumeric = id.replace(/^[^\d]+/, "");
+    if (SERIES_METADATA[cleanNumeric] || SERIES_METADATA[id]) {
+      const meta = SERIES_METADATA[cleanNumeric] || SERIES_METADATA[id];
+      return NextResponse.json({
+        source: "static",
+        totalSeasons: meta.totalSeasons,
+        seasons: meta.seasons,
+      });
     }
 
     return NextResponse.json({
-      source: "tmdb",
-      totalSeasons: info.totalSeasons,
-      seasons: info.seasons,
+      source: "fallback",
+      totalSeasons: 1,
+      seasons: { 1: 10 },
     });
   } catch (err) {
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

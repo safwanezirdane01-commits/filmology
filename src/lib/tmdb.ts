@@ -468,8 +468,22 @@ export interface TvSeasonInfo {
  */
 export async function getTvSeasonInfo(tmdbId: string): Promise<TvSeasonInfo | null> {
   try {
-    const clean = tmdbId.replace(/^tv[:-]/i, "").trim();
-    if (!/^\d+$/.test(clean)) return null;
+    let clean = tmdbId.replace(/^tv[:-]/i, "").trim();
+    if (!/^\d+$/.test(clean)) {
+      if (/^tt\d+$/i.test(clean)) {
+        const findRes = await fetch(
+          `${TMDB_BASE}/find/${clean}?external_source=imdb_id&api_key=${TMDB_KEY}`,
+          { next: { revalidate: 86400 } }
+        );
+        if (findRes.ok) {
+          const findData = await findRes.json();
+          if (findData.tv_results && findData.tv_results.length > 0) {
+            clean = String(findData.tv_results[0].id);
+          }
+        }
+      }
+      if (!/^\d+$/.test(clean)) return null;
+    }
 
     const res = await fetch(
       `${TMDB_BASE}/tv/${clean}?api_key=${TMDB_KEY}&language=en-US`,

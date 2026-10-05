@@ -514,7 +514,7 @@ export default function VideoPlayer({
                   }}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded px-2 py-0.5 font-semibold focus:outline-none focus:border-rose-500 text-xs"
                 >
-                  {Array.from({ length: Math.max(1, effectiveMeta?.totalSeasons || seriesMeta?.totalSeasons || 1) }, (_, i) => i + 1).map((s) => (
+                  {Array.from({ length: Math.max(1, effectiveMeta?.totalSeasons || seriesMeta?.totalSeasons || 1, season) }, (_, i) => i + 1).map((s) => (
                     <option key={s} value={s}>Season {s}</option>
                   ))}
                 </select>
@@ -526,7 +526,7 @@ export default function VideoPlayer({
                   onChange={(e) => setEpisode(Number(e.target.value))}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded px-2 py-0.5 font-semibold focus:outline-none focus:border-rose-500 text-xs"
                 >
-                  {Array.from({ length: availableEpisodesCount }, (_, i) => i + 1).map((ep) => (
+                  {Array.from({ length: Math.max(availableEpisodesCount, episode) }, (_, i) => i + 1).map((ep) => (
                     <option key={ep} value={ep}>Episode {ep}</option>
                   ))}
                 </select>
@@ -707,7 +707,7 @@ export default function VideoPlayer({
                   }}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded-xl px-2.5 py-2 text-xs font-bold flex-1 focus:outline-none focus:border-rose-500 min-h-[40px]"
                 >
-                  {Array.from({ length: Math.max(1, effectiveMeta?.totalSeasons || seriesMeta?.totalSeasons || 1) }, (_, i) => i + 1).map((s) => (
+                  {Array.from({ length: Math.max(1, effectiveMeta?.totalSeasons || seriesMeta?.totalSeasons || 1, season) }, (_, i) => i + 1).map((s) => (
                     <option key={s} value={s}>Season {s}</option>
                   ))}
                 </select>
@@ -718,7 +718,7 @@ export default function VideoPlayer({
                   onChange={(e) => setEpisode(Number(e.target.value))}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded-xl px-2.5 py-2 text-xs font-bold flex-1 focus:outline-none focus:border-rose-500 min-h-[40px]"
                 >
-                  {Array.from({ length: availableEpisodesCount }, (_, i) => i + 1).map((ep) => (
+                  {Array.from({ length: Math.max(availableEpisodesCount, episode) }, (_, i) => i + 1).map((ep) => (
                     <option key={ep} value={ep}>Episode {ep}</option>
                   ))}
                 </select>
