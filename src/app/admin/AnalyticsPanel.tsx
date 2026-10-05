@@ -68,12 +68,12 @@ export default function AnalyticsPanel({
     );
   }
 
-  const totalDeviceVisits = (data.devices.mobile || 0) + (data.devices.desktop || 0) + (data.devices.tablet || 0) || 1;
-  const mobilePct = Math.round(((data.devices.mobile || 0) / totalDeviceVisits) * 100);
-  const desktopPct = Math.round(((data.devices.desktop || 0) / totalDeviceVisits) * 100);
+  const totalDeviceVisits = (data.devices.mobile || 0) + (data.devices.desktop || 0) + (data.devices.tablet || 0);
+  const mobilePct = totalDeviceVisits > 0 ? Math.round(((data.devices.mobile || 0) / totalDeviceVisits) * 100) : 0;
+  const desktopPct = totalDeviceVisits > 0 ? Math.round(((data.devices.desktop || 0) / totalDeviceVisits) * 100) : 0;
 
   // Estimate Monetag ad impressions (each unique visit triggers ~2-3 ad gate clicks)
-  const estimatedAdClicks = Math.round(data.totalViews * 1.8);
+  const estimatedAdClicks = Math.round(data.totalViews * 2.5);
 
   return (
     <div className="bg-slate-900/60 border border-purple-900/40 p-6 sm:p-8 rounded-3xl backdrop-blur-xl shadow-2xl space-y-6 sm:space-y-8">
@@ -280,29 +280,33 @@ export default function AnalyticsPanel({
           </div>
 
           <div className="space-y-2">
-            {data.topMovies.map((movie, idx) => (
-              <div
-                key={movie.title}
-                className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-purple-500/10 hover:border-purple-500/30 transition-all text-xs"
-              >
-                <div className="flex items-center space-x-2.5 min-w-0">
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${
-                    idx === 0 ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" :
-                    idx === 1 ? "bg-slate-700 text-slate-200" :
-                    idx === 2 ? "bg-amber-900/30 text-amber-500" :
-                    "bg-slate-800 text-slate-400"
-                  }`}>
-                    {idx + 1}
-                  </span>
-                  <span className="font-semibold text-white truncate max-w-[200px] sm:max-w-[240px]">
-                    {movie.title}
+            {data.topMovies && data.topMovies.length > 0 ? (
+              data.topMovies.map((movie, idx) => (
+                <div
+                  key={movie.title}
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-purple-500/10 hover:border-purple-500/30 transition-all text-xs"
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${
+                      idx === 0 ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" :
+                      idx === 1 ? "bg-slate-700 text-slate-200" :
+                      idx === 2 ? "bg-amber-900/30 text-amber-500" :
+                      "bg-slate-800 text-slate-400"
+                    }`}>
+                      {idx + 1}
+                    </span>
+                    <span className="font-semibold text-white truncate max-w-[200px] sm:max-w-[240px]">
+                      {movie.title}
+                    </span>
+                  </div>
+                  <span className="text-purple-300 font-mono font-bold shrink-0">
+                    {movie.views} views
                   </span>
                 </div>
-                <span className="text-purple-300 font-mono font-bold shrink-0">
-                  {movie.views} views
-                </span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-xs text-slate-500 py-3">No movies streamed yet. As visitors stream titles, they will appear here ranked by views.</p>
+            )}
           </div>
         </div>
 

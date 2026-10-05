@@ -52,53 +52,17 @@ interface AnalyticsStore {
 
 // In-memory store fallback across warm serverless requests
 let memoryStore: AnalyticsStore = {
-  views: 142, // starter baseline so dashboard is never blank
-  days: {
-    [new Date().toISOString().split("T")[0]]: 38,
-  },
-  visitorIds: ["init-1", "init-2", "init-3"],
-  movies: {
-    "Interstellar": 28,
-    "Inception": 22,
-    "The Dark Knight": 19,
-    "Dune: Part Two": 16,
-    "Spider-Man: No Way Home": 14,
-  },
-  referrers: {
-    "Direct": 45,
-    "Google": 38,
-    "WhatsApp": 24,
-    "Telegram": 18,
-    "Twitter / X": 17,
-  },
+  views: 0,
+  days: {},
+  visitorIds: [],
+  movies: {},
+  referrers: {},
   devices: {
-    mobile: 89,
-    desktop: 48,
-    tablet: 5,
+    mobile: 0,
+    desktop: 0,
+    tablet: 0,
   },
-  recent: [
-    {
-      path: "/movie/157336",
-      title: "Interstellar",
-      device: "mobile",
-      referrer: "WhatsApp",
-      timestamp: Date.now() - 1000 * 60 * 3, // 3 mins ago
-    },
-    {
-      path: "/movies",
-      title: "Browse Movies",
-      device: "desktop",
-      referrer: "Google",
-      timestamp: Date.now() - 1000 * 60 * 8, // 8 mins ago
-    },
-    {
-      path: "/movie/693134",
-      title: "Dune: Part Two",
-      device: "mobile",
-      referrer: "Direct",
-      timestamp: Date.now() - 1000 * 60 * 15, // 15 mins ago
-    },
-  ],
+  recent: [],
 };
 
 function getStoragePath(): string {
@@ -220,7 +184,7 @@ export function getAnalyticsSummary(): AnalyticsSummary {
   return {
     totalViews: store.views || 0,
     todayViews: store.days[today] || 0,
-    uniqueVisitors: Math.max(store.visitorIds?.length || 0, Math.floor(store.views * 0.65)),
+    uniqueVisitors: store.visitorIds?.length || 0,
     topMovies,
     referrers,
     devices: store.devices || { mobile: 0, desktop: 0, tablet: 0 },
