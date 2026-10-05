@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Tv, Play, ChevronLeft, ChevronRight, Plus, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Tv, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { getSeriesMetadata } from "@/lib/series";
 
 interface SeriesEpisodeNavigatorProps {
@@ -24,20 +24,16 @@ export default function SeriesEpisodeNavigator({
   const staticMeta = getSeriesMetadata(movieVideoUrl, genre);
   const meta = liveMeta || staticMeta;
   const [jumpInput, setJumpInput] = useState<string>("");
-  const [extraEpisodes, setExtraEpisodes] = useState<number>(0);
-  const [extraSeasons, setExtraSeasons] = useState<number>(0);
 
   if (!meta) return null;
 
-  // Total seasons available (can be expanded dynamically by user)
-  const baseSeasons = Math.max(1, meta.totalSeasons || 1);
-  const totalSeasons = Math.max(baseSeasons + extraSeasons, currentSeason);
+  // Real, automatically loaded total seasons
+  const totalSeasons = Math.max(1, meta.totalSeasons || 1);
   const seasonsList = Array.from({ length: totalSeasons }, (_, i) => i + 1);
 
-  // Episode count for current season (expands if currentEpisode exceeds metadata or user clicks "+ More")
-  const baseEpisodesCount = meta.seasons[currentSeason] || 10;
-  const totalEpisodesCount = Math.max(baseEpisodesCount + extraEpisodes, currentEpisode);
-  const episodesList = Array.from({ length: totalEpisodesCount }, (_, i) => i + 1);
+  // Real, automatically loaded episodes count for the selected season
+  const episodesCount = meta.seasons[currentSeason] || 10;
+  const episodesList = Array.from({ length: episodesCount }, (_, i) => i + 1);
 
   const handlePrev = () => {
     if (currentEpisode > 1) {
@@ -50,14 +46,18 @@ export default function SeriesEpisodeNavigator({
   };
 
   const handleNext = () => {
-    // Never block next episode — allow user to advance freely
-    onSelectEpisode(currentSeason, currentEpisode + 1);
+    if (currentEpisode < episodesCount) {
+      onSelectEpisode(currentSeason, currentEpisode + 1);
+    } else if (currentSeason < totalSeasons) {
+      // Smoothly advance to episode 1 of the next season
+      onSelectEpisode(currentSeason + 1, 1);
+    }
   };
 
   const handleJumpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = parseInt(jumpInput.trim(), 10);
-    if (!isNaN(parsed) && parsed >= 1) {
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= episodesCount) {
       onSelectEpisode(currentSeason, parsed);
       setJumpInput("");
     }
@@ -103,7 +103,8 @@ export default function SeriesEpisodeNavigator({
           <button
             type="button"
             onClick={handleNext}
-            className="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 rounded-xl text-white text-xs font-bold flex items-center space-x-1 shadow-md transition-all cursor-pointer"
+            disabled={currentSeason === totalSeasons && currentEpisode === episodesCount}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 disabled:opacity-30 disabled:hover:bg-slate-800/90 rounded-xl text-white text-xs font-bold flex items-center space-x-1 shadow-md transition-all cursor-pointer disabled:cursor-not-allowed"
             title="Play next episode"
           >
             <span>Next Ep</span>
@@ -117,19 +118,18 @@ export default function SeriesEpisodeNavigator({
         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center justify-between flex-wrap gap-2">
           <span>Select Season ({totalSeasons} Available)</span>
           <span className="text-[11px] text-purple-400 font-normal">
-            Season {currentSeason} has {totalEpisodesCount} episodes available
+            Season {currentSeason} has {episodesCount} Episodes
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {seasonsList.map((s) => {
             const isSelected = s === currentSeason;
-            const seasonEps = meta.seasons[s] || (s === currentSeason ? totalEpisodesCount : 10);
+            const seasonEps = meta.seasons[s] || 10;
             return (
               <button
                 key={s}
                 type="button"
                 onClick={() => {
-                  setExtraEpisodes(0);
                   onSelectEpisode(s, 1);
                 }}
                 className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
@@ -151,21 +151,6 @@ export default function SeriesEpisodeNavigator({
               </button>
             );
           })}
-
-          {/* Add Next Season Button */}
-          <button
-            type="button"
-            onClick={() => {
-              const nextSeasonNum = totalSeasons + 1;
-              setExtraSeasons((prev) => prev + 1);
-              onSelectEpisode(nextSeasonNum, 1);
-            }}
-            className="px-2.5 py-1.5 sm:py-2 rounded-xl text-xs font-semibold bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-rose-300 border border-dashed border-purple-500/30 transition-all flex items-center space-x-1 cursor-pointer"
-            title="Unlock Season 3, 4, etc. if more seasons exist"
-          >
-            <Plus className="w-3 h-3" />
-            <span>More Seasons</span>
-          </button>
         </div>
       </div>
 
@@ -176,30 +161,32 @@ export default function SeriesEpisodeNavigator({
             Episodes in Season {currentSeason}
           </span>
 
-          {/* Quick Jump Input for Any Episode */}
-          <form onSubmit={handleJumpSubmit} className="flex items-center space-x-1.5">
-            <span className="text-[11px] text-purple-300/70">Jump to any Ep:</span>
-            <div className="relative flex items-center">
-              <input
-                type="number"
-                min="1"
-                max="999"
-                placeholder="Ep #"
-                value={jumpInput}
-                onChange={(e) => setJumpInput(e.target.value)}
-                className="w-16 sm:w-20 bg-slate-800/90 border border-purple-500/30 text-white text-xs px-2 py-1 rounded-lg focus:outline-none focus:border-rose-500 placeholder:text-purple-300/40 text-center font-bold"
-              />
-              <button
-                type="submit"
-                className="ml-1 px-2.5 py-1 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow"
-              >
-                Play
-              </button>
-            </div>
-          </form>
+          {/* Quick Jump Input if many episodes */}
+          {episodesCount > 10 && (
+            <form onSubmit={handleJumpSubmit} className="flex items-center space-x-1.5">
+              <span className="text-[11px] text-purple-300/70">Jump to:</span>
+              <div className="relative flex items-center">
+                <input
+                  type="number"
+                  min="1"
+                  max={episodesCount}
+                  placeholder={`1-${episodesCount}`}
+                  value={jumpInput}
+                  onChange={(e) => setJumpInput(e.target.value)}
+                  className="w-16 sm:w-20 bg-slate-800/90 border border-purple-500/30 text-white text-xs px-2 py-1 rounded-lg focus:outline-none focus:border-rose-500 placeholder:text-purple-300/40 text-center font-bold"
+                />
+                <button
+                  type="submit"
+                  className="ml-1 px-2.5 py-1 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow"
+                >
+                  Go
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
-        {/* Responsive Grid of All Episodes */}
+        {/* Responsive Grid of All Real Episodes */}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-purple-600/40">
           {episodesList.map((ep) => {
             const isPlaying = ep === currentEpisode;
@@ -244,17 +231,6 @@ export default function SeriesEpisodeNavigator({
               </button>
             );
           })}
-
-          {/* + Load More Episodes Button in the grid */}
-          <button
-            type="button"
-            onClick={() => setExtraEpisodes((prev) => prev + 4)}
-            className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-dashed border-purple-500/30 bg-slate-900/40 hover:bg-purple-950/30 text-purple-300 hover:text-white flex flex-col items-center justify-center text-center transition-all cursor-pointer group"
-            title="Load 4 more episode slots if additional episodes exist"
-          >
-            <Plus className="w-4 h-4 mb-0.5 text-rose-400 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-bold">+ 4 More Eps</span>
-          </button>
         </div>
       </div>
     </div>
