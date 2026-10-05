@@ -281,7 +281,13 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
 
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0 w-full sm:w-auto">
             <WatchTrailerButton id={movie.videoUrl || movie.id} title={movie.title} isTv={Boolean(isTv)} variant="primary" />
-            <WatchlistButton movieId={movie.id} />
+            <WatchlistButton 
+              movieId={movie.id} 
+              title={movie.title}
+              thumbnailUrl={movie.thumbnailUrl}
+              genre={movie.genre}
+              releaseYear={movie.releaseYear}
+            />
             <ShareButton title={movie.title} />
           </div>
         </div>

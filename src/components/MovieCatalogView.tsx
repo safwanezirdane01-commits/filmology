@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Star, Play, Film, Search, Sparkles, Loader2, Plus, FilmIcon, ChevronDown, Clock, X } from "lucide-react";
 import { getWatchHistory, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
+import QuickWatchlistHeart from "@/components/QuickWatchlistHeart";
 
 interface MovieItem {
   id: string;
@@ -418,6 +419,19 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                     <div className="bg-gradient-to-r from-rose-600 to-purple-600 rounded-full p-3 sm:p-4 transform scale-75 group-hover:scale-100 transition-all duration-300 shadow-[0_0_25px_rgba(244,63,94,0.6)]">
                       <Play className="w-5 sm:w-6 h-5 sm:h-6 text-white fill-current ml-0.5" />
                     </div>
+                  </div>
+
+                  {/* Quick Watchlist Heart Button */}
+                  <div className="absolute bottom-2.5 right-2.5 z-20">
+                    <QuickWatchlistHeart
+                      item={{
+                        id: movie.id,
+                        title: movie.title,
+                        thumbnailUrl: movie.thumbnailUrl,
+                        genre: movie.genre,
+                        releaseYear: movie.releaseYear,
+                      }}
+                    />
                   </div>
 
                   {/* Bottom Poster Info Overlay */}

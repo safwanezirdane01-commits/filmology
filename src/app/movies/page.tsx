@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { discoverByFilter, UniversalItem } from "@/lib/tmdb";
 import { Film, Star, Play, ChevronLeft, ChevronRight, Clapperboard, Filter } from "lucide-react";
+import QuickWatchlistHeart from "@/components/QuickWatchlistHeart";
 
 export const metadata: Metadata = {
   title: "Watch Movies Free in 1080p Full HD | FilmologyX",
@@ -117,10 +118,17 @@ export default async function MoviesPage({
                 </div>
 
                 {/* Play Hover Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-r from-rose-600 to-purple-600 flex items-center justify-center shadow-lg">
-                    <Play className="w-5 h-5 text-white fill-current ml-0.5" />
-                  </div>
+                {/* Quick Watchlist Heart Button */}
+                <div className="absolute bottom-2 right-2 z-20">
+                  <QuickWatchlistHeart
+                    item={{
+                      id: movie.id,
+                      title: movie.title,
+                      thumbnailUrl: movie.thumbnailUrl,
+                      genre: movie.genre,
+                      releaseYear: movie.releaseYear,
+                    }}
+                  />
                 </div>
               </div>
 

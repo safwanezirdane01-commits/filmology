@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { Star, Play, Film, ChevronLeft, ChevronRight } from "lucide-react";
+import QuickWatchlistHeart from "@/components/QuickWatchlistHeart";
 
 export interface ShelfMovie {
   id: string;
@@ -122,13 +123,19 @@ export default function MovieShelf({
                 {/* Gradients */}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
 
-                {/* Play Button Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
-                  <div className="bg-gradient-to-r from-rose-600 to-purple-600 rounded-full p-3 shadow-xl transform scale-90 group-hover/card:scale-100 transition-transform">
-                    <Play className="w-4 h-4 text-white fill-current ml-0.5" />
+                  {/* Quick Watchlist Heart Button */}
+                  <div className="absolute bottom-2 right-2 z-20">
+                    <QuickWatchlistHeart
+                      item={{
+                        id: m.id,
+                        title: m.title,
+                        thumbnailUrl: m.thumbnailUrl,
+                        genre: m.genre,
+                        releaseYear: m.releaseYear,
+                      }}
+                    />
                   </div>
                 </div>
-              </div>
 
               {/* Title & Info */}
               <div className="p-2.5 sm:p-3 space-y-0.5">
