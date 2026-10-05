@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, Zap, RefreshCw } from "lucide-react";
+import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, RefreshCw } from "lucide-react";
 import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
@@ -28,8 +28,7 @@ export default function VideoPlayer({
 }) {
   const [clickCount, setClickCount] = useState(0);
   const [selectedServer, setSelectedServer] = useState<number>(1);
-  const [isAutoMode, setIsAutoMode] = useState<boolean>(true);
-  const [autoStatusMessage, setAutoStatusMessage] = useState<string | null>(null);
+  const [serverNotice, setServerNotice] = useState<string | null>(null);
   const [season, setSeason] = useState<number>(1);
   const [episode, setEpisode] = useState<number>(1);
   const DEFAULT_AD_LINK = "https://consciousdunkvastly.com/vkcab8pm?key=2d7f9ab1644671035abd720ada6bab69";
@@ -375,32 +374,16 @@ export default function VideoPlayer({
     { id: 5, label: "VidFast (Stream 5)", short: "VidFast" },
   ], []);
 
-  const handleNextServer = useCallback((reason?: string) => {
+  const handleNextServer = useCallback(() => {
     setSelectedServer((prev) => {
       const next = prev >= 5 ? 1 : prev + 1;
       const targetServer = serverList.find((s) => s.id === next);
       const name = targetServer ? targetServer.label : `Server ${next}`;
-      setAutoStatusMessage(reason ? `${reason} → Switched to ${name}` : `⚡ Switched to ${name}`);
-      setTimeout(() => setAutoStatusMessage(null), 3500);
+      setServerNotice(`Switched to ${name}`);
+      setTimeout(() => setServerNotice(null), 3000);
       return next;
     });
   }, [serverList]);
-
-  // Watchdog timer: automatically switch to next server if current server doesn't respond or load within 8s in Auto mode
-  useEffect(() => {
-    if (!isAutoMode || needsPopups || !parsedSources?.isImdbOrTmdb) return;
-
-    setIsServerLoaded(false);
-
-    const watchdog = setTimeout(() => {
-      if (!isServerLoaded) {
-        handleNextServer("Server unreachable");
-      }
-    }, 20000);
-
-    return () => clearTimeout(watchdog);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedServer, isAutoMode, needsPopups, parsedSources?.isImdbOrTmdb, handleNextServer]);
 
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -456,29 +439,9 @@ export default function VideoPlayer({
         {/* Desktop Overlay Server Bar (visible on sm+) */}
         {parsedSources.isImdbOrTmdb && (
           <div className="hidden sm:flex absolute top-3 left-3 right-3 z-40 items-center justify-between bg-slate-950/85 sm:backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1.5 text-rose-300 font-medium">
-                <Server className="w-3.5 h-3.5 text-rose-400" />
-                <span>Server:</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAutoMode(true);
-                  setSelectedServer(1);
-                  setAutoStatusMessage("⚡ Auto Mode: Playing fastest stream (VidLink)");
-                  setTimeout(() => setAutoStatusMessage(null), 3500);
-                }}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all text-xs flex items-center space-x-1 cursor-pointer ${
-                  isAutoMode
-                    ? "bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm ring-1 ring-amber-300/40"
-                    : "bg-slate-800/80 text-amber-300/80 hover:bg-slate-700"
-                }`}
-                title="Automatically plays the best working server"
-              >
-                <Zap className="w-3 h-3 fill-current text-amber-200" />
-                <span>Auto (Best)</span>
-              </button>
+            <div className="flex items-center space-x-1.5 text-rose-300 font-medium">
+              <Server className="w-3.5 h-3.5 text-rose-400" />
+              <span>Server:</span>
             </div>
 
             <div className="flex items-center space-x-1.5 flex-wrap">
@@ -486,15 +449,10 @@ export default function VideoPlayer({
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => {
-                    setSelectedServer(s.id);
-                    setIsAutoMode(false);
-                  }}
+                  onClick={() => setSelectedServer(s.id)}
                   className={`px-2.5 py-1 rounded-lg font-semibold transition-all text-xs cursor-pointer ${
-                    selectedServer === s.id && !isAutoMode
+                    selectedServer === s.id
                       ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-sm"
-                      : selectedServer === s.id && isAutoMode
-                      ? "bg-purple-900/60 text-purple-200 font-bold border border-rose-500/60 shadow-sm"
                       : "bg-slate-800/80 text-purple-200 hover:bg-slate-700"
                   }`}
                 >
@@ -612,11 +570,11 @@ export default function VideoPlayer({
           </div>
         )}
 
-        {/* Floating Auto-Status Notification Toast */}
-        {autoStatusMessage && (
-          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-950/95 border border-amber-500/60 text-amber-300 px-4 py-1.5 rounded-full text-xs font-bold shadow-2xl flex items-center space-x-2 sm:backdrop-blur-md">
-            <Zap className="w-3.5 h-3.5 text-amber-400 fill-current shrink-0" />
-            <span>{autoStatusMessage}</span>
+        {/* Floating Server Switch Notification Toast */}
+        {serverNotice && (
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-purple-500/40 text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-2xl flex items-center space-x-1.5">
+            <Server className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            <span>{serverNotice}</span>
           </div>
         )}
 
@@ -649,9 +607,6 @@ export default function VideoPlayer({
               allowFullScreen
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               onLoad={() => setIsServerLoaded(true)}
-              onError={() => {
-                if (isAutoMode) handleNextServer("Server error");
-              }}
             />
           )}
         </div>
@@ -692,43 +647,19 @@ export default function VideoPlayer({
         {/* Mobile Server Selector */}
         {parsedSources.isImdbOrTmdb && (
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-rose-300 font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <Server className="w-3.5 h-3.5" />
-                <span>Server:</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAutoMode(true);
-                  setSelectedServer(1);
-                  setAutoStatusMessage("⚡ Auto Mode: Fastest stream active");
-                  setTimeout(() => setAutoStatusMessage(null), 3000);
-                }}
-                className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold flex items-center gap-1 ${
-                  isAutoMode
-                    ? "bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm ring-1 ring-amber-300/40"
-                    : "bg-slate-800 text-amber-300"
-                }`}
-              >
-                <Zap className="w-3 h-3 fill-current" />
-                <span>⚡ Auto (Best)</span>
-              </button>
-            </div>
+            <span className="text-[11px] text-rose-300 font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
+              <Server className="w-3.5 h-3.5" />
+              <span>Server:</span>
+            </span>
             <div className="grid grid-cols-2 gap-1.5">
               {serverList.map((s) => (
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => {
-                    setSelectedServer(s.id);
-                    setIsAutoMode(false);
-                  }}
+                  onClick={() => setSelectedServer(s.id)}
                   className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center min-h-[36px] ${
-                    selectedServer === s.id && !isAutoMode
+                    selectedServer === s.id
                       ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow"
-                      : selectedServer === s.id && isAutoMode
-                      ? "bg-purple-900/60 text-white border border-rose-500/60 font-black shadow"
                       : "bg-slate-800/80 text-purple-200 border border-purple-500/10"
                   }`}
                 >

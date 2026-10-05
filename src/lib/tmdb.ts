@@ -67,7 +67,7 @@ function isAnime(item: any): boolean {
  * Format a raw TMDb item into a UniversalItem
  */
 function formatTmdbItem(item: any, forceType?: "movie" | "tv"): UniversalItem | null {
-  if (!item || item.media_type === "person" || isAnime(item)) {
+  if (!item || item.media_type === "person") {
     return null;
   }
 
@@ -77,7 +77,9 @@ function formatTmdbItem(item: any, forceType?: "movie" | "tv"): UniversalItem | 
   const releaseYear = date ? parseInt(date.slice(0, 4), 10) || 2024 : 2024;
   
   let genre = isTv ? "TV Series" : "Cinema";
-  if (item.genres && item.genres.length > 0) {
+  if (isAnime(item)) {
+    genre = "Anime";
+  } else if (item.genres && item.genres.length > 0) {
     genre = isTv ? "TV Series" : item.genres[0].name;
   } else if (item.genre_ids && item.genre_ids.length > 0) {
     genre = isTv ? "TV Series" : (GENRE_MAP[item.genre_ids[0]] || "Cinema");
@@ -285,6 +287,10 @@ export async function discoverByFilter(category: string = "all", page: number = 
       url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=80&sort_by=popularity.desc&page=${page}&include_adult=false`;
     } else if (category === "series_top") {
       url = `${TMDB_BASE}/tv/top_rated?api_key=${TMDB_KEY}&page=${page}`;
+    } else if (category === "anime") {
+      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc&page=${page}&include_adult=false`;
+    } else if (category === "animation" || category === "anime_movies") {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_genres=16&sort_by=popularity.desc&page=${page}&include_adult=false`;
     } else if (category === "arabic") {
       url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ar&sort_by=popularity.desc&page=${page}&include_adult=false`;
     } else if (category === "action") {
@@ -312,7 +318,7 @@ export async function discoverByFilter(category: string = "all", page: number = 
     const data = await res.json();
     if (!data.results) return [];
 
-    const isTv = category.startsWith("series");
+    const isTv = category.startsWith("series") || category === "anime";
     return data.results
       .map((item: any) => formatTmdbItem(item, isTv ? "tv" : "movie"))
       .filter((item: UniversalItem | null): item is UniversalItem => item !== null && item.thumbnailUrl !== "/placeholder.png");

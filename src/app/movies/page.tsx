@@ -16,6 +16,7 @@ const GENRES = [
   { id: "comedy", label: "Comedy" },
   { id: "drama", label: "Drama" },
   { id: "romance", label: "Romance" },
+  { id: "animation", label: "Animation" },
   { id: "imdb_trending", label: "Trending" },
   { id: "imdb_top", label: "Top Rated" },
 ];
