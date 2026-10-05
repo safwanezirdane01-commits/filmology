@@ -5,7 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { addMovie, deleteMovie } from "./actions";
 import AutoImportPanel from "./AutoImportPanel";
 import AdSettingsPanel from "./AdSettingsPanel";
+import AnalyticsPanel from "./AnalyticsPanel";
 import { getAdSettings } from "@/lib/ads";
+import { getAnalyticsSummary } from "@/lib/analytics";
 import { Film, Trash2, PlusCircle, Clapperboard } from "lucide-react";
 
 export default async function AdminPage() {
@@ -20,6 +22,7 @@ export default async function AdminPage() {
   });
 
   const adSettings = getAdSettings();
+  const analyticsSummary = getAnalyticsSummary();
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 pb-20 font-sans">
@@ -38,6 +41,9 @@ export default async function AdminPage() {
           <span>{movies.length} Total Movies in Library</span>
         </div>
       </div>
+
+      {/* 📊 LIVE WEBSITE TRAFFIC & VISITOR ANALYTICS */}
+      <AnalyticsPanel initialData={analyticsSummary} />
 
       {/* 🚀 AUTOMATED IMPORTER PANEL */}
       <AutoImportPanel />
