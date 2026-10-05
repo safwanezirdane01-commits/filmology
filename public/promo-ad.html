@@ -3,93 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FilmologyX Video Ad Creator & Exporter</title>
+  <title>FilmologyX Cinematic Video Ad Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @keyframes pulseGlow {
-      0%, 100% { box-shadow: 0 0 25px rgba(225, 29, 72, 0.4); }
-      50% { box-shadow: 0 0 55px rgba(168, 85, 247, 0.8); }
+      0%, 100% { box-shadow: 0 0 35px rgba(225, 29, 72, 0.45); }
+      50% { box-shadow: 0 0 65px rgba(168, 85, 247, 0.85); }
     }
     .ad-card {
       animation: pulseGlow 3s infinite ease-in-out;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-8 flex flex-col items-center justify-center font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-3 sm:p-8 flex flex-col items-center justify-center font-sans">
 
-  <div class="max-w-4xl w-full flex flex-col items-center gap-6">
+  <div class="max-w-4xl w-full flex flex-col items-center gap-5 sm:gap-6">
     
-    <!-- Top Header -->
-    <div class="text-center space-y-2">
+    <!-- Header -->
+    <div class="text-center space-y-1 sm:space-y-2">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold uppercase tracking-wider">
-        🎬 Official Promo Ad Studio
+        🎬 Cinema Motion & FX Studio
       </div>
       <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-        Filmology<span class="text-rose-500">X</span> Video Ad Generator
+        Filmology<span class="text-rose-500">X</span> Promo Video Ad
       </h1>
-      <p class="text-sm text-slate-400 max-w-lg mx-auto">
-        A high-energy, 15-second cinematic promo ad for TikTok, Instagram Reels, and YouTube Shorts. You can preview it live or click <strong>Record & Download</strong> to export a video file!
+      <p class="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
+        15-second cinematic TikTok/Reels promo ad featuring <strong>real film posters</strong>, <strong>camera flash take sounds</strong>, <strong>dynamic whooshes</strong>, and <strong>sub-bass trailer hits</strong> baked into the exported video!
       </p>
     </div>
 
-    <!-- Video Canvas Container (1080x1920 9:16 TikTok format preview) -->
-    <div class="relative w-full max-w-[340px] sm:max-w-[380px] aspect-[9/16] bg-black rounded-3xl overflow-hidden border-2 border-purple-500/40 shadow-2xl ad-card flex items-center justify-center">
+    <!-- Video Canvas Container (1080x1920 9:16 vertical TikTok/Shorts format) -->
+    <div class="relative w-full max-w-[340px] sm:max-w-[370px] aspect-[9/16] bg-black rounded-3xl overflow-hidden border-2 border-purple-500/50 shadow-2xl ad-card flex items-center justify-center">
       <canvas id="adCanvas" width="720" height="1280" class="w-full h-full object-cover block"></canvas>
       
-      <!-- Overlay controls on canvas -->
-      <div id="countdownBadge" class="absolute top-4 right-4 bg-black/70 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-xs font-mono font-bold text-rose-400 z-10 hidden">
+      <!-- Top overlay badge -->
+      <div id="countdownBadge" class="absolute top-4 right-4 bg-black/80 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-xs font-mono font-bold text-rose-400 z-10 hidden shadow-lg">
         00:15
       </div>
     </div>
 
-    <!-- Action Toolbar -->
+    <!-- Interactive Action Controls -->
     <div class="flex flex-wrap items-center justify-center gap-3">
       <button 
         id="playBtn"
-        class="px-6 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-bold text-sm shadow-lg flex items-center gap-2 cursor-pointer transition-transform hover:scale-105"
+        class="px-5 sm:px-6 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-bold text-xs sm:text-sm shadow-xl flex items-center gap-2 cursor-pointer transition-transform hover:scale-105 active:scale-95"
       >
-        <span>▶</span> Play Preview
+        <span>▶</span> Play Preview (FX & Sound)
       </button>
 
       <button 
         id="recordBtn"
-        class="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-lg flex items-center gap-2 cursor-pointer transition-transform hover:scale-105"
+        class="px-5 sm:px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm shadow-xl flex items-center gap-2 cursor-pointer transition-transform hover:scale-105 active:scale-95 border border-rose-400/40"
       >
         <span>🔴</span> Record & Download Video (.webm)
       </button>
 
       <button 
         id="soundToggle"
-        class="px-4 py-3 rounded-xl bg-slate-900 border border-purple-500/30 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-sm cursor-pointer"
+        class="px-4 py-3 rounded-xl bg-slate-900 border border-purple-500/30 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs sm:text-sm cursor-pointer"
       >
-        🔊 Sound: ON
+        🔊 Sound FX: ON
       </button>
     </div>
 
-    <!-- Status Output -->
-    <div id="statusText" class="text-xs text-purple-300/70 font-medium h-5 text-center">
-      Ready. Click "Play Preview" or "Record & Download Video".
+    <!-- Status Text -->
+    <div id="statusText" class="text-xs text-purple-300 font-medium h-5 text-center transition-all">
+      Ready. Click "Play Preview" to test or "Record & Download" to export.
     </div>
 
-    <!-- Social Caption / Copy Pack -->
-    <div class="w-full max-w-xl bg-slate-900/80 border border-purple-900/40 rounded-2xl p-5 space-y-3">
+    <!-- Social Media Caption Pack -->
+    <div class="w-full max-w-xl bg-slate-900/90 border border-purple-900/50 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-bold text-white flex items-center gap-2">
-          <span>📱</span> Copy-Paste Caption for TikTok & Reels
+        <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+          <span>📱</span> Ready-to-Post Caption (TikTok & Instagram Reels)
         </h3>
         <button 
           id="copyCaptionBtn"
-          class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-purple-200 font-semibold border border-purple-500/20"
+          class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-purple-200 font-semibold border border-purple-500/30 cursor-pointer"
         >
-          Copy Text
+          Copy Caption
         </button>
       </div>
-      <p id="captionContent" class="text-xs text-slate-300 bg-slate-950 p-3 rounded-xl border border-purple-500/20 font-mono leading-relaxed select-all">
+      <p id="captionContent" class="text-[11px] sm:text-xs text-slate-300 bg-slate-950 p-3 rounded-xl border border-purple-500/20 font-mono leading-relaxed select-all">
 Tired of paying $20/month for streaming? 🍿 Watch thousands of movies and full TV series in 1080p HD completely free on FilmologyX! Auto-next episode, cinema mode, zero credit card needed. Link in bio 🚀
 
 👉 https://filmologyx.vercel.app
 
-#freemovies #moviestowatch #squidgame #streaming #filmologyx #cinema #bingewatch
+#freemovies #moviestowatch #squidgame #streaming #filmologyx #cinema #bingewatch #dune2
       </p>
     </div>
 
@@ -112,237 +112,494 @@ Tired of paying $20/month for streaming? 🍿 Watch thousands of movies and full
     let startTime = 0;
     const TOTAL_DURATION = 15000; // 15 seconds
 
-    // Web Audio Synthesizer for high-energy cinematic synth beats
+    // Camera flash effect tracker
+    let flashIntensity = 0;
+
+    // --- REAL FILM POSTERS PRELOADER ---
+    const movieData = [
+      {
+        title: "SQUID GAME",
+        badge: "ALL SEASONS • 4K",
+        rating: "★ 8.8",
+        url: "https://image.tmdb.org/t/p/w500/dDlEmu3EZ0Pgg93K2SVNLCjCSvE.jpg",
+        accent: "#e11d48",
+        img: null
+      },
+      {
+        title: "DUNE: PART TWO",
+        badge: "IMDb 8.9 • 1080p",
+        rating: "★ 8.9",
+        url: "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
+        accent: "#f59e0b",
+        img: null
+      },
+      {
+        title: "DEADPOOL & WOLVERINE",
+        badge: "TRENDING #1",
+        rating: "★ 8.2",
+        url: "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
+        accent: "#ef4444",
+        img: null
+      },
+      {
+        title: "INTERSTELLAR",
+        badge: "CINEMA MASTERPIECE",
+        rating: "★ 8.9",
+        url: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+        accent: "#38bdf8",
+        img: null
+      },
+      {
+        title: "WEDNESDAY",
+        badge: "TOP SERIES",
+        rating: "★ 8.5",
+        url: "https://image.tmdb.org/t/p/w500/9PFonBhy4cQy7Jz20NpMygczOkv.jpg",
+        accent: "#a855f7",
+        img: null
+      }
+    ];
+
+    // Preload all real images
+    movieData.forEach((m) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = m.url;
+      m.img = img;
+    });
+
+    // --- CINEMATIC SOUND FX ENGINE (WEB AUDIO API) ---
     let audioCtx = null;
-    function playTone(freq, duration, type = "sawtooth", gainVal = 0.15) {
+    let audioDestination = null; // Mixed stream for video recording
+
+    function getAudioEngine() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioDestination = audioCtx.createMediaStreamDestination();
+      }
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      return { audioCtx, audioDestination };
+    }
+
+    function routeSound(sourceNode) {
+      const { audioCtx, audioDestination } = getAudioEngine();
+      sourceNode.connect(audioCtx.destination); // to speakers
+      if (audioDestination) sourceNode.connect(audioDestination); // to video recorder!
+    }
+
+    // 1. Cinematic Whoosh / Whip-Pan Transition
+    function playWhoosh() {
       if (!isAudioEnabled) return;
       try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === "suspended") audioCtx.resume();
-        const osc = audioCtx.createOscillator();
+        const { audioCtx } = getAudioEngine();
+        const now = audioCtx.currentTime;
+        const dur = 0.35;
+
+        // White noise buffer
+        const bufSize = audioCtx.sampleRate * dur;
+        const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buf;
+
+        // Bandpass filter sweeping downward
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.Q.setValueAtTime(3.5, now);
+        filter.frequency.setValueAtTime(1400, now);
+        filter.frequency.exponentialRampToValueAtTime(180, now + dur);
+
+        // Volume envelope
         const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.4, now + dur * 0.3);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        routeSound(gain);
+
+        noise.start(now);
+        noise.stop(now + dur);
+      } catch (e) {}
+    }
+
+    // 2. Camera Snapshot Take Sound (Double mechanical click + shutter)
+    function playCameraShutter() {
+      if (!isAudioEnabled) return;
+      try {
+        const { audioCtx } = getAudioEngine();
+        const now = audioCtx.currentTime;
+
+        // Trigger visual flash on canvas!
+        flashIntensity = 0.95;
+
+        // Shutter click 1 (mirror flip up)
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(1800, now);
+        osc1.frequency.exponentialRampToValueAtTime(400, now + 0.04);
+        gain1.gain.setValueAtTime(0.35, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        osc1.connect(gain1);
+        routeSound(gain1);
+        osc1.start(now);
+        osc1.stop(now + 0.04);
+
+        // Shutter click 2 (curtain snap - 60ms later)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = "square";
+        osc2.frequency.setValueAtTime(800, now + 0.06);
+        osc2.frequency.exponentialRampToValueAtTime(150, now + 0.12);
+        gain2.gain.setValueAtTime(0.25, now + 0.06);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc2.connect(gain2);
+        routeSound(gain2);
+        osc2.start(now + 0.06);
+        osc2.stop(now + 0.12);
+      } catch (e) {}
+    }
+
+    // 3. Cinematic Sub-Bass Impact Boom ("BWAAAM")
+    function playTrailerBass() {
+      if (!isAudioEnabled) return;
+      try {
+        const { audioCtx } = getAudioEngine();
+        const now = audioCtx.currentTime;
+        const dur = 1.2;
+
+        const osc = audioCtx.createOscillator();
+        const oscSub = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(65, now);
+        osc.frequency.exponentialRampToValueAtTime(28, now + dur);
+
+        oscSub.type = "sine";
+        oscSub.frequency.setValueAtTime(45, now);
+        oscSub.frequency.exponentialRampToValueAtTime(24, now + dur);
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(180, now);
+        filter.frequency.exponentialRampToValueAtTime(50, now + dur);
+
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        osc.connect(filter);
+        oscSub.connect(filter);
+        filter.connect(gain);
+        routeSound(gain);
+
+        osc.start(now);
+        oscSub.start(now);
+        osc.stop(now + dur);
+        oscSub.stop(now + dur);
       } catch (e) {}
     }
 
     soundToggle.addEventListener("click", () => {
       isAudioEnabled = !isAudioEnabled;
-      soundToggle.textContent = isAudioEnabled ? "🔊 Sound: ON" : "🔇 Sound: OFF";
+      soundToggle.textContent = isAudioEnabled ? "🔊 Sound FX: ON" : "🔇 Sound FX: OFF";
     });
 
     copyCaptionBtn.addEventListener("click", () => {
       const text = document.getElementById("captionContent").innerText;
       navigator.clipboard.writeText(text);
       copyCaptionBtn.textContent = "Copied! ✓";
-      setTimeout(() => copyCaptionBtn.textContent = "Copy Text", 2000);
+      setTimeout(() => copyCaptionBtn.textContent = "Copy Caption", 2000);
     });
 
-    const posters = [
-      { title: "SQUID GAME", tag: "Full Series", color: "#e11d48" },
-      { title: "DUNE: PART TWO", tag: "1080p Full HD", color: "#f59e0b" },
-      { title: "INTERSTELLAR", tag: "Cinema Classic", color: "#3b82f6" },
-      { title: "DEADPOOL & WOLVERINE", tag: "Trending #1", color: "#ef4444" }
-    ];
+    // Helper: Draw rounded image on canvas
+    function drawRoundedImage(img, x, y, width, height, radius) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(img, x, y, width, height);
+      ctx.restore();
+    }
 
+    // Sound cue trigger points (in seconds)
+    const soundCues = [
+      { t: 0.1, fn: playWhoosh },
+      { t: 1.8, fn: playCameraShutter },
+      { t: 3.5, fn: playTrailerBass },
+      { t: 5.5, fn: playWhoosh },
+      { t: 7.2, fn: playCameraShutter },
+      { t: 8.7, fn: playCameraShutter },
+      { t: 10.2, fn: playCameraShutter },
+      { t: 11.5, fn: playTrailerBass },
+      { t: 13.0, fn: playWhoosh }
+    ];
+    let triggeredCues = new Set();
+
+    // --- MAIN RENDER PIPELINE ---
     function drawScene(elapsed) {
       const w = canvas.width;
       const h = canvas.height;
       const sec = elapsed / 1000;
 
-      // Dark background with gradient
+      // Check and fire sound cues
+      soundCues.forEach((c, idx) => {
+        if (sec >= c.t && !triggeredCues.has(idx)) {
+          triggeredCues.add(idx);
+          c.fn();
+        }
+      });
+
+      // Background gradient
       const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
       bgGrad.addColorStop(0, "#020617");
-      bgGrad.addColorStop(0.5, "#0f172a");
+      bgGrad.addColorStop(0.5, "#0b0f19");
       bgGrad.addColorStop(1, "#020617");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, w, h);
 
-      // Ambient moving particle stars
-      ctx.fillStyle = "rgba(225, 29, 72, 0.35)";
-      for (let i = 0; i < 20; i++) {
-        const px = ((i * 137.5) + (sec * 25)) % w;
-        const py = ((i * 243.1) + (sec * 40)) % h;
-        const rad = (i % 3) + 1.5;
+      // Atmospheric starfield
+      ctx.fillStyle = "rgba(225, 29, 72, 0.4)";
+      for (let i = 0; i < 24; i++) {
+        const px = ((i * 123.4) + (sec * 20)) % w;
+        const py = ((i * 345.6) + (sec * 35)) % h;
+        const rad = (i % 3) + 1.2;
         ctx.beginPath();
         ctx.arc(px, py, rad, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // SCENE 1 (0.0s - 3.5s): THE PAIN HOOK
+      // SCENE 1 (0.0s - 3.5s): THE HOOK (PAYING $20/MO)
       if (sec < 3.5) {
+        // Dramatic animated zoom
+        const scale = 1.0 + (sec * 0.04);
+        ctx.save();
+        ctx.translate(w/2, h/2);
+        ctx.scale(scale, scale);
+        ctx.translate(-w/2, -h/2);
+
+        // Warning Icon
         ctx.font = "80px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("💸", w / 2, h * 0.35);
+        ctx.fillText("💸", w / 2, h * 0.33);
 
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 52px system-ui, sans-serif";
-        ctx.fillText("TIRED OF PAYING", w / 2, h * 0.44);
+        ctx.font = "900 50px system-ui, sans-serif";
+        ctx.fillText("TIRED OF PAYING", w / 2, h * 0.42);
 
         ctx.fillStyle = "#f43f5e";
-        ctx.font = "900 68px system-ui, sans-serif";
-        ctx.fillText("$20 / MONTH", w / 2, h * 0.51);
+        ctx.font = "900 74px system-ui, sans-serif";
+        ctx.fillText("$20 / MONTH", w / 2, h * 0.50);
 
         ctx.fillStyle = "#94a3b8";
-        ctx.font = "bold 36px system-ui, sans-serif";
-        ctx.fillText("JUST TO WATCH MOVIES?", w / 2, h * 0.58);
-
-        ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-        ctx.beginPath();
-        ctx.roundRect(w * 0.15, h * 0.65, w * 0.7, 70, 20);
-        ctx.fill();
-        ctx.fillStyle = "#e2e8f0";
-        ctx.font = "600 28px system-ui, sans-serif";
-        ctx.fillText("❌ No more subscriptions", w / 2, h * 0.69);
-      }
-      
-      // SCENE 2 (3.5s - 7.5s): THE REVEAL & LOGO
-      else if (sec < 7.5) {
-        ctx.fillStyle = "#38bdf8";
         ctx.font = "bold 34px system-ui, sans-serif";
-        ctx.fillText("INTRODUCING", w / 2, h * 0.32);
+        ctx.fillText("FOR STREAMING APPS?", w / 2, h * 0.57);
 
-        // Huge Brand Logo
-        ctx.font = "900 82px system-ui, sans-serif";
+        // Glass banner
+        ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.beginPath();
+        ctx.roundRect(w * 0.12, h * 0.65, w * 0.76, 75, 20);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(244, 63, 94, 0.4)";
+        ctx.stroke();
+
+        ctx.fillStyle = "#fecdd3";
+        ctx.font = "bold 26px system-ui, sans-serif";
+        ctx.fillText("❌ Cancel your subscriptions", w / 2, h * 0.70);
+
+        ctx.restore();
+      }
+
+      // SCENE 2 (3.5s - 7.2s): THE REVEAL & FILMOLOGYX LOGO
+      else if (sec < 7.2) {
+        const localSec = sec - 3.5;
+        const zoom = Math.min(1.0, localSec * 2.5);
+
+        // Big background glow
+        const glow = ctx.createRadialGradient(w/2, h*0.42, 20, w/2, h*0.42, 300);
+        glow.addColorStop(0, "rgba(225, 29, 72, 0.55)");
+        glow.addColorStop(1, "transparent");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.font = "bold 32px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("THE SOLUTION IS HERE", w / 2, h * 0.28);
+
+        // Huge Neon Brand Logo
+        ctx.font = "900 86px system-ui, sans-serif";
         ctx.fillStyle = "#ffffff";
-        ctx.fillText("Filmology", w / 2 - 35, h * 0.41);
+        ctx.fillText("Filmology", w / 2 - 35, h * 0.38);
         ctx.fillStyle = "#f43f5e";
-        ctx.fillText("X", w / 2 + 195, h * 0.41);
+        ctx.fillText("X", w / 2 + 205, h * 0.38);
 
-        // Glowing tagline
-        ctx.fillStyle = "#a855f7";
-        ctx.font = "bold 36px system-ui, sans-serif";
-        ctx.fillText("Free HD Cinema & Shows", w / 2, h * 0.48);
+        ctx.fillStyle = "#c084fc";
+        ctx.font = "bold 32px system-ui, sans-serif";
+        ctx.fillText("100% Free Cinema & Shows", w / 2, h * 0.44);
 
-        // Feature checklist
+        // Feature checklist pills with camera snap feel
         const perks = [
-          "✓ 10,000+ Movies & Series",
-          "✓ 1080p Ultra-Fast Servers",
-          "✓ Auto-Play Next Episode",
-          "✓ Cinema Lights-Off Mode"
+          "🎬 10,000+ Full Movies & Series",
+          "⚡ Ultra-Fast 1080p HD Servers",
+          "🍿 Auto-Play Next Episode (Binge Mode)",
+          "🛡️ Zero Popunder Ads • 100% Free"
         ];
         perks.forEach((txt, idx) => {
-          const itemY = h * 0.57 + (idx * 65);
-          ctx.fillStyle = "rgba(30, 41, 59, 0.8)";
+          const itemY = h * 0.53 + (idx * 70);
+          ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
           ctx.beginPath();
-          ctx.roundRect(w * 0.12, itemY - 35, w * 0.76, 52, 14);
+          ctx.roundRect(w * 0.10, itemY - 38, w * 0.80, 56, 16);
           ctx.fill();
-          ctx.strokeStyle = "rgba(168, 85, 247, 0.3)";
+          ctx.strokeStyle = "rgba(168, 85, 247, 0.4)";
           ctx.stroke();
 
           ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 26px system-ui, sans-serif";
+          ctx.font = "bold 25px system-ui, sans-serif";
           ctx.textAlign = "left";
-          ctx.fillText(txt, w * 0.17, itemY);
+          ctx.fillText(txt, w * 0.15, itemY);
         });
         ctx.textAlign = "center";
       }
 
-      // SCENE 3 (7.5s - 11.5s): WHAT'S AVAILABLE (FAST CARDS)
+      // SCENE 3 (7.2s - 11.5s): RAPID FILM POSTERS SHOWCASE (CAMERA TAKES!)
       else if (sec < 11.5) {
+        const localSec = sec - 7.2;
+        // 3 camera snap takes: Squid Game (7.2-8.6s), Dune 2 (8.6-10.0s), Deadpool (10.0-11.5s)
+        const posterIdx = Math.min(2, Math.floor(localSec / 1.45));
+        const currentMovie = movieData[posterIdx];
+
         ctx.fillStyle = "#ffffff";
-        ctx.font = "900 50px system-ui, sans-serif";
-        ctx.fillText("ALL YOUR FAVORITES", w / 2, h * 0.25);
+        ctx.font = "900 46px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("ALL BLOCKBUSTERS READY", w / 2, h * 0.22);
 
-        ctx.fillStyle = "#f43f5e";
-        ctx.font = "bold 32px system-ui, sans-serif";
-        ctx.fillText("READY TO STREAM RIGHT NOW", w / 2, h * 0.30);
+        ctx.fillStyle = currentMovie.accent;
+        ctx.font = "bold 30px system-ui, sans-serif";
+        ctx.fillText("STREAMING FREE IN 1080p", w / 2, h * 0.26);
 
-        const activeIdx = Math.floor((sec - 7.5) * 2) % 4;
-        const currentMovie = posters[activeIdx];
+        // Card Dimensions
+        const cardW = 440;
+        const cardH = 640;
+        const cardX = (w - cardW) / 2;
+        const cardY = h * 0.30;
 
-        const cardY = h * 0.36;
-        const cardW = w * 0.74;
-        const cardH = h * 0.42;
+        // Draw Real Image Poster if loaded
+        if (currentMovie.img && currentMovie.img.complete && currentMovie.img.naturalWidth > 0) {
+          // Poster drop shadow & glowing outline
+          ctx.save();
+          ctx.shadowColor = currentMovie.accent;
+          ctx.shadowBlur = 35;
+          drawRoundedImage(currentMovie.img, cardX, cardY, cardW, cardH, 24);
+          ctx.restore();
 
-        ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
+          // Border stroke
+          ctx.strokeStyle = currentMovie.accent;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.roundRect(cardX, cardY, cardW, cardH, 24);
+          ctx.stroke();
+        } else {
+          // Fallback box
+          ctx.fillStyle = "#1e293b";
+          ctx.beginPath();
+          ctx.roundRect(cardX, cardY, cardW, cardH, 24);
+          ctx.fill();
+        }
+
+        // Overlay Title Pill on Poster
+        ctx.fillStyle = "rgba(2, 6, 23, 0.9)";
         ctx.beginPath();
-        ctx.roundRect(w * 0.13, cardY, cardW, cardH, 24);
+        ctx.roundRect(cardX + 20, cardY + cardH - 120, cardW - 40, 95, 18);
         ctx.fill();
-        ctx.strokeStyle = currentMovie.color;
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = currentMovie.accent;
         ctx.stroke();
 
-        ctx.font = "90px sans-serif";
-        ctx.fillText("🎬", w / 2, cardY + cardH * 0.38);
-
         ctx.fillStyle = "#ffffff";
-        ctx.font = "900 36px system-ui, sans-serif";
-        ctx.fillText(currentMovie.title, w / 2, cardY + cardH * 0.65);
+        ctx.font = "900 32px system-ui, sans-serif";
+        ctx.fillText(currentMovie.title, w / 2, cardY + cardH - 72);
 
-        ctx.fillStyle = currentMovie.color;
-        ctx.beginPath();
-        ctx.roundRect(w / 2 - 110, cardY + cardH * 0.75, 220, 44, 22);
-        ctx.fill();
-        ctx.fillStyle = "#ffffff";
+        // Rating & Badge
+        ctx.fillStyle = currentMovie.accent;
         ctx.font = "bold 22px system-ui, sans-serif";
-        ctx.fillText(currentMovie.tag, w / 2, cardY + cardH * 0.75 + 30);
+        ctx.fillText(`${currentMovie.rating} • ${currentMovie.badge}`, w / 2, cardY + cardH - 38);
       }
 
-      // SCENE 4 (11.5s - 15.0s): STRONG CALL TO ACTION
+      // SCENE 4 (11.5s - 15.0s): EXPLOSIVE CALL TO ACTION
       else {
-        const pulse = Math.sin(sec * 6) * 15;
-        const glow = ctx.createRadialGradient(w/2, h*0.48, 50, w/2, h*0.48, 250 + pulse);
-        glow.addColorStop(0, "rgba(225, 29, 72, 0.4)");
+        const pulse = Math.sin(sec * 7) * 20;
+        const glow = ctx.createRadialGradient(w/2, h*0.48, 40, w/2, h*0.48, 280 + pulse);
+        glow.addColorStop(0, "rgba(225, 29, 72, 0.55)");
         glow.addColorStop(1, "transparent");
         ctx.fillStyle = glow;
         ctx.fillRect(0, 0, w, h);
 
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 40px system-ui, sans-serif";
-        ctx.fillText("NO SIGN UP. NO ADS.", w / 2, h * 0.32);
+        ctx.font = "bold 38px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("NO SIGN UP. NO CREDIT CARD.", w / 2, h * 0.32);
 
         ctx.fillStyle = "#10b981";
-        ctx.font = "900 56px system-ui, sans-serif";
-        ctx.fillText("100% FREE", w / 2, h * 0.39);
+        ctx.font = "900 64px system-ui, sans-serif";
+        ctx.fillText("100% FREE", w / 2, h * 0.40);
 
+        // High-contrast Red Domain Banner
         const boxY = h * 0.48;
         ctx.fillStyle = "#e11d48";
         ctx.beginPath();
-        ctx.roundRect(w * 0.08, boxY, w * 0.84, 110, 28);
+        ctx.roundRect(w * 0.08, boxY, w * 0.84, 115, 28);
         ctx.fill();
 
         ctx.fillStyle = "#ffffff";
-        ctx.font = "900 38px system-ui, sans-serif";
-        ctx.fillText("filmologyx.vercel.app", w / 2, boxY + 70);
+        ctx.font = "900 40px system-ui, sans-serif";
+        ctx.fillText("filmologyx.vercel.app", w / 2, boxY + 72);
 
-        ctx.font = "bold 32px system-ui, sans-serif";
+        ctx.font = "bold 34px system-ui, sans-serif";
         ctx.fillStyle = "#cbd5e1";
-        ctx.fillText("Tap The Link in Bio 🍿", w / 2, h * 0.66);
+        ctx.fillText("Click The Link in Bio 🍿", w / 2, h * 0.67);
 
-        ctx.font = "60px sans-serif";
-        ctx.fillText("👇", w / 2, h * 0.75);
+        ctx.font = "65px sans-serif";
+        ctx.fillText("👇", w / 2, h * 0.77);
       }
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      // Bottom Global Watermark
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
       ctx.font = "bold 22px system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("FilmologyX • Watch Free Everywhere", w / 2, h * 0.94);
+      ctx.fillText("FilmologyX • High-Definition Free Streaming", w / 2, h * 0.94);
+
+      // Camera Flash Overlay (Fades out smoothly each frame)
+      if (flashIntensity > 0.01) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${flashIntensity})`;
+        ctx.fillRect(0, 0, w, h);
+        flashIntensity = Math.max(0, flashIntensity - 0.09);
+      }
     }
 
+    // Initial render
     drawScene(0);
 
     function startAnimation(onComplete) {
       if (isPlaying) return;
       isPlaying = true;
       startTime = performance.now();
+      triggeredCues.clear();
       countdownBadge.classList.remove("hidden");
-
-      playTone(180, 0.3, "sine", 0.3);
 
       function loop(currentTime) {
         const elapsed = currentTime - startTime;
-
-        const beatSec = Math.floor(elapsed / 1000);
-        if (elapsed % 1000 < 25) {
-          playTone(220 + (beatSec * 25), 0.15, "triangle", 0.2);
-        }
 
         if (elapsed < TOTAL_DURATION) {
           drawScene(elapsed);
@@ -362,25 +619,39 @@ Tired of paying $20/month for streaming? 🍿 Watch thousands of movies and full
 
     playBtn.addEventListener("click", () => {
       if (isPlaying) return;
-      statusText.textContent = "Playing 15s preview...";
+      getAudioEngine(); // init audio context
+      statusText.textContent = "🎬 Playing 15s cinematic promo with sound FX...";
       startAnimation(() => {
-        statusText.textContent = "Preview finished! Click 'Record & Download Video' to export.";
+        statusText.textContent = "✨ Preview finished! Click 'Record & Download' to export your video!";
       });
     });
 
     recordBtn.addEventListener("click", async () => {
       if (isPlaying || isRecording) return;
       isRecording = true;
-      statusText.textContent = "🔴 Recording canvas in high quality (15 seconds)...";
+      statusText.textContent = "🔴 Recording 15s video with synced sound FX...";
       recordBtn.disabled = true;
       recordBtn.classList.add("opacity-50");
 
-      const stream = canvas.captureStream(30);
+      const { audioDestination } = getAudioEngine();
+      const canvasStream = canvas.captureStream(30); // 30 FPS
+
+      // Mix canvas video stream + Web Audio sound effects stream!
+      let combinedStream;
+      if (audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
+        combinedStream = new MediaStream([
+          ...canvasStream.getVideoTracks(),
+          ...audioDestination.stream.getAudioTracks()
+        ]);
+      } else {
+        combinedStream = canvasStream;
+      }
+
       let recorder;
       try {
-        recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9" });
+        recorder = new MediaRecorder(combinedStream, { mimeType: "video/webm;codecs=vp9" });
       } catch {
-        recorder = new MediaRecorder(stream);
+        recorder = new MediaRecorder(combinedStream);
       }
 
       const chunks = [];
@@ -402,7 +673,7 @@ Tired of paying $20/month for streaming? 🍿 Watch thousands of movies and full
         isRecording = false;
         recordBtn.disabled = false;
         recordBtn.classList.remove("opacity-50");
-        statusText.textContent = "🎉 Video downloaded successfully as 'filmologyx-ad-promo.webm'!";
+        statusText.textContent = "🎉 Video downloaded with audio as 'filmologyx-ad-promo.webm'!";
       };
 
       recorder.start();
