@@ -7,6 +7,7 @@ import ReviewSection from "./ReviewSection";
 import VideoPlayer from "./VideoPlayer";
 import { Star, Sparkles, Film, Play, Tv, Share2, Users } from "lucide-react";
 import WatchTrailerButton from "@/components/WatchTrailerButton";
+import ShareButton from "@/components/ShareButton";
 
 import { CURATED_CATALOG } from "@/lib/catalog";
 
@@ -62,6 +63,7 @@ async function getMovieSafely(id: string) {
       description: foundInCatalog.description,
       videoUrl: foundInCatalog.videoUrl,
       thumbnailUrl: foundInCatalog.thumbnailUrl,
+      backdropUrl: (foundInCatalog as any).backdropUrl || null,
       releaseYear: foundInCatalog.releaseYear,
       genre: foundInCatalog.genre,
       createdAt: new Date(),
@@ -80,6 +82,7 @@ async function getMovieSafely(id: string) {
         description: universal.description,
         videoUrl: universal.videoUrl,
         thumbnailUrl: universal.thumbnailUrl,
+        backdropUrl: universal.backdropUrl || null,
         releaseYear: universal.releaseYear,
         genre: universal.genre,
         createdAt: new Date(),
@@ -106,20 +109,22 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const movie = await getMovieSafely(id);
     if (!movie) return { title: "Movie Not Found | FilmologyX" };
 
+    const imageUrl = (movie as any).backdropUrl || movie.thumbnailUrl;
     return {
       title: `Watch ${movie.title} (${movie.releaseYear}) Free Online in 1080p | FilmologyX`,
       description: movie.description || `Stream ${movie.title} in HD quality for free on FilmologyX.`,
       openGraph: {
-        title: `${movie.title} (${movie.releaseYear}) - Full Movie Streaming`,
-        description: movie.description,
-        images: movie.thumbnailUrl ? [{ url: movie.thumbnailUrl }] : [],
+        title: `${movie.title} (${movie.releaseYear}) - Watch Free in HD | FilmologyX`,
+        description: movie.description || `Stream ${movie.title} online free in 1080p Full HD on FilmologyX.`,
+        images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: movie.title }] : [],
         type: "video.movie",
+        siteName: "FilmologyX",
       },
       twitter: {
         card: "summary_large_image",
-        title: `Watch ${movie.title} Free on FilmologyX`,
-        description: movie.description,
-        images: movie.thumbnailUrl ? [movie.thumbnailUrl] : [],
+        title: `Watch ${movie.title} (${movie.releaseYear}) Free on FilmologyX`,
+        description: movie.description || `Stream ${movie.title} in 1080p Full HD online for free.`,
+        images: imageUrl ? [imageUrl] : [],
       },
     };
   } catch {
@@ -154,7 +159,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
     if (recs && recs.length > 0) {
       relatedMovies = recs
         .filter((r) => r.title.toLowerCase() !== movie.title.toLowerCase() && r.id !== movie.id)
-        .slice(0, 5)
+        .slice(0, 10)
         .map((r) => ({
           id: r.id,
           title: r.title,
@@ -167,7 +172,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
   }
 
   // Fallback or fill: match by genre from CURATED_CATALOG & database, shuffled so it's always variable
-  if (relatedMovies.length < 5) {
+  if (relatedMovies.length < 10) {
     const genreWord = (movie.genre || "").split(/[\s,&/-]+/)[0].toLowerCase();
 
     const candidates = CURATED_CATALOG.filter((c) => {
@@ -180,7 +185,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
     const shuffled = [...candidates].sort(() => 0.5 - Math.random());
 
     for (const c of shuffled) {
-      if (relatedMovies.length >= 5) break;
+      if (relatedMovies.length >= 10) break;
       if (!relatedMovies.some((r) => r.title.toLowerCase() === c.title.toLowerCase())) {
         relatedMovies.push({
           id: c.id,
@@ -277,6 +282,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0 w-full sm:w-auto">
             <WatchTrailerButton id={movie.videoUrl || movie.id} title={movie.title} isTv={Boolean(isTv)} variant="primary" />
             <WatchlistButton movieId={movie.id} />
+            <ShareButton title={movie.title} />
           </div>
         </div>
         
