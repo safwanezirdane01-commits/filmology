@@ -58,9 +58,6 @@ export default function VideoPlayer({
   const [isTheaterMode, setIsTheaterMode] = useState<boolean>(false);
   const [isFloatingPiP, setIsFloatingPiP] = useState<boolean>(false);
 
-  // Iframe Sandbox Ad-Shield state
-  const [isShieldEnabled, setIsShieldEnabled] = useState<boolean>(true);
-
   // Auto-play Next Episode (Binge-Watching Mode)
   const [autoNextEnabled, setAutoNextEnabled] = useState<boolean>(true);
   const [showNextCountdown, setShowNextCountdown] = useState<boolean>(false);
@@ -699,24 +696,6 @@ export default function VideoPlayer({
                 <RefreshCw className="w-3 h-3 text-rose-400" />
                 <span>Next ↻</span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsShieldEnabled((prev) => !prev);
-                  setHotkeyToast(!isShieldEnabled ? "🛡️ Sandbox Ad-Shield: ON" : "⚠️ Sandbox Ad-Shield: OFF");
-                  setTimeout(() => setHotkeyToast(null), 3000);
-                }}
-                className={`px-2 py-1 rounded-lg text-xs font-semibold border flex items-center space-x-1 cursor-pointer transition-colors ${
-                  isShieldEnabled
-                    ? "bg-emerald-950/80 border-emerald-500/40 text-emerald-300"
-                    : "bg-amber-950/80 border-amber-500/40 text-amber-300"
-                }`}
-                title={isShieldEnabled ? "Ad Shield is ON: popups & redirects blocked by iframe sandbox" : "Ad Shield is OFF: click to re-enable sandbox"}
-              >
-                <ShieldCheck className={`w-3 h-3 ${isShieldEnabled ? "text-emerald-400" : "text-amber-400"}`} />
-                <span>{isShieldEnabled ? "Shield: ON" : "Shield: OFF"}</span>
-              </button>
             </div>
           </div>
         )}
@@ -857,11 +836,10 @@ export default function VideoPlayer({
             />
           ) : (
             <iframe
-              key={`embed-${parsedSources.currentUrl}-${isShieldEnabled ? "shield" : "raw"}`}
+              key={`embed-${parsedSources.currentUrl}`}
               src={needsPopups ? undefined : parsedSources.currentUrl}
               className="w-full h-full border-0"
               allowFullScreen
-              sandbox={isShieldEnabled ? "allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock" : undefined}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               onLoad={() => setIsServerLoaded(true)}
             />
@@ -904,7 +882,6 @@ export default function VideoPlayer({
                 src={parsedSources.currentUrl}
                 className="w-full h-full border-0"
                 allowFullScreen
-                sandbox={isShieldEnabled ? "allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock" : undefined}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               />
             )}
@@ -950,7 +927,6 @@ export default function VideoPlayer({
               src={parsedSources.currentUrl}
               className="w-full h-full border-0"
               allowFullScreen
-              sandbox={isShieldEnabled ? "allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock" : undefined}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             />
           )}
@@ -1033,28 +1009,10 @@ export default function VideoPlayer({
         {/* Mobile Server Selector */}
         {parsedSources.isImdbOrTmdb && (
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-rose-300 font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <Server className="w-3.5 h-3.5" />
-                <span>Server:</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsShieldEnabled((prev) => !prev);
-                  setHotkeyToast(!isShieldEnabled ? "🛡️ Sandbox Ad-Shield: ON" : "⚠️ Sandbox Ad-Shield: OFF");
-                  setTimeout(() => setHotkeyToast(null), 3000);
-                }}
-                className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border flex items-center space-x-1 cursor-pointer transition-colors ${
-                  isShieldEnabled
-                    ? "bg-emerald-950/80 border-emerald-500/40 text-emerald-300"
-                    : "bg-amber-950/80 border-amber-500/40 text-amber-300"
-                }`}
-              >
-                <ShieldCheck className={`w-3 h-3 ${isShieldEnabled ? "text-emerald-400" : "text-amber-400"}`} />
-                <span>Shield: {isShieldEnabled ? "ON" : "OFF"}</span>
-              </button>
-            </div>
+            <span className="text-[11px] text-rose-300 font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
+              <Server className="w-3.5 h-3.5" />
+              <span>Server:</span>
+            </span>
             <div className="grid grid-cols-2 gap-1.5">
               {serverList.map((s) => (
                 <button
