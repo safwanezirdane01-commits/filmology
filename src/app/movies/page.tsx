@@ -1,9 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { discoverByFilter, UniversalItem } from "@/lib/tmdb";
-import { Film, Star, ChevronLeft, ChevronRight, Clapperboard, Filter } from "lucide-react";
+import { Film, Star } from "lucide-react";
 import QuickWatchlistHeart from "@/components/QuickWatchlistHeart";
-import CatalogSortBar from "@/components/CatalogSortBar";
+import CatalogHeaderView from "@/components/CatalogHeaderView";
+import CatalogPaginationView from "@/components/CatalogPaginationView";
 
 export const metadata: Metadata = {
   title: "Watch Movies Free in 1080p Full HD | FilmologyX",
@@ -45,50 +46,13 @@ export default async function MoviesPage({
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-16">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-purple-900/30 pb-5">
-        <div>
-          <div className="flex items-center space-x-2 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Clapperboard className="w-4 h-4" />
-            <span>Movies Catalog</span>
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-rose-100 to-purple-200 tracking-tight">
-            Explore Free Movies
-          </h1>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1">
-            Stream blockbuster movies and cinema classics in 1080p with multi-server failover.
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-2.5">
-          <CatalogSortBar currentSort={sort} basePath="/movies" currentGenre={activeGenre} />
-          <div className="flex items-center space-x-1.5 bg-slate-900 border border-purple-500/20 px-3 py-1.5 rounded-full text-xs font-semibold text-purple-300">
-            <Film className="w-3.5 h-3.5 text-rose-400" />
-            <span>Page {currentPage}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Genre Filter Pills */}
-      <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none contain-paint">
-        <div className="flex items-center space-x-1.5 text-slate-400 text-xs font-semibold shrink-0 pr-1">
-          <Filter className="w-3.5 h-3.5 text-rose-400" />
-          <span className="hidden sm:inline">Genre:</span>
-        </div>
-        {GENRES.map((g) => (
-          <Link
-            key={g.id}
-            href={`/movies?genre=${g.id}&page=1&sort=${sort}`}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 active:scale-95 ${
-              activeGenre === g.id
-                ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-md shadow-rose-600/30"
-                : "bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-purple-500/20"
-            }`}
-          >
-            {g.label}
-          </Link>
-        ))}
-      </div>
+      <CatalogHeaderView
+        type="movies"
+        activeGenre={activeGenre}
+        currentPage={currentPage}
+        sort={sort}
+        genres={GENRES}
+      />
 
       {/* Movies Grid */}
       {movies.length > 0 ? (
@@ -111,7 +75,7 @@ export default async function MoviesPage({
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center text-slate-500">
                     <Film className="w-8 h-8 mb-1 text-purple-900/50" />
-                    <span className="text-[10px]">{movie.title}</span>
+                    <span className="original-title text-[10px]" dir="ltr">{movie.title}</span>
                   </div>
                 )}
 
@@ -147,7 +111,7 @@ export default async function MoviesPage({
               {/* Title & Info */}
               <div className="p-3 flex flex-col justify-between flex-1">
                 <div>
-                  <h3 className="text-white text-xs sm:text-sm font-bold line-clamp-1 group-hover:text-rose-300 transition-colors">
+                  <h3 className="original-title text-white text-xs sm:text-sm font-bold line-clamp-1 group-hover:text-rose-300 transition-colors" dir="ltr">
                     {movie.title}
                   </h3>
                   <div className="flex items-center space-x-2 text-[10px] text-slate-400 mt-1">
@@ -169,27 +133,12 @@ export default async function MoviesPage({
       )}
 
       {/* Pagination Controls */}
-      <div className="flex items-center justify-center space-x-3 pt-6">
-        {currentPage > 1 && (
-          <Link
-            href={`/movies?genre=${activeGenre}&page=${currentPage - 1}&sort=${sort}`}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-purple-500/20 text-slate-200 text-xs font-bold transition-all"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Previous</span>
-          </Link>
-        )}
-        <span className="text-xs text-slate-400 px-3 py-2 bg-slate-900/60 rounded-xl border border-purple-500/10">
-          Page <strong className="text-white">{currentPage}</strong>
-        </span>
-        <Link
-          href={`/movies?genre=${activeGenre}&page=${currentPage + 1}&sort=${sort}`}
-          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold transition-all shadow"
-        >
-          <span>Next</span>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      </div>
+      <CatalogPaginationView
+        basePath="/movies"
+        activeGenre={activeGenre}
+        currentPage={currentPage}
+        sort={sort}
+      />
     </div>
   );
 }

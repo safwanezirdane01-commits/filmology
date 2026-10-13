@@ -1,9 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { discoverByFilter, UniversalItem } from "@/lib/tmdb";
-import { Tv, Star, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { Tv, Star } from "lucide-react";
 import QuickWatchlistHeart from "@/components/QuickWatchlistHeart";
-import CatalogSortBar from "@/components/CatalogSortBar";
+import CatalogHeaderView from "@/components/CatalogHeaderView";
+import CatalogPaginationView from "@/components/CatalogPaginationView";
 
 export const metadata: Metadata = {
   title: "Watch TV Series & Shows Free Online in HD | FilmologyX",
@@ -42,50 +43,13 @@ export default async function SeriesPage({
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-16">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-purple-900/30 pb-5">
-        <div>
-          <div className="flex items-center space-x-2 text-purple-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Tv className="w-4 h-4" />
-            <span>TV Shows & Series</span>
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-100 to-rose-200 tracking-tight">
-            Explore TV Series
-          </h1>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1">
-            Binge-watch full seasons and episodes with built-in season and episode navigators.
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-2.5">
-          <CatalogSortBar currentSort={sort} basePath="/series" currentGenre={activeGenre} />
-          <div className="flex items-center space-x-1.5 bg-slate-900 border border-purple-500/20 px-3 py-1.5 rounded-full text-xs font-semibold text-purple-300">
-            <Tv className="w-3.5 h-3.5 text-purple-400" />
-            <span>Page {currentPage}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Genre Filter Pills */}
-      <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none contain-paint">
-        <div className="flex items-center space-x-1.5 text-slate-400 text-xs font-semibold shrink-0 pr-1">
-          <Filter className="w-3.5 h-3.5 text-purple-400" />
-          <span className="hidden sm:inline">Category:</span>
-        </div>
-        {TV_GENRES.map((g) => (
-          <Link
-            key={g.id}
-            href={`/series?genre=${g.id}&page=1&sort=${sort}`}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 active:scale-95 ${
-              activeGenre === g.id
-                ? "bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow-md shadow-purple-600/30"
-                : "bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-purple-500/20"
-            }`}
-          >
-            {g.label}
-          </Link>
-        ))}
-      </div>
+      <CatalogHeaderView
+        type="series"
+        activeGenre={activeGenre}
+        currentPage={currentPage}
+        sort={sort}
+        genres={TV_GENRES}
+      />
 
       {/* Series Grid */}
       {seriesList.length > 0 ? (
@@ -108,7 +72,7 @@ export default async function SeriesPage({
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center text-slate-500">
                     <Tv className="w-8 h-8 mb-1 text-purple-900/50" />
-                    <span className="text-[10px]">{item.title}</span>
+                    <span className="original-title text-[10px]" dir="ltr">{item.title}</span>
                   </div>
                 )}
 
@@ -145,7 +109,7 @@ export default async function SeriesPage({
               {/* Title & Info */}
               <div className="p-3 flex flex-col justify-between flex-1">
                 <div>
-                  <h3 className="text-white text-xs sm:text-sm font-bold line-clamp-1 group-hover:text-purple-300 transition-colors">
+                  <h3 className="original-title text-white text-xs sm:text-sm font-bold line-clamp-1 group-hover:text-purple-300 transition-colors" dir="ltr">
                     {item.title}
                   </h3>
                   <div className="flex items-center space-x-2 text-[10px] text-slate-400 mt-1">
@@ -167,27 +131,12 @@ export default async function SeriesPage({
       )}
 
       {/* Pagination Controls */}
-      <div className="flex items-center justify-center space-x-3 pt-6">
-        {currentPage > 1 && (
-          <Link
-            href={`/series?genre=${activeGenre}&page=${currentPage - 1}&sort=${sort}`}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-purple-500/20 text-slate-200 text-xs font-bold transition-all"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Previous</span>
-          </Link>
-        )}
-        <span className="text-xs text-slate-400 px-3 py-2 bg-slate-900/60 rounded-xl border border-purple-500/10">
-          Page <strong className="text-white">{currentPage}</strong>
-        </span>
-        <Link
-          href={`/series?genre=${activeGenre}&page=${currentPage + 1}&sort=${sort}`}
-          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-rose-600 hover:from-purple-500 hover:to-rose-500 text-white text-xs font-bold transition-all shadow"
-        >
-          <span>Next</span>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      </div>
+      <CatalogPaginationView
+        basePath="/series"
+        activeGenre={activeGenre}
+        currentPage={currentPage}
+        sort={sort}
+      />
     </div>
   );
 }

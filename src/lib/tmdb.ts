@@ -7,6 +7,7 @@ export interface UniversalItem {
   thumbnailUrl: string;
   backdropUrl?: string | null;
   description: string;
+  descriptionAr?: string | null;
   mediaType: "movie" | "tv";
   voteAverage?: number;
   category?: string;
@@ -93,6 +94,10 @@ function formatTmdbItem(item: any, forceType?: "movie" | "tv"): UniversalItem | 
   const thumbnailUrl = item.poster_path ? `${TMDB_IMG}${item.poster_path}` : "/placeholder.png";
   const backdropUrl = item.backdrop_path ? `${TMDB_BACKDROP}${item.backdrop_path}` : null;
 
+  const arOverview = item.translations?.translations?.find(
+    (t: any) => t.iso_639_1 === "ar"
+  )?.data?.overview || null;
+
   return {
     id,
     title,
@@ -102,6 +107,7 @@ function formatTmdbItem(item: any, forceType?: "movie" | "tv"): UniversalItem | 
     thumbnailUrl,
     backdropUrl,
     description: item.overview || `Watch ${title} in 1080p Full HD on FilmologyX.`,
+    descriptionAr: arOverview && arOverview.trim().length > 0 ? arOverview.trim() : null,
     mediaType: isTv ? "tv" : "movie",
     voteAverage: item.vote_average ? parseFloat(item.vote_average.toFixed(1)) : 8.0,
     category: isTv ? "series" : "action",
@@ -170,7 +176,7 @@ export async function getUniversalMovieOrShow(id: string): Promise<UniversalItem
   if (isTvPrefix) {
     try {
       const res = await fetch(
-        `${TMDB_BASE}/tv/${numericId}?api_key=${TMDB_KEY}`,
+        `${TMDB_BASE}/tv/${numericId}?api_key=${TMDB_KEY}&append_to_response=translations`,
         { next: { revalidate: 86400 } }
       );
       if (res.ok) {
@@ -186,7 +192,7 @@ export async function getUniversalMovieOrShow(id: string): Promise<UniversalItem
   if (/^\d+$/.test(numericId)) {
     try {
       const res = await fetch(
-        `${TMDB_BASE}/movie/${numericId}?api_key=${TMDB_KEY}`,
+        `${TMDB_BASE}/movie/${numericId}?api_key=${TMDB_KEY}&append_to_response=translations`,
         { next: { revalidate: 86400 } }
       );
       if (res.ok) {
@@ -195,7 +201,7 @@ export async function getUniversalMovieOrShow(id: string): Promise<UniversalItem
       }
       // If movie returns 404, fallback to checking TV
       const tvRes = await fetch(
-        `${TMDB_BASE}/tv/${numericId}?api_key=${TMDB_KEY}`,
+        `${TMDB_BASE}/tv/${numericId}?api_key=${TMDB_KEY}&append_to_response=translations`,
         { next: { revalidate: 86400 } }
       );
       if (tvRes.ok) {

@@ -11,7 +11,49 @@ export interface LanguageContextType {
   isArabic: boolean;
   dir: "ltr" | "rtl";
   t: (key: string, fallback?: string) => string;
+  translateGenre: (genre: string) => string;
 }
+
+export const GENRE_TRANSLATIONS: Record<string, string> = {
+  "action": "أكشن",
+  "adventure": "مغامرة",
+  "animation": "رسوم متحركة",
+  "comedy": "كوميديا",
+  "crime": "جريمة",
+  "documentary": "وثائقي",
+  "drama": "دراما",
+  "family": "عائلي",
+  "fantasy": "فنتازيا",
+  "history": "تاريخي",
+  "horror": "رعب",
+  "music": "موسيقى",
+  "mystery": "غموض",
+  "romance": "رومانسي",
+  "science fiction": "خيال علمي",
+  "sci-fi": "خيال علمي",
+  "scifi": "خيال علمي",
+  "tv movie": "فيلم تلفزيوني",
+  "thriller": "إثارة وتشويق",
+  "war": "حرب",
+  "western": "ويسترن",
+  "tv series": "مسلسل تلفزيوني",
+  "series": "مسلسل تلفزيوني",
+  "shows": "مسلسلات",
+  "cinema": "سينما",
+  "action & adventure": "أكشن ومغامرة",
+  "sci-fi & fantasy": "خيال علمي وفنتازيا",
+  "crime & mystery": "جريمة وغموض",
+  "kids": "أطفال",
+  "news": "أخبار",
+  "reality": "واقعي",
+  "soap": "دراما يومية",
+  "talk": "حوارات",
+  "war & politics": "حرب وسياسة",
+  "all movies": "جميع الأفلام",
+  "all series": "جميع المسلسلات",
+  "top rated": "الأعلى تقييماً",
+  "trending": "الأكثر رواجاً",
+};
 
 export const translations: Record<Language, Record<string, string>> = {
   en: {
@@ -118,12 +160,48 @@ export const translations: Record<Language, Record<string, string>> = {
     "details.share": "Share",
     "details.copied": "Link Copied!",
     "details.reviews": "Community Reviews",
+    "details.reviewsHeading": "Reviews",
     "details.writeReview": "Write a Review",
     "details.moreLikeThis": "More Like This",
+    "details.topCast": "Top Cast",
     "details.cast": "Cast & Crew",
     "details.releaseYear": "Release Year",
     "details.genre": "Genre",
     "details.rating": "IMDb Rating",
+    "details.quality": "4K Ultra HD",
+    "details.audio": "Dolby 5.1",
+    "details.yourRating": "Your Rating",
+    "details.comment": "Comment (optional)",
+    "details.commentPlaceholder": "What did you think of the movie?",
+    "details.submitReview": "Submit Review",
+    "details.submitting": "Submitting...",
+    "details.loginToReview": "Please log in to leave a review.",
+    "details.noReviews": "No reviews yet. Be the first!",
+
+    // Movies Page
+    "movies.title": "Explore Free Movies",
+    "movies.subtitle": "Stream blockbuster movies and cinema classics in 1080p with multi-server failover.",
+    "movies.catalog": "Movies Catalog",
+
+    // Series Page
+    "series.title": "Explore TV Series",
+    "series.subtitle": "Binge-watch full seasons and episodes with built-in season and episode navigators.",
+    "series.catalog": "TV Shows & Series",
+
+    // Search Page
+    "search.title": "Search Any Film or Series",
+    "search.resultsFor": "Results for",
+    "search.subtitle": "Search millions of movies and TV shows from IMDb & TMDb with instant 1080p streaming.",
+    "search.library": "Universal IMDb & TMDb Library",
+    "search.placeholder": "Search by title, genre, actor...",
+    "search.noResults": "No titles found matching your search.",
+
+    // Common Pagination & Filter
+    "common.page": "Page",
+    "common.next": "Next",
+    "common.prev": "Previous",
+    "common.genre": "Genre:",
+    "common.category": "Category:",
 
     // Footer
     "footer.hubTitle": "Stream Anything, Anytime in 1080p",
@@ -237,12 +315,48 @@ export const translations: Record<Language, Record<string, string>> = {
     "details.share": "مشاركة",
     "details.copied": "تم نسخ الرابط!",
     "details.reviews": "التقييمات والآراء",
+    "details.reviewsHeading": "التقييمات",
     "details.writeReview": "أضف رأيك",
     "details.moreLikeThis": "أعمال مشابهة",
+    "details.topCast": "أبرز الممثلين",
     "details.cast": "طاقم العمل",
     "details.releaseYear": "سنة الإصدار",
     "details.genre": "التصنيف",
     "details.rating": "تقييم IMDb",
+    "details.quality": "4K فائق الدقة",
+    "details.audio": "دولبي 5.1",
+    "details.yourRating": "تقييمك",
+    "details.comment": "تعليق (اختياري)",
+    "details.commentPlaceholder": "ما هو رأيك في العمل؟",
+    "details.submitReview": "إرسال التقييم",
+    "details.submitting": "جاري الإرسال...",
+    "details.loginToReview": "يرجى تسجيل الدخول لكتابة تقييم.",
+    "details.noReviews": "لا توجد تقييمات بعد. كن أول من يقيّم!",
+
+    // Movies Page
+    "movies.title": "استكشف مكتبة الأفلام",
+    "movies.subtitle": "شاهد أحدث الأفلام العالمية وروائع السينما بدقة 1080p مجاناً وبدون تقطيع.",
+    "movies.catalog": "دليل الأفلام",
+
+    // Series Page
+    "series.title": "استكشف المسلسلات",
+    "series.subtitle": "تابع مواسم وحلقات مسلسلاتك المفضلة كاملة مع تنقل سلس بين الحلقات.",
+    "series.catalog": "عروض ومسلسلات تلفزيونية",
+
+    // Search Page
+    "search.title": "ابحث عن أي فيلم أو مسلسل",
+    "search.resultsFor": "نتائج البحث عن",
+    "search.subtitle": "ابحث بين ملايين الأفلام والمسلسلات من قاعدة بيانات IMDb و TMDb مع بث فوري بدقة 1080p.",
+    "search.library": "مكتبة IMDb و TMDb الشاملة",
+    "search.placeholder": "ابحث عن فيلم، مسلسل، ممثل...",
+    "search.noResults": "لم نتمكن من العثور على نتائج مطابقة لبحثك.",
+
+    // Common Pagination & Filter
+    "common.page": "صفحة",
+    "common.next": "التالي",
+    "common.prev": "السابق",
+    "common.genre": "التصنيف:",
+    "common.category": "القسم:",
 
     // Footer
     "footer.hubTitle": "شاهد أي فيلم أو مسلسل بجودة 1080p مجاناً",
@@ -261,6 +375,7 @@ const LanguageContext = createContext<LanguageContextType>({
   isArabic: false,
   dir: "ltr",
   t: (key: string, fallback?: string) => fallback || key,
+  translateGenre: (genre: string) => genre,
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
@@ -317,6 +432,28 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const isArabic = language === "ar";
   const dir: "ltr" | "rtl" = isArabic ? "rtl" : "ltr";
 
+  const translateGenre = (genre: string): string => {
+    if (!genre) return "";
+    if (!isArabic) return genre;
+
+    const lower = genre.trim().toLowerCase();
+    if (GENRE_TRANSLATIONS[lower]) {
+      return GENRE_TRANSLATIONS[lower];
+    }
+
+    // Check comma or slash or ampersand separated
+    const parts = genre.split(/[,/&]+/).map(p => p.trim());
+    if (parts.length > 1) {
+      const translatedParts = parts.map(p => {
+        const pLower = p.toLowerCase();
+        return GENRE_TRANSLATIONS[pLower] || p;
+      });
+      return translatedParts.join(" • ");
+    }
+
+    return genre;
+  };
+
   return (
     <LanguageContext.Provider
       value={{
@@ -326,6 +463,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         isArabic,
         dir,
         t,
+        translateGenre,
       }}
     >
       {children}

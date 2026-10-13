@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PlayCircle, Loader2 } from "lucide-react";
 import TrailerModal from "./TrailerModal";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface WatchTrailerButtonProps {
   id: string;
@@ -19,6 +20,7 @@ export default function WatchTrailerButton({
   className = "",
   variant = "secondary",
 }: WatchTrailerButtonProps) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
@@ -56,15 +58,15 @@ export default function WatchTrailerButton({
         type="button"
         onClick={handleClick}
         disabled={loading}
-        className={`inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all active:scale-95 disabled:opacity-50 ${baseStyle} ${className}`}
-        title={`Watch official trailer for ${title}`}
+        className={`inline-flex items-center justify-center space-x-2 rtl:space-x-reverse px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all active:scale-95 disabled:opacity-50 cursor-pointer ${baseStyle} ${className}`}
+        title={`${t("details.trailer")} - ${title}`}
       >
         {loading ? (
           <Loader2 className="w-4 h-4 animate-spin text-rose-400" />
         ) : (
           <PlayCircle className="w-4 h-4 text-rose-400" />
         )}
-        <span>Watch Trailer</span>
+        <span>{t("details.trailer")}</span>
       </button>
 
       <TrailerModal

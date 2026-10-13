@@ -6,6 +6,7 @@ import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/ser
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
 import NativeArabicPlayer from "@/components/NativeArabicPlayer";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function VideoPlayer({ 
   movieId,
@@ -26,6 +27,7 @@ export default function VideoPlayer({
   requiredClicks?: number;
   adsEnabled?: boolean;
 }) {
+  const { t, isArabic, dir } = useLanguage();
   const [clickCount, setClickCount] = useState(0);
   const [selectedServer, setSelectedServer] = useState<number>(1);
   const [serverNotice, setServerNotice] = useState<string | null>(null);
@@ -666,12 +668,12 @@ export default function VideoPlayer({
         {/* Desktop Overlay Server Bar (visible on sm+) */}
         {parsedSources.isImdbOrTmdb && (
           <div className="hidden sm:flex absolute top-3 left-3 right-3 z-40 items-center justify-between bg-slate-950/85 sm:backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
-            <div className="flex items-center space-x-1.5 text-rose-300 font-medium">
+            <div className="flex items-center space-x-1.5 rtl:space-x-reverse text-rose-300 font-medium">
               <Server className="w-3.5 h-3.5 text-rose-400" />
-              <span>Server:</span>
+              <span>{t("player.server")}</span>
             </div>
 
-            <div className="flex items-center space-x-1.5 flex-wrap">
+            <div className="flex items-center space-x-1.5 rtl:space-x-reverse flex-wrap">
               {serverList.map((s) => (
                 <button
                   key={s.id}
@@ -690,11 +692,11 @@ export default function VideoPlayer({
               <button
                 type="button"
                 onClick={() => handleNextServer()}
-                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold border border-purple-500/20 flex items-center space-x-1 cursor-pointer transition-colors"
+                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold border border-purple-500/20 flex items-center space-x-1 rtl:space-x-reverse cursor-pointer transition-colors"
                 title="Stream buffering or not working? Click to try next server"
               >
                 <RefreshCw className="w-3 h-3 text-rose-400" />
-                <span>Next ↻</span>
+                <span>{t("player.nextServer")}</span>
               </button>
             </div>
           </div>
@@ -703,13 +705,13 @@ export default function VideoPlayer({
         {/* Desktop Overlay TV Series Selector (visible on sm+) */}
         {isSeries && (
           <div className="hidden sm:flex absolute top-13 left-3 right-3 z-40 flex-wrap items-center justify-between gap-2 bg-slate-950/90 sm:backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-purple-500/20 text-xs">
-            <div className="flex items-center space-x-3">
-              <span className="font-bold text-rose-400 uppercase tracking-wider flex items-center space-x-1">
+            <div className="flex items-center space-x-3 rtl:space-x-reverse">
+              <span className="font-bold text-rose-400 uppercase tracking-wider flex items-center space-x-1 rtl:space-x-reverse">
                 <Tv className="w-3.5 h-3.5" />
-                <span>Series</span>
+                <span>{t("nav.series")}</span>
               </span>
-              <div className="flex items-center space-x-1.5">
-                <span className="text-slate-400">Season:</span>
+              <div className="flex items-center space-x-1.5 rtl:space-x-reverse">
+                <span className="text-slate-400">{t("player.season")}</span>
                 <select
                   value={season}
                   onChange={(e) => {
@@ -719,38 +721,38 @@ export default function VideoPlayer({
                   className="bg-slate-800 border border-purple-500/30 text-white rounded px-2 py-0.5 font-semibold focus:outline-none focus:border-rose-500 text-xs"
                 >
                   {Array.from({ length: Math.max(1, effectiveMeta?.totalSeasons || seriesMeta?.totalSeasons || 1) }, (_, i) => i + 1).map((s) => (
-                    <option key={s} value={s}>Season {s}</option>
+                    <option key={s} value={s}>{isArabic ? `الموسم ${s}` : `Season ${s}`}</option>
                   ))}
                 </select>
               </div>
-              <div className="flex items-center space-x-1.5">
-                <span className="text-slate-400">Episode:</span>
+              <div className="flex items-center space-x-1.5 rtl:space-x-reverse">
+                <span className="text-slate-400">{t("player.episode")}</span>
                 <select
                   value={episode}
                   onChange={(e) => setEpisode(Number(e.target.value))}
                   className="bg-slate-800 border border-purple-500/30 text-white rounded px-2 py-0.5 font-semibold focus:outline-none focus:border-rose-500 text-xs"
                 >
                   {Array.from({ length: availableEpisodesCount }, (_, i) => i + 1).map((ep) => (
-                    <option key={ep} value={ep}>Episode {ep}</option>
+                    <option key={ep} value={ep}>{isArabic ? `الحلقة ${ep}` : `Episode ${ep}`}</option>
                   ))}
                 </select>
               </div>
             </div>
-            <div className="flex items-center space-x-1.5">
+            <div className="flex items-center space-x-1.5 rtl:space-x-reverse">
               <button
                 type="button"
                 disabled={episode <= 1}
                 onClick={() => setEpisode((prev) => Math.max(1, prev - 1))}
                 className="px-2.5 py-0.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded text-slate-200 font-medium text-xs"
               >
-                ◀ Prev
+                {t("player.prev")}
               </button>
               <button
                 type="button"
                 onClick={() => setEpisode((prev) => prev + 1)}
                 className="px-2.5 py-0.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 rounded text-white font-bold text-xs"
               >
-                Next ▶
+                {t("player.next")}
               </button>
             </div>
           </div>
@@ -771,11 +773,11 @@ export default function VideoPlayer({
             <div className="bg-slate-900/95 border border-purple-500/40 px-5 sm:px-8 py-3.5 sm:py-6 rounded-xl sm:rounded-2xl max-w-xs sm:max-w-md shadow-2xl sm:backdrop-blur-xl">
               <div className="inline-flex items-center space-x-1.5 text-rose-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1 sm:mb-2">
                 <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-                <span>Stream Security Verification</span>
+                <span>{isArabic ? "التحقق من أمان البث" : "Stream Security Verification"}</span>
               </div>
               
               <h3 className="text-base sm:text-xl font-bold text-white mb-1">
-                Unlock HD Stream
+                {isArabic ? "فتح تشغيل البث فائق الدقة" : "Unlock HD Stream"}
               </h3>
 
               <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed">

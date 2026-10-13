@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Star } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 type Review = {
   id: string;
@@ -16,6 +17,7 @@ type Review = {
 
 export default function ReviewSection({ movieId, isLoggedIn: initialIsLoggedIn }: { movieId: string, isLoggedIn?: boolean }) {
   const { data: session } = useSession();
+  const { t, isArabic } = useLanguage();
   const isLoggedIn = !!session || !!initialIsLoggedIn;
   const [reviews, setReviews] = useState<Review[]>([]);
   const [rating, setRating] = useState(5);
@@ -64,8 +66,8 @@ export default function ReviewSection({ movieId, isLoggedIn: initialIsLoggedIn }
     <div className="bg-transparent mt-2">
       <div className="flex items-center gap-4 mb-8">
         <h2 className="text-3xl font-bold text-slate-100 flex items-center">
-          <span className="bg-gradient-to-b from-rose-400 to-purple-600 w-1.5 h-8 mr-4 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]"></span>
-          Reviews
+          <span className="bg-gradient-to-b from-rose-400 to-purple-600 w-1.5 h-8 mr-4 rtl:mr-0 rtl:ml-4 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]"></span>
+          {t("details.reviewsHeading")}
         </h2>
         {reviews.length > 0 && (
           <div className="flex items-center gap-1.5 bg-slate-900/50 px-4 py-1.5 rounded-full border border-purple-500/20 shadow-inner">
@@ -79,14 +81,16 @@ export default function ReviewSection({ movieId, isLoggedIn: initialIsLoggedIn }
       {isLoggedIn ? (
         <form onSubmit={handleSubmit} className="mb-10 space-y-5 bg-slate-900/60 p-6 sm:p-8 rounded-2xl border border-purple-900/30 shadow-lg">
           <div>
-            <label className="block text-sm font-medium text-purple-300/80 mb-3 uppercase tracking-wide">Your Rating</label>
+            <label className="block text-sm font-medium text-purple-300/80 mb-3 uppercase tracking-wide">
+              {t("details.yourRating")}
+            </label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => setRating(star)}
-                  className="focus:outline-none transition-transform hover:scale-110"
+                  className="focus:outline-none transition-transform hover:scale-110 cursor-pointer"
                 >
                   <Star
                     className={`w-8 h-8 transition-colors ${
@@ -98,33 +102,36 @@ export default function ReviewSection({ movieId, isLoggedIn: initialIsLoggedIn }
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-purple-300/80 mb-3 uppercase tracking-wide">Comment (optional)</label>
+            <label className="block text-sm font-medium text-purple-300/80 mb-3 uppercase tracking-wide">
+              {t("details.comment")}
+            </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               className="w-full bg-slate-950/50 border border-purple-900/50 rounded-xl p-4 text-slate-100 placeholder-purple-300/30 focus:outline-none focus:border-rose-500/50 focus:ring-1 focus:ring-rose-500/50 transition-all shadow-inner"
               rows={4}
-              placeholder="What did you think of the movie?"
+              placeholder={t("details.commentPlaceholder")}
+              dir="auto"
             />
           </div>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white px-8 py-3 rounded-full font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] disabled:opacity-50 border border-rose-500/20"
+            className="bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white px-8 py-3 rounded-full font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] disabled:opacity-50 border border-rose-500/20 cursor-pointer"
           >
-            {isSubmitting ? "Submitting..." : "Submit Review"}
+            {isSubmitting ? t("details.submitting") : t("details.submitReview")}
           </button>
         </form>
       ) : (
         <div className="mb-10 bg-slate-900/40 p-6 rounded-2xl text-center text-purple-300/60 border border-purple-900/30 font-medium">
-          Please log in to leave a review.
+          {t("details.loginToReview")}
         </div>
       )}
 
       <div className="space-y-6">
         {reviews.length === 0 ? (
           <div className="text-center py-10 bg-slate-900/20 rounded-2xl border border-slate-800/50">
-            <p className="text-purple-300/50 text-lg font-light">No reviews yet. Be the first!</p>
+            <p className="text-purple-300/50 text-lg font-light">{t("details.noReviews")}</p>
           </div>
         ) : (
           reviews.map((review) => (
@@ -140,7 +147,7 @@ export default function ReviewSection({ movieId, isLoggedIn: initialIsLoggedIn }
                   ))}
                 </div>
               </div>
-              {review.comment && <p className="text-slate-300 text-sm leading-relaxed">{review.comment}</p>}
+              {review.comment && <p className="text-slate-300 text-sm leading-relaxed" dir="auto">{review.comment}</p>}
             </div>
           ))
         )}

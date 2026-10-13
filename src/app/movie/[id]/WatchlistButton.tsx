@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { isItemInWatchlist, toggleSavedWatchlist } from "@/lib/watchlist";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function WatchlistButton({ 
   movieId, 
@@ -17,6 +18,7 @@ export default function WatchlistButton({
   genre?: string;
   releaseYear?: number;
 }) {
+  const { t } = useLanguage();
   const [inWatchlist, setInWatchlist] = useState(false);
 
   useEffect(() => {
@@ -54,12 +56,12 @@ export default function WatchlistButton({
       {inWatchlist ? (
         <>
           <BookmarkCheck className="w-4 h-4 sm:w-5 sm:h-5 text-rose-400" />
-          <span>In Watchlist</span>
+          <span>{t("details.inWatchlist")}</span>
         </>
       ) : (
         <>
           <Bookmark className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span>Add to Watchlist</span>
+          <span>{t("details.addToWatchlist")}</span>
         </>
       )}
     </button>

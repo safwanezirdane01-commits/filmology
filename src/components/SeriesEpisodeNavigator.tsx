@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Tv, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { getSeriesMetadata } from "@/lib/series";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SeriesEpisodeNavigatorProps {
   movieVideoUrl: string | null;
@@ -21,6 +22,7 @@ export default function SeriesEpisodeNavigator({
   onSelectEpisode,
   liveMeta,
 }: SeriesEpisodeNavigatorProps) {
+  const { isArabic, dir } = useLanguage();
   const staticMeta = getSeriesMetadata(movieVideoUrl, genre);
   const meta = liveMeta || staticMeta;
   const [jumpInput, setJumpInput] = useState<string>("");
@@ -64,38 +66,40 @@ export default function SeriesEpisodeNavigator({
   };
 
   return (
-    <div className="w-full bg-slate-900/90 border border-purple-500/25 rounded-2xl sm:rounded-3xl p-4 sm:p-6 backdrop-blur-xl shadow-xl space-y-4 sm:space-y-6">
+    <div className="w-full bg-slate-900/90 border border-purple-500/25 rounded-2xl sm:rounded-3xl p-4 sm:p-6 backdrop-blur-xl shadow-xl space-y-4 sm:space-y-6" dir={dir}>
       {/* Header with Title & Quick Switchers */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-purple-900/30">
-        <div className="flex items-center space-x-2.5">
+        <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
           <div className="p-2 rounded-xl bg-gradient-to-br from-rose-500/20 to-purple-600/20 border border-rose-500/30 text-rose-400">
             <Tv className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <h3 className="text-base sm:text-lg font-extrabold text-white">
-                Series Episodes
+                {isArabic ? "حلقات المسلسل" : "Series Episodes"}
               </h3>
               <span className="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-500/30 uppercase tracking-wider">
-                Full Collection
+                {isArabic ? "جميع الحلقات" : "Full Collection"}
               </span>
             </div>
             <p className="text-xs text-purple-300/60 font-medium">
-              Now Streaming: Season {currentSeason} • Episode {currentEpisode}
+              {isArabic
+                ? `جاري التشغيل: الموسم ${currentSeason} • الحلقة ${currentEpisode}`
+                : `Now Streaming: Season ${currentSeason} • Episode ${currentEpisode}`}
             </p>
           </div>
         </div>
 
         {/* Prev / Next Episode Buttons */}
-        <div className="flex items-center space-x-2 self-start sm:self-auto">
+        <div className="flex items-center space-x-2 rtl:space-x-reverse self-start sm:self-auto">
           <button
             type="button"
             onClick={handlePrev}
             disabled={currentSeason === 1 && currentEpisode === 1}
-            className="px-3 py-1.5 bg-slate-800/90 hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-slate-800/90 rounded-xl text-slate-200 text-xs font-semibold flex items-center space-x-1 border border-purple-500/20 transition-all cursor-pointer disabled:cursor-not-allowed"
+            className="px-3 py-1.5 bg-slate-800/90 hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-slate-800/90 rounded-xl text-slate-200 text-xs font-semibold flex items-center space-x-1 rtl:space-x-reverse border border-purple-500/20 transition-all cursor-pointer disabled:cursor-not-allowed"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
-            <span>Prev Ep</span>
+            {isArabic ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+            <span>{isArabic ? "الحلقة السابقة" : "Prev Ep"}</span>
           </button>
           <div className="px-3 py-1.5 bg-gradient-to-r from-rose-500/10 to-purple-600/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs font-bold">
             S{currentSeason} : E{currentEpisode}
@@ -104,11 +108,11 @@ export default function SeriesEpisodeNavigator({
             type="button"
             onClick={handleNext}
             disabled={currentSeason === totalSeasons && currentEpisode === episodesCount}
-            className="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 disabled:opacity-30 disabled:hover:bg-slate-800/90 rounded-xl text-white text-xs font-bold flex items-center space-x-1 shadow-md transition-all cursor-pointer disabled:cursor-not-allowed"
+            className="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 disabled:opacity-30 disabled:hover:bg-slate-800/90 rounded-xl text-white text-xs font-bold flex items-center space-x-1 rtl:space-x-reverse shadow-md transition-all cursor-pointer disabled:cursor-not-allowed"
             title="Play next episode"
           >
-            <span>Next Ep</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <span>{isArabic ? "الحلقة التالية" : "Next Ep"}</span>
+            {isArabic ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>
@@ -116,9 +120,15 @@ export default function SeriesEpisodeNavigator({
       {/* Season Selector Tabs */}
       <div>
         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center justify-between flex-wrap gap-2">
-          <span>Select Season ({totalSeasons} Available)</span>
+          <span>
+            {isArabic
+              ? `اختر الموسم (${totalSeasons} مواسم متاحة)`
+              : `Select Season (${totalSeasons} Available)`}
+          </span>
           <span className="text-[11px] text-purple-400 font-normal">
-            Season {currentSeason} has {episodesCount} Episodes
+            {isArabic
+              ? `الموسم ${currentSeason} يحتوي على ${episodesCount} حلقة`
+              : `Season ${currentSeason} has ${episodesCount} Episodes`}
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -132,13 +142,13 @@ export default function SeriesEpisodeNavigator({
                 onClick={() => {
                   onSelectEpisode(s, 1);
                 }}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 rtl:space-x-reverse cursor-pointer ${
                   isSelected
                     ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.35)] scale-105"
                     : "bg-slate-800/80 text-purple-200/80 hover:bg-slate-700/90 hover:text-white border border-purple-500/15"
                 }`}
               >
-                <span>Season {s}</span>
+                <span>{isArabic ? `الموسم ${s}` : `Season ${s}`}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
                     isSelected
@@ -146,7 +156,7 @@ export default function SeriesEpisodeNavigator({
                       : "bg-slate-900/60 text-purple-300/70"
                   }`}
                 >
-                  {seasonEps} eps
+                  {seasonEps} {isArabic ? "حلقة" : "eps"}
                 </span>
               </button>
             );
@@ -158,13 +168,17 @@ export default function SeriesEpisodeNavigator({
       <div>
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Episodes in Season {currentSeason}
+            {isArabic
+              ? `حلقات الموسم ${currentSeason}`
+              : `Episodes in Season ${currentSeason}`}
           </span>
 
           {/* Quick Jump Input if many episodes */}
           {episodesCount > 10 && (
-            <form onSubmit={handleJumpSubmit} className="flex items-center space-x-1.5">
-              <span className="text-[11px] text-purple-300/70">Jump to:</span>
+            <form onSubmit={handleJumpSubmit} className="flex items-center space-x-1.5 rtl:space-x-reverse">
+              <span className="text-[11px] text-purple-300/70">
+                {isArabic ? "انتقال إلى:" : "Jump to:"}
+              </span>
               <div className="relative flex items-center">
                 <input
                   type="number"
@@ -177,9 +191,9 @@ export default function SeriesEpisodeNavigator({
                 />
                 <button
                   type="submit"
-                  className="ml-1 px-2.5 py-1 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow"
+                  className="ml-1 rtl:ml-0 rtl:mr-1 px-2.5 py-1 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow"
                 >
-                  Go
+                  {isArabic ? "انتقال" : "Go"}
                 </button>
               </div>
             </form>
@@ -187,7 +201,7 @@ export default function SeriesEpisodeNavigator({
         </div>
 
         {/* Responsive Grid of All Real Episodes */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-purple-600/40">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5 max-h-[360px] overflow-y-auto pr-1 rtl:pr-0 rtl:pl-1 scrollbar-thin scrollbar-thumb-purple-600/40">
           {episodesList.map((ep) => {
             const isPlaying = ep === currentEpisode;
             return (
@@ -201,7 +215,7 @@ export default function SeriesEpisodeNavigator({
                     : "bg-slate-800/60 hover:bg-slate-800 border-purple-500/15 hover:border-purple-500/40"
                 }`}
               >
-                <div className="flex items-center space-x-1 mb-1">
+                <div className="flex items-center space-x-1 rtl:space-x-reverse mb-1">
                   <Play
                     className={`w-3 h-3 transition-transform ${
                       isPlaying
@@ -214,18 +228,18 @@ export default function SeriesEpisodeNavigator({
                       isPlaying ? "text-white" : "text-slate-200 group-hover:text-white"
                     }`}
                   >
-                    EP {ep}
+                    {isArabic ? `حلقة ${ep}` : `EP ${ep}`}
                   </span>
                 </div>
 
                 {isPlaying ? (
-                  <span className="inline-flex items-center space-x-1 text-[9px] font-bold text-rose-300 uppercase tracking-wider">
+                  <span className="inline-flex items-center space-x-1 rtl:space-x-reverse text-[9px] font-bold text-rose-300 uppercase tracking-wider">
                     <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span>
-                    <span>Playing</span>
+                    <span>{isArabic ? "قيد التشغيل" : "Playing"}</span>
                   </span>
                 ) : (
                   <span className="text-[10px] text-purple-300/50 group-hover:text-purple-300/80 font-medium">
-                    Episode {ep}
+                    {isArabic ? `الحلقة ${ep}` : `Episode ${ep}`}
                   </span>
                 )}
               </button>
