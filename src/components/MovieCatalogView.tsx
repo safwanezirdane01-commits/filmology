@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Star, Play, Film, Search, Sparkles, Loader2, Plus, FilmIcon, ChevronDown, Clock, X } from "lucide-react";
 import { getWatchHistory, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
 import QuickWatchlistHeart from "@/components/QuickWatchlistHeart";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface MovieItem {
   id: string;
@@ -32,6 +33,8 @@ function getMovieRating(title: string, voteAverage?: number): string {
 }
 
 export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
+  const { t, isArabic, dir } = useLanguage();
+
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [filterSearch, setFilterSearch] = useState<string>("");
   const [sortBy, setSortBy] = useState<"trending" | "year" | "title">("trending");
@@ -60,17 +63,17 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
   };
 
   const categories = [
-    { id: "all", label: "All Library", icon: "🎬" },
-    { id: "imdb_trending", label: "IMDb Trending", icon: "🔥" },
-    { id: "imdb_top", label: "Top Rated IMDb", icon: "⭐" },
-    { id: "series", label: "TV Series & Shows", icon: "📺" },
-    { id: "action", label: "Action & Marvel", icon: "💥" },
-    { id: "scifi", label: "Sci-Fi Universe", icon: "🌌" },
-    { id: "drama", label: "Drama & Hits", icon: "🎭" },
-    { id: "horror", label: "Horror", icon: "👻" },
-    { id: "comedy", label: "Comedy", icon: "😂" },
-    { id: "romance", label: "Romance", icon: "💕" },
-    { id: "arabic", label: "MENA Cinema", icon: "🌟" },
+    { id: "all", label: t("cat.all"), icon: "🎬" },
+    { id: "imdb_trending", label: t("cat.imdb_trending"), icon: "🔥" },
+    { id: "imdb_top", label: t("cat.imdb_top"), icon: "⭐" },
+    { id: "series", label: t("cat.series"), icon: "📺" },
+    { id: "action", label: t("cat.action"), icon: "💥" },
+    { id: "scifi", label: t("cat.scifi"), icon: "🌌" },
+    { id: "drama", label: t("cat.drama"), icon: "🎭" },
+    { id: "horror", label: t("cat.horror"), icon: "👻" },
+    { id: "comedy", label: t("cat.comedy"), icon: "😂" },
+    { id: "romance", label: t("cat.romance"), icon: "💕" },
+    { id: "arabic", label: t("cat.arabic"), icon: "🌟" },
   ];
 
   // Load initial page of movies for dynamic categories if not loaded yet
@@ -187,14 +190,14 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
   }, [movies, activeCategory, filterSearch, sortBy, extraMovies]);
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8" dir={dir}>
       {/* Continue Watching Row (renders when user has unfinished titles) */}
       {continueWatchingList.length > 0 && (
         <div className="space-y-3 sm:space-y-4 bg-slate-900/90 sm:backdrop-blur-xl p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-rose-500/30 shadow-lg">
           <div className="flex items-center justify-between">
-            <h3 className="text-base sm:text-xl font-bold text-white flex items-center space-x-2">
+            <h3 className="text-base sm:text-xl font-bold text-white flex items-center space-x-2 rtl:space-x-reverse">
               <Clock className="w-4 sm:w-5 h-4 sm:h-5 text-rose-400" />
-              <span>Continue Watching</span>
+              <span>{t("continue.title")}</span>
               <span className="bg-rose-500/20 text-rose-300 text-xs px-2 py-0.5 rounded-full font-bold">
                 {continueWatchingList.length}
               </span>
@@ -224,7 +227,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center">
                         <Film className="w-8 h-8 text-purple-900/50 mb-1" />
-                        <span className="text-purple-300/50 text-[10px]">{item.title}</span>
+                        <span className="original-title text-purple-300/50 text-[10px]">{item.title}</span>
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
@@ -263,11 +266,11 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                   </Link>
 
                   <div className="p-2.5 sm:p-3 space-y-1">
-                    <h4 className="text-white text-xs font-bold truncate group-hover:text-rose-200">
+                    <h4 className="original-title text-white text-xs font-bold truncate group-hover:text-rose-200">
                       {item.title}
                     </h4>
                     <div className="flex items-center justify-between text-[10px] text-slate-400">
-                      <span>{formatTime(item.currentTime)} watched</span>
+                      <span>{formatTime(item.currentTime)} {isArabic ? "مشاهدة" : "watched"}</span>
                       <span className="text-rose-400 font-bold">{item.progressPercent}%</span>
                     </div>
                   </div>
@@ -289,7 +292,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center space-x-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all min-h-[38px] cursor-pointer ${
+                className={`flex items-center space-x-1.5 rtl:space-x-reverse px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all min-h-[38px] cursor-pointer ${
                   isActive
                     ? "bg-gradient-to-r from-rose-600 to-purple-600 text-white shadow-lg shadow-rose-500/25 scale-[1.02]"
                     : "bg-slate-800/60 text-purple-200/80 hover:bg-slate-800 hover:text-white border border-purple-500/10"
@@ -308,17 +311,18 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
             type="text"
             value={filterSearch}
             onChange={(e) => setFilterSearch(e.target.value)}
-            placeholder="Quick filter..."
+            placeholder={t("catalog.filterPlaceholder")}
             className="bg-slate-950/80 border border-purple-500/20 text-white text-xs px-3 py-2 rounded-xl focus:outline-none focus:border-rose-500 flex-1 sm:w-44 transition-all"
+            dir="auto"
           />
           <select
             value={sortBy}
             onChange={(e: any) => setSortBy(e.target.value)}
             className="bg-slate-950/80 border border-purple-500/20 text-purple-200 text-xs px-2.5 py-2 rounded-xl focus:outline-none focus:border-rose-500 cursor-pointer shrink-0"
           >
-            <option value="trending">🔥 Trending</option>
-            <option value="year">📅 Year</option>
-            <option value="title">🔤 Title</option>
+            <option value="trending">🔥 {t("catalog.trending")}</option>
+            <option value="year">📅 {t("catalog.newest")}</option>
+            <option value="title">🔤 {t("catalog.az")}</option>
           </select>
         </div>
       </div>
@@ -326,18 +330,19 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
       {/* Quick Search Deep Link Banner */}
       {filterSearch.trim().length > 1 && (
         <div className="flex items-center justify-between bg-gradient-to-r from-rose-950/40 via-purple-950/40 to-slate-950/40 border border-rose-500/30 p-3 sm:p-4 rounded-xl sm:rounded-2xl sm:backdrop-blur-md">
-          <div className="flex items-center space-x-2 text-white text-xs sm:text-sm">
+          <div className="flex items-center space-x-2 rtl:space-x-reverse text-white text-xs sm:text-sm">
             <Sparkles className="w-4 h-4 text-rose-400 shrink-0" />
             <span>
-              Looking for more results matching <strong className="text-rose-300">"{filterSearch}"</strong>?
+              {isArabic ? "هل تبحث عن المزيد من النتائج لـ" : "Looking for more results matching"}{" "}
+              <strong className="text-rose-300">"{filterSearch}"</strong>?
             </span>
           </div>
           <Link
             href={`/search?q=${encodeURIComponent(filterSearch.trim())}`}
-            className="bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center space-x-1 shrink-0 shadow transition-all hover:scale-105"
+            className="bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center space-x-1 rtl:space-x-reverse shrink-0 shadow transition-all hover:scale-105"
           >
             <Search className="w-3.5 h-3.5" />
-            <span>Search Entire IMDb Library</span>
+            <span>{isArabic ? "بحث في مكتبة IMDb" : "Search Entire IMDb Library"}</span>
           </Link>
         </div>
       )}
@@ -347,11 +352,13 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
         <span className="flex items-center gap-1.5">
           <FilmIcon className="w-3.5 h-3.5 text-rose-400" />
           <span>
-            Showing <strong className="text-white font-semibold">{filteredMovies.length}</strong> titles
+            {t("catalog.showing")} <strong className="text-white font-semibold">{filteredMovies.length}</strong> {t("catalog.titles")}
           </span>
         </span>
         <span className="text-[11px] text-purple-300/60 hidden sm:inline">
-          Connected to global IMDb & TMDb library (millions of titles streamable in 1080p)
+          {isArabic
+            ? "متصل بمكتبة IMDb وTMDb العالمية (ملايين الأعمال بجودة 1080p)"
+            : "Connected to global IMDb & TMDb library (millions of titles streamable in 1080p)"}
         </span>
       </div>
 
@@ -359,17 +366,19 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
       {filteredMovies.length === 0 && !loadingMore ? (
         <div className="text-center text-purple-300 py-16 sm:py-24 bg-slate-900/30 sm:backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-purple-900/30">
           <Film className="w-10 sm:w-14 h-10 sm:h-14 mx-auto mb-3 text-purple-500/40 animate-pulse" />
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-1">No movies found in this view</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-1">{t("catalog.noResults")}</h3>
           <p className="text-xs sm:text-sm text-slate-400 mb-4">
-            Try searching across the millions of titles in the global IMDb database.
+            {isArabic
+              ? "جرب البحث في ملايين الأعمال في قاعدة بيانات IMDb العالمية."
+              : "Try searching across the millions of titles in the global IMDb database."}
           </p>
           {filterSearch.trim() && (
             <Link
               href={`/search?q=${encodeURIComponent(filterSearch.trim())}`}
-              className="inline-flex items-center space-x-1.5 bg-gradient-to-r from-rose-600 to-purple-600 text-white text-xs font-bold px-4 py-2 rounded-xl shadow hover:scale-105 transition-all"
+              className="inline-flex items-center space-x-1.5 rtl:space-x-reverse bg-gradient-to-r from-rose-600 to-purple-600 text-white text-xs font-bold px-4 py-2 rounded-xl shadow hover:scale-105 transition-all"
             >
               <Search className="w-3.5 h-3.5" />
-              <span>Search IMDb for "{filterSearch}"</span>
+              <span>{isArabic ? `البحث في IMDb عن "${filterSearch}"` : `Search IMDb for "${filterSearch}"`}</span>
             </Link>
           )}
         </div>
@@ -396,7 +405,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 p-3 text-center">
                       <Film className="w-8 h-8 text-purple-900/50 mb-1" />
-                      <span className="text-purple-300/50 text-[10px] font-medium">{movie.title}</span>
+                      <span className="original-title text-purple-300/50 text-[10px] font-medium">{movie.title}</span>
                     </div>
                   )}
 
@@ -410,7 +419,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                       <span>{rating}</span>
                     </span>
                     <span className="bg-gradient-to-r from-rose-600/90 to-purple-600/90 px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-white shadow-sm">
-                      {movie.mediaType === "tv" ? "SERIES" : "4K UHD"}
+                      {movie.mediaType === "tv" ? (isArabic ? "مسلسل" : "SERIES") : "4K UHD"}
                     </span>
                   </div>
 
@@ -439,7 +448,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                     <div className="text-[9px] sm:text-[10px] font-bold text-rose-400 mb-0.5 uppercase tracking-wider line-clamp-1">
                       {movie.genre}
                     </div>
-                    <h3 className="font-bold text-white text-xs sm:text-sm md:text-base leading-tight drop-shadow-md line-clamp-2">
+                    <h3 className="original-title font-bold text-white text-xs sm:text-sm md:text-base leading-tight drop-shadow-md line-clamp-2">
                       {movie.title}
                     </h3>
                     <div className="text-[10px] sm:text-xs text-purple-200/60 font-semibold mt-0.5">
@@ -464,17 +473,19 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
           {loadingMore ? (
             <>
               <Loader2 className="w-4 sm:w-5 h-4 sm:h-5 animate-spin" />
-              <span>Loading More Films from IMDb...</span>
+              <span>{t("catalog.loading")}</span>
             </>
           ) : (
             <>
               <Plus className="w-4 sm:w-5 h-4 sm:h-5 transition-transform group-hover:rotate-90" />
-              <span>Load More Films from IMDb & TMDb</span>
+              <span>{t("catalog.loadMore")}</span>
             </>
           )}
         </button>
         <p className="text-[11px] sm:text-xs text-slate-500 mt-2">
-          Click to continuously expand your library with thousands of titles
+          {isArabic
+            ? "انقر للتوسع المستمر في مكتبتك بآلاف الأعمال"
+            : "Click to continuously expand your library with thousands of titles"}
         </p>
       </div>
     </div>
