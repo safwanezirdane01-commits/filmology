@@ -62,8 +62,17 @@
         id="soundToggle"
         class="px-4 py-3 rounded-xl bg-slate-900 border border-purple-500/30 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs sm:text-sm cursor-pointer"
       >
-        🔊 Sound FX: ON
+        🔊 Modern 808 & FX: ON
       </button>
+    </div>
+
+    <!-- Quick Sound FX Preview & Tester -->
+    <div class="flex flex-wrap items-center justify-center gap-2 text-xs pt-1">
+      <span class="text-slate-400 font-semibold text-[11px] sm:text-xs">Test Sound FX:</span>
+      <button type="button" id="testBassBtn" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-purple-500/25 text-purple-300 hover:text-white cursor-pointer hover:bg-slate-800 transition-colors text-[11px]">💥 808 Sub Bass</button>
+      <button type="button" id="testShutterBtn" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-purple-500/25 text-purple-300 hover:text-white cursor-pointer hover:bg-slate-800 transition-colors text-[11px]">📸 Mirrorless Shutter</button>
+      <button type="button" id="testWhooshBtn" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-purple-500/25 text-purple-300 hover:text-white cursor-pointer hover:bg-slate-800 transition-colors text-[11px]">💨 Air Whoosh</button>
+      <button type="button" id="testStingBtn" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-purple-500/25 text-purple-300 hover:text-white cursor-pointer hover:bg-slate-800 transition-colors text-[11px]">✨ Logo Reveal Chime</button>
     </div>
 
     <!-- Status Text -->
@@ -170,7 +179,7 @@ Tired of paying $20/month for streaming? 🍿 Watch thousands of movies and full
       m.img = img;
     });
 
-    // --- CINEMATIC SOUND FX ENGINE (WEB AUDIO API) ---
+    // --- MODERN CINEMATIC SOUND FX ENGINE (STUDIO WEB AUDIO API) ---
     let audioCtx = null;
     let audioDestination = null; // Mixed stream for video recording
 
@@ -189,126 +198,243 @@ Tired of paying $20/month for streaming? 🍿 Watch thousands of movies and full
       if (audioDestination) sourceNode.connect(audioDestination); // to video recorder!
     }
 
-    // 1. Cinematic Whoosh / Whip-Pan Transition
+    // 1. Modern Pneumatic Air Whoosh (Cinematic whip-pan swoosh with sub air body)
     function playWhoosh() {
       if (!isAudioEnabled) return;
       try {
         const { audioCtx } = getAudioEngine();
         const now = audioCtx.currentTime;
-        const dur = 0.35;
+        const dur = 0.42;
 
-        // White noise buffer
-        const bufSize = audioCtx.sampleRate * dur;
+        // Pink/Brown noise buffer with parabolic envelope (zero harsh white noise hiss)
+        const bufSize = Math.floor(audioCtx.sampleRate * dur);
         const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
         const data = buf.getChannelData(0);
-        for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+        let lastOut = 0.0;
+        for (let i = 0; i < bufSize; i++) {
+          const white = Math.random() * 2 - 1;
+          lastOut = (lastOut * 0.72) + (white * 0.28); // Low-frequency air smoothing
+          const progress = i / bufSize;
+          const env = Math.sin(progress * Math.PI); // Parabolic bell shape
+          data[i] = lastOut * env;
+        }
 
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = buf;
+        const noiseSrc = audioCtx.createBufferSource();
+        noiseSrc.buffer = buf;
 
-        // Bandpass filter sweeping downward
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = "bandpass";
-        filter.Q.setValueAtTime(3.5, now);
-        filter.frequency.setValueAtTime(1400, now);
-        filter.frequency.exponentialRampToValueAtTime(180, now + dur);
+        // Dynamic resonant bandpass sweep
+        const sweepFilter = audioCtx.createBiquadFilter();
+        sweepFilter.type = "bandpass";
+        sweepFilter.Q.setValueAtTime(2.4, now);
+        sweepFilter.frequency.setValueAtTime(220, now);
+        sweepFilter.frequency.exponentialRampToValueAtTime(1750, now + dur * 0.42);
+        sweepFilter.frequency.exponentialRampToValueAtTime(280, now + dur);
 
-        // Volume envelope
         const gain = audioCtx.createGain();
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.4, now + dur * 0.3);
+        gain.gain.linearRampToValueAtTime(0.48, now + dur * 0.35);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
 
-        noise.connect(filter);
-        filter.connect(gain);
+        // Sub air swoosh body (gives weight and punch to the whoosh)
+        const subSwoosh = audioCtx.createOscillator();
+        const subGain = audioCtx.createGain();
+        subSwoosh.type = "sine";
+        subSwoosh.frequency.setValueAtTime(120, now);
+        subSwoosh.frequency.exponentialRampToValueAtTime(45, now + dur);
+        subGain.gain.setValueAtTime(0.001, now);
+        subGain.gain.linearRampToValueAtTime(0.32, now + dur * 0.3);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        noiseSrc.connect(sweepFilter);
+        sweepFilter.connect(gain);
         routeSound(gain);
 
-        noise.start(now);
-        noise.stop(now + dur);
+        subSwoosh.connect(subGain);
+        routeSound(subGain);
+
+        noiseSrc.start(now);
+        noiseSrc.stop(now + dur);
+        subSwoosh.start(now);
+        subSwoosh.stop(now + dur);
       } catch (e) {}
     }
 
-    // 2. Camera Snapshot Take Sound (Double mechanical click + shutter)
+    // 2. High-End Studio Camera Snap (Dual mirrorless shutter click + mechanical body thud)
     function playCameraShutter() {
       if (!isAudioEnabled) return;
       try {
         const { audioCtx } = getAudioEngine();
         const now = audioCtx.currentTime;
 
-        // Trigger visual flash on canvas!
-        flashIntensity = 0.95;
+        // Trigger flash effect on canvas
+        flashIntensity = 1.0;
 
-        // Shutter click 1 (mirror flip up)
-        const osc1 = audioCtx.createOscillator();
-        const gain1 = audioCtx.createGain();
-        osc1.type = "sine";
-        osc1.frequency.setValueAtTime(1800, now);
-        osc1.frequency.exponentialRampToValueAtTime(400, now + 0.04);
-        gain1.gain.setValueAtTime(0.35, now);
-        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-        osc1.connect(gain1);
-        routeSound(gain1);
-        osc1.start(now);
-        osc1.stop(now + 0.04);
+        // Part A: High-frequency mechanical shutter blade snap
+        const bladeNoiseDur = 0.032;
+        const bufSize = Math.floor(audioCtx.sampleRate * bladeNoiseDur);
+        const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.22));
+        }
 
-        // Shutter click 2 (curtain snap - 60ms later)
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.type = "square";
-        osc2.frequency.setValueAtTime(800, now + 0.06);
-        osc2.frequency.exponentialRampToValueAtTime(150, now + 0.12);
-        gain2.gain.setValueAtTime(0.25, now + 0.06);
-        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-        osc2.connect(gain2);
-        routeSound(gain2);
-        osc2.start(now + 0.06);
-        osc2.stop(now + 0.12);
+        const noiseSrc = audioCtx.createBufferSource();
+        noiseSrc.buffer = buf;
+
+        const hp = audioCtx.createBiquadFilter();
+        hp.type = "highpass";
+        hp.frequency.setValueAtTime(2600, now);
+
+        const bp = audioCtx.createBiquadFilter();
+        bp.type = "bandpass";
+        bp.Q.setValueAtTime(4.2, now);
+        bp.frequency.setValueAtTime(4400, now);
+
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.setValueAtTime(0.42, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + bladeNoiseDur);
+
+        noiseSrc.connect(hp);
+        hp.connect(bp);
+        bp.connect(noiseGain);
+        routeSound(noiseGain);
+        noiseSrc.start(now);
+
+        // Part B: Crisp metallic click (blade closure)
+        const click1 = audioCtx.createOscillator();
+        const click1Gain = audioCtx.createGain();
+        click1.type = "sine";
+        click1.frequency.setValueAtTime(3200, now);
+        click1.frequency.exponentialRampToValueAtTime(900, now + 0.018);
+        click1Gain.gain.setValueAtTime(0.32, now);
+        click1Gain.gain.exponentialRampToValueAtTime(0.001, now + 0.018);
+        click1.connect(click1Gain);
+        routeSound(click1Gain);
+        click1.start(now);
+        click1.stop(now + 0.018);
+
+        // Secondary curtain release click (32ms later)
+        const click2 = audioCtx.createOscillator();
+        const click2Gain = audioCtx.createGain();
+        click2.type = "sine";
+        click2.frequency.setValueAtTime(1750, now + 0.032);
+        click2.frequency.exponentialRampToValueAtTime(550, now + 0.052);
+        click2Gain.gain.setValueAtTime(0.24, now + 0.032);
+        click2Gain.gain.exponentialRampToValueAtTime(0.001, now + 0.052);
+        click2.connect(click2Gain);
+        routeSound(click2Gain);
+        click2.start(now + 0.032);
+        click2.stop(now + 0.052);
+
+        // Part C: Camera Body Damped Thump (Satisfying premium feel)
+        const thump = audioCtx.createOscillator();
+        const thumpGain = audioCtx.createGain();
+        thump.type = "sine";
+        thump.frequency.setValueAtTime(130, now);
+        thump.frequency.exponentialRampToValueAtTime(55, now + 0.035);
+        thumpGain.gain.setValueAtTime(0.32, now);
+        thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+        thump.connect(thumpGain);
+        routeSound(thumpGain);
+        thump.start(now);
+        thump.stop(now + 0.035);
       } catch (e) {}
     }
 
-    // 3. Cinematic Sub-Bass Impact Boom ("BWAAAM")
+    // 3. Modern 808 Cinema Sub-Bass Drop (Heavy, warm, chest-rumbling - zero buzzing)
     function playTrailerBass() {
       if (!isAudioEnabled) return;
       try {
         const { audioCtx } = getAudioEngine();
         const now = audioCtx.currentTime;
-        const dur = 1.2;
+        const dur = 1.35;
 
-        const osc = audioCtx.createOscillator();
-        const oscSub = audioCtx.createOscillator();
+        // Sub oscillator: Pure Sine (Punchy 135Hz kick attack -> deep 44Hz -> 28Hz sub)
+        const subOsc = audioCtx.createOscillator();
+        subOsc.type = "sine";
+        subOsc.frequency.setValueAtTime(135, now);
+        subOsc.frequency.exponentialRampToValueAtTime(45, now + 0.075);
+        subOsc.frequency.exponentialRampToValueAtTime(28, now + dur);
+
+        // Saturation shaper: Warm analog tape saturation (no buzzing!)
+        const shaper = audioCtx.createWaveShaper();
+        const curve = new Float32Array(256);
+        for (let i = 0; i < 256; i++) {
+          const x = (i * 2) / 256 - 1;
+          curve[i] = Math.tanh(x * 1.55);
+        }
+        shaper.curve = curve;
+
+        // Lowpass filter to keep it deep and buttery smooth
+        const lpf = audioCtx.createBiquadFilter();
+        lpf.type = "lowpass";
+        lpf.frequency.setValueAtTime(280, now);
+        lpf.frequency.exponentialRampToValueAtTime(58, now + dur);
+
+        // Dynamic volume envelope (Instant punch, long resonant decay)
         const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.72, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
 
-        osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(65, now);
-        osc.frequency.exponentialRampToValueAtTime(28, now + dur);
-
-        oscSub.type = "sine";
-        oscSub.frequency.setValueAtTime(45, now);
-        oscSub.frequency.exponentialRampToValueAtTime(24, now + dur);
-
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(180, now);
-        filter.frequency.exponentialRampToValueAtTime(50, now + dur);
-
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
-
-        osc.connect(filter);
-        oscSub.connect(filter);
-        filter.connect(gain);
+        subOsc.connect(shaper);
+        shaper.connect(lpf);
+        lpf.connect(gain);
         routeSound(gain);
 
-        osc.start(now);
-        oscSub.start(now);
-        osc.stop(now + dur);
-        oscSub.stop(now + dur);
+        subOsc.start(now);
+        subOsc.stop(now + dur);
       } catch (e) {}
     }
 
+    // 4. Modern Glass Sparkle / Logo Reveal Sting (Apple/Netflix style shimmer)
+    function playLogoSting() {
+      if (!isAudioEnabled) return;
+      try {
+        const { audioCtx } = getAudioEngine();
+        const now = audioCtx.currentTime;
+        const dur = 1.1;
+
+        // Chime Chord: C6 (1046Hz) + G6 (1568Hz) + E7 (2637Hz)
+        [1046, 1568, 2637].forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, now + idx * 0.035);
+
+          gain.gain.setValueAtTime(0.001, now + idx * 0.035);
+          gain.gain.linearRampToValueAtTime(0.18, now + idx * 0.035 + 0.018);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+          osc.connect(gain);
+          routeSound(gain);
+          osc.start(now + idx * 0.035);
+          osc.stop(now + dur);
+        });
+      } catch (e) {}
+    }
+
+    // Hook up testing buttons
+    document.getElementById("testBassBtn").addEventListener("click", () => {
+      getAudioEngine();
+      playTrailerBass();
+    });
+    document.getElementById("testShutterBtn").addEventListener("click", () => {
+      getAudioEngine();
+      playCameraShutter();
+    });
+    document.getElementById("testWhooshBtn").addEventListener("click", () => {
+      getAudioEngine();
+      playWhoosh();
+    });
+    document.getElementById("testStingBtn").addEventListener("click", () => {
+      getAudioEngine();
+      playLogoSting();
+    });
+
     soundToggle.addEventListener("click", () => {
       isAudioEnabled = !isAudioEnabled;
-      soundToggle.textContent = isAudioEnabled ? "🔊 Sound FX: ON" : "🔇 Sound FX: OFF";
+      soundToggle.textContent = isAudioEnabled ? "🔊 Modern 808 & FX: ON" : "🔇 Sound FX: OFF";
     });
 
     copyCaptionBtn.addEventListener("click", () => {
@@ -347,6 +473,7 @@ Tired of paying $20/month for streaming? 🍿 Watch thousands of movies and full
       { t: 8.7, fn: playCameraShutter },
       { t: 10.2, fn: playCameraShutter },
       { t: 11.5, fn: playTrailerBass },
+      { t: 11.8, fn: playLogoSting },
       { t: 13.0, fn: playWhoosh }
     ];
     let triggeredCues = new Set();
