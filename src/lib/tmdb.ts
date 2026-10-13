@@ -8,6 +8,7 @@ export interface UniversalItem {
   backdropUrl?: string | null;
   description: string;
   descriptionAr?: string | null;
+  descriptions?: Record<string, string>;
   mediaType: "movie" | "tv";
   voteAverage?: number;
   category?: string;
@@ -94,9 +95,19 @@ function formatTmdbItem(item: any, forceType?: "movie" | "tv"): UniversalItem | 
   const thumbnailUrl = item.poster_path ? `${TMDB_IMG}${item.poster_path}` : "/placeholder.png";
   const backdropUrl = item.backdrop_path ? `${TMDB_BACKDROP}${item.backdrop_path}` : null;
 
-  const arOverview = item.translations?.translations?.find(
-    (t: any) => t.iso_639_1 === "ar"
-  )?.data?.overview || null;
+  const descriptions: Record<string, string> = {};
+  if (item.overview) {
+    descriptions.en = item.overview;
+  }
+  if (item.translations?.translations) {
+    for (const t of item.translations.translations) {
+      if (t.data?.overview && t.data.overview.trim().length > 0) {
+        descriptions[t.iso_639_1] = t.data.overview.trim();
+      }
+    }
+  }
+
+  const arOverview = descriptions.ar || null;
 
   return {
     id,
@@ -107,7 +118,8 @@ function formatTmdbItem(item: any, forceType?: "movie" | "tv"): UniversalItem | 
     thumbnailUrl,
     backdropUrl,
     description: item.overview || `Watch ${title} in 1080p Full HD on FilmologyX.`,
-    descriptionAr: arOverview && arOverview.trim().length > 0 ? arOverview.trim() : null,
+    descriptionAr: arOverview,
+    descriptions,
     mediaType: isTv ? "tv" : "movie",
     voteAverage: item.vote_average ? parseFloat(item.vote_average.toFixed(1)) : 8.0,
     category: isTv ? "series" : "action",

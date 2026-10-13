@@ -14,6 +14,7 @@ interface MovieData {
   releaseYear: number;
   description: string;
   descriptionAr?: string | null;
+  descriptions?: Record<string, string>;
   videoUrl?: string | null;
   thumbnailUrl: string | null;
   backdropUrl?: string | null;
@@ -44,11 +45,13 @@ export default function MovieDetailsClientView({
   relatedMovies: RelatedMovie[];
   isTv: boolean;
 }) {
-  const { t, isArabic, dir, translateGenre } = useLanguage();
+  const { t, language, isArabic, dir, translateGenre } = useLanguage();
 
-  const displayDescription = isArabic && movie.descriptionAr && movie.descriptionAr.trim().length > 0
-    ? movie.descriptionAr
-    : movie.description;
+  const displayDescription =
+    (movie.descriptions && movie.descriptions[language]) ||
+    (language === "ar" && movie.descriptionAr && movie.descriptionAr.trim().length > 0
+      ? movie.descriptionAr
+      : movie.description);
 
   return (
     <div className="space-y-6 sm:space-y-10" dir={dir}>

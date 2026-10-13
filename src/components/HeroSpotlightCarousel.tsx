@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Play, Info, Star, ChevronLeft, ChevronRight, Film, Flame } from "lucide-react";
 import WatchTrailerButton from "@/components/WatchTrailerButton";
+import { useLanguage } from "@/context/LanguageContext";
 
 export interface SpotlightItem {
   id: string;
@@ -11,6 +12,8 @@ export interface SpotlightItem {
   genre: string;
   releaseYear: number;
   description: string;
+  descriptionAr?: string | null;
+  descriptions?: Record<string, string>;
   thumbnailUrl: string;
   backdropUrl?: string | null;
   voteAverage?: number;
@@ -18,6 +21,7 @@ export interface SpotlightItem {
 }
 
 export default function HeroSpotlightCarousel({ movies }: { movies: SpotlightItem[] }) {
+  const { t, language, isArabic, translateGenre } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -116,7 +120,7 @@ export default function HeroSpotlightCarousel({ movies }: { movies: SpotlightIte
           </div>
 
           <span className="bg-slate-800/80 border border-purple-500/20 text-purple-200 text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full uppercase">
-            {current.genre}
+            {translateGenre(current.genre)}
           </span>
 
           <span className="bg-slate-800/80 border border-purple-500/20 text-slate-300 text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full uppercase hidden xs:inline-block">
@@ -128,14 +132,20 @@ export default function HeroSpotlightCarousel({ movies }: { movies: SpotlightIte
           </span>
         </div>
 
-        {/* Title */}
-        <h1 className="text-2xl sm:text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-rose-100 to-purple-200 mb-3 sm:mb-5 drop-shadow-[0_2px_25px_rgba(244,63,94,0.4)] max-w-3xl tracking-tight leading-tight transition-all duration-300">
+        {/* Title: Film titles strictly remain in their original English names */}
+        <h1 
+          dir="ltr"
+          className="original-title text-2xl sm:text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-rose-100 to-purple-200 mb-3 sm:mb-5 drop-shadow-[0_2px_25px_rgba(244,63,94,0.4)] max-w-3xl tracking-tight leading-tight transition-all duration-300"
+        >
           {current.title}
         </h1>
 
         {/* Synopsis */}
-        <p className="text-slate-300 text-xs sm:text-base md:text-lg max-w-2xl mb-5 sm:mb-8 line-clamp-2 sm:line-clamp-3 drop-shadow-md font-light leading-relaxed">
-          {current.description}
+        <p 
+          className="text-slate-300 text-xs sm:text-base md:text-lg max-w-2xl mb-5 sm:mb-8 line-clamp-2 sm:line-clamp-3 drop-shadow-md font-light leading-relaxed"
+          dir={isArabic ? "rtl" : "ltr"}
+        >
+          {(current.descriptions && current.descriptions[language]) || (isArabic && current.descriptionAr) || current.description}
         </p>
 
         {/* Action Buttons */}
@@ -144,8 +154,8 @@ export default function HeroSpotlightCarousel({ movies }: { movies: SpotlightIte
             href={`/movie/${current.id}`}
             className="flex-1 sm:flex-none bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white px-5 sm:px-8 py-3 sm:py-3.5 rounded-full font-bold flex items-center justify-center transition-all hover:scale-105 shadow-[0_0_30px_rgba(244,63,94,0.4)] group/btn text-xs sm:text-base min-h-[44px]"
           >
-            <Play className="w-4 sm:w-5 h-4 sm:h-5 mr-1.5 sm:mr-2.5 fill-current group-hover/btn:scale-110 transition-transform" /> 
-            <span className="tracking-wide">Watch Free</span>
+            <Play className="w-4 sm:w-5 h-4 sm:h-5 mr-1.5 sm:mr-2.5 rtl:ml-1.5 rtl:mr-0 fill-current group-hover/btn:scale-110 transition-transform" /> 
+            <span className="tracking-wide">{t("hero.watchFree")}</span>
           </Link>
           <WatchTrailerButton
             id={current.id}
@@ -158,8 +168,8 @@ export default function HeroSpotlightCarousel({ movies }: { movies: SpotlightIte
             href={`/movie/${current.id}`}
             className="flex-1 sm:flex-none bg-slate-900/80 hover:bg-slate-800/90 text-slate-200 border border-purple-500/30 px-4 sm:px-6 py-3 sm:py-3.5 rounded-full font-semibold flex items-center justify-center transition-all hover:border-rose-500/50 sm:backdrop-blur-md text-xs sm:text-sm min-h-[44px]"
           >
-            <Info className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-1.5 sm:mr-2 text-rose-400" />
-            <span>Details</span>
+            <Info className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-1.5 sm:mr-2 rtl:ml-1.5 rtl:mr-0 text-rose-400" />
+            <span>{t("hero.moreInfo")}</span>
           </Link>
         </div>
       </div>

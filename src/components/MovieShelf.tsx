@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Link from "next/link";
 import { Star, Play, Film, ChevronLeft, ChevronRight } from "lucide-react";
 import QuickWatchlistHeart from "@/components/QuickWatchlistHeart";
+import { useLanguage } from "@/context/LanguageContext";
 
 export interface ShelfMovie {
   id: string;
@@ -28,6 +29,7 @@ export default function MovieShelf({
   movies: ShelfMovie[];
   badgeText?: string;
 }) {
+  const { translateGenre } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -140,9 +142,9 @@ export default function MovieShelf({
               {/* Title & Info */}
               <div className="p-2.5 sm:p-3 space-y-0.5">
                 <span className="text-[9px] sm:text-[10px] text-rose-400 font-bold uppercase tracking-wider line-clamp-1">
-                  {m.genre}
+                  {translateGenre(m.genre)}
                 </span>
-                <h4 className="text-white text-xs sm:text-sm font-bold truncate group-hover/card:text-rose-200 transition-colors">
+                <h4 className="original-title text-white text-xs sm:text-sm font-bold truncate group-hover/card:text-rose-200 transition-colors" dir="ltr">
                   {m.title}
                 </h4>
               </div>

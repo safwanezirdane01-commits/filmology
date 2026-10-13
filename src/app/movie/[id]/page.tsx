@@ -39,6 +39,7 @@ async function getMovieSafely(id: string) {
       return {
         ...movie,
         descriptionAr: (movie as any).descriptionAr || null,
+        descriptions: (movie as any).descriptions || undefined,
       };
     }
   } catch (err) {
@@ -58,10 +59,14 @@ async function getMovieSafely(id: string) {
 
   if (foundInCatalog) {
     let descriptionAr: string | null = null;
+    let descriptions: Record<string, string> | undefined = (foundInCatalog as any).descriptions;
     try {
       const { getUniversalMovieOrShow } = await import("@/lib/tmdb");
       const u = await getUniversalMovieOrShow(foundInCatalog.videoUrl || foundInCatalog.id);
-      if (u && u.descriptionAr) descriptionAr = u.descriptionAr;
+      if (u) {
+        if (u.descriptionAr) descriptionAr = u.descriptionAr;
+        if (u.descriptions) descriptions = u.descriptions;
+      }
     } catch {}
 
     return {
@@ -69,6 +74,7 @@ async function getMovieSafely(id: string) {
       title: foundInCatalog.title,
       description: foundInCatalog.description,
       descriptionAr,
+      descriptions,
       videoUrl: foundInCatalog.videoUrl,
       thumbnailUrl: foundInCatalog.thumbnailUrl,
       backdropUrl: (foundInCatalog as any).backdropUrl || null,
@@ -89,6 +95,7 @@ async function getMovieSafely(id: string) {
         title: universal.title,
         description: universal.description,
         descriptionAr: universal.descriptionAr || null,
+        descriptions: universal.descriptions,
         videoUrl: universal.videoUrl,
         thumbnailUrl: universal.thumbnailUrl,
         backdropUrl: universal.backdropUrl || null,

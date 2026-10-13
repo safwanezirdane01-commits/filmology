@@ -14,6 +14,127 @@ interface SeriesEpisodeNavigatorProps {
   liveMeta?: { totalSeasons: number; seasons: Record<number, number> } | null;
 }
 
+const LABELS: Record<string, {
+  seriesEpisodes: string;
+  fullCollection: string;
+  nowStreaming: (s: number, e: number) => string;
+  prevEp: string;
+  nextEp: string;
+  selectSeason: (total: number) => string;
+  seasonHasEps: (s: number, eps: number) => string;
+  seasonPrefix: (s: number) => string;
+  epsCount: (eps: number) => string;
+  episodesInSeason: (s: number) => string;
+  jumpTo: string;
+  go: string;
+  epPrefix: (ep: number) => string;
+  playing: string;
+  episodeFull: (ep: number) => string;
+}> = {
+  ar: {
+    seriesEpisodes: "حلقات المسلسل",
+    fullCollection: "جميع الحلقات",
+    nowStreaming: (s, e) => `جاري التشغيل: الموسم ${s} • الحلقة ${e}`,
+    prevEp: "الحلقة السابقة",
+    nextEp: "الحلقة التالية",
+    selectSeason: (total) => `اختر الموسم (${total} مواسم متاحة)`,
+    seasonHasEps: (s, eps) => `الموسم ${s} يحتوي على ${eps} حلقة`,
+    seasonPrefix: (s) => `الموسم ${s}`,
+    epsCount: (eps) => `${eps} حلقة`,
+    episodesInSeason: (s) => `حلقات الموسم ${s}`,
+    jumpTo: "انتقال إلى:",
+    go: "انتقال",
+    epPrefix: (ep) => `حلقة ${ep}`,
+    playing: "قيد التشغيل",
+    episodeFull: (ep) => `الحلقة ${ep}`,
+  },
+  fr: {
+    seriesEpisodes: "Épisodes de la Série",
+    fullCollection: "Collection Complète",
+    nowStreaming: (s, e) => `Lecture: Saison ${s} • Épisode ${e}`,
+    prevEp: "Ép. Précédent",
+    nextEp: "Ép. Suivant",
+    selectSeason: (total) => `Choisir la Saison (${total} disponibles)`,
+    seasonHasEps: (s, eps) => `Saison ${s} contient ${eps} épisodes`,
+    seasonPrefix: (s) => `Saison ${s}`,
+    epsCount: (eps) => `${eps} ép.`,
+    episodesInSeason: (s) => `Épisodes Saison ${s}`,
+    jumpTo: "Aller à :",
+    go: "OK",
+    epPrefix: (ep) => `ÉP ${ep}`,
+    playing: "En cours",
+    episodeFull: (ep) => `Épisode ${ep}`,
+  },
+  pt: {
+    seriesEpisodes: "Episódios da Série",
+    fullCollection: "Coleção Completa",
+    nowStreaming: (s, e) => `Reproduzindo: Temporada ${s} • Episódio ${e}`,
+    prevEp: "Ep Anterior",
+    nextEp: "Próx. Ep",
+    selectSeason: (total) => `Selecionar Temporada (${total} disponíveis)`,
+    seasonHasEps: (s, eps) => `Temporada ${s} tem ${eps} episódios`,
+    seasonPrefix: (s) => `Temporada ${s}`,
+    epsCount: (eps) => `${eps} eps`,
+    episodesInSeason: (s) => `Episódios da Temporada ${s}`,
+    jumpTo: "Ir para:",
+    go: "Ir",
+    epPrefix: (ep) => `EP ${ep}`,
+    playing: "Reproduzindo",
+    episodeFull: (ep) => `Episódio ${ep}`,
+  },
+  es: {
+    seriesEpisodes: "Episodios de la Serie",
+    fullCollection: "Colección Completa",
+    nowStreaming: (s, e) => `Reproduciendo: Temporada ${s} • Episodio ${e}`,
+    prevEp: "Ep Anterior",
+    nextEp: "Sig. Ep",
+    selectSeason: (total) => `Seleccionar Temporada (${total} disponibles)`,
+    seasonHasEps: (s, eps) => `Temporada ${s} contiene ${eps} episodios`,
+    seasonPrefix: (s) => `Temporada ${s}`,
+    epsCount: (eps) => `${eps} eps`,
+    episodesInSeason: (s) => `Episodios de Temporada ${s}`,
+    jumpTo: "Saltar a:",
+    go: "Ir",
+    epPrefix: (ep) => `EP ${ep}`,
+    playing: "Reproduciendo",
+    episodeFull: (ep) => `Episodio ${ep}`,
+  },
+  de: {
+    seriesEpisodes: "Serienfolgen",
+    fullCollection: "Gesamte Staffel",
+    nowStreaming: (s, e) => `Wiedergabe: Staffel ${s} • Folge ${e}`,
+    prevEp: "Vorherige Ep.",
+    nextEp: "Nächste Ep.",
+    selectSeason: (total) => `Staffel wählen (${total} verfügbar)`,
+    seasonHasEps: (s, eps) => `Staffel ${s} hat ${eps} Folgen`,
+    seasonPrefix: (s) => `Staffel ${s}`,
+    epsCount: (eps) => `${eps} Folgen`,
+    episodesInSeason: (s) => `Folgen von Staffel ${s}`,
+    jumpTo: "Gehe zu:",
+    go: "Los",
+    epPrefix: (ep) => `EP ${ep}`,
+    playing: "Läuft",
+    episodeFull: (ep) => `Folge ${ep}`,
+  },
+  en: {
+    seriesEpisodes: "Series Episodes",
+    fullCollection: "Full Collection",
+    nowStreaming: (s, e) => `Now Streaming: Season ${s} • Episode ${e}`,
+    prevEp: "Prev Ep",
+    nextEp: "Next Ep",
+    selectSeason: (total) => `Select Season (${total} Available)`,
+    seasonHasEps: (s, eps) => `Season ${s} has ${eps} Episodes`,
+    seasonPrefix: (s) => `Season ${s}`,
+    epsCount: (eps) => `${eps} eps`,
+    episodesInSeason: (s) => `Episodes in Season ${s}`,
+    jumpTo: "Jump to:",
+    go: "Go",
+    epPrefix: (ep) => `EP ${ep}`,
+    playing: "Playing",
+    episodeFull: (ep) => `Episode ${ep}`,
+  },
+};
+
 export default function SeriesEpisodeNavigator({
   movieVideoUrl,
   genre,
@@ -22,7 +143,8 @@ export default function SeriesEpisodeNavigator({
   onSelectEpisode,
   liveMeta,
 }: SeriesEpisodeNavigatorProps) {
-  const { isArabic, dir } = useLanguage();
+  const { language, isArabic, dir } = useLanguage();
+  const lbl = LABELS[language] || LABELS.en;
   const staticMeta = getSeriesMetadata(movieVideoUrl, genre);
   const meta = liveMeta || staticMeta;
   const [jumpInput, setJumpInput] = useState<string>("");
@@ -76,16 +198,14 @@ export default function SeriesEpisodeNavigator({
           <div>
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <h3 className="text-base sm:text-lg font-extrabold text-white">
-                {isArabic ? "حلقات المسلسل" : "Series Episodes"}
+                {lbl.seriesEpisodes}
               </h3>
               <span className="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-500/30 uppercase tracking-wider">
-                {isArabic ? "جميع الحلقات" : "Full Collection"}
+                {lbl.fullCollection}
               </span>
             </div>
             <p className="text-xs text-purple-300/60 font-medium">
-              {isArabic
-                ? `جاري التشغيل: الموسم ${currentSeason} • الحلقة ${currentEpisode}`
-                : `Now Streaming: Season ${currentSeason} • Episode ${currentEpisode}`}
+              {lbl.nowStreaming(currentSeason, currentEpisode)}
             </p>
           </div>
         </div>
@@ -99,7 +219,7 @@ export default function SeriesEpisodeNavigator({
             className="px-3 py-1.5 bg-slate-800/90 hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-slate-800/90 rounded-xl text-slate-200 text-xs font-semibold flex items-center space-x-1 rtl:space-x-reverse border border-purple-500/20 transition-all cursor-pointer disabled:cursor-not-allowed"
           >
             {isArabic ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
-            <span>{isArabic ? "الحلقة السابقة" : "Prev Ep"}</span>
+            <span>{lbl.prevEp}</span>
           </button>
           <div className="px-3 py-1.5 bg-gradient-to-r from-rose-500/10 to-purple-600/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs font-bold">
             S{currentSeason} : E{currentEpisode}
@@ -111,7 +231,7 @@ export default function SeriesEpisodeNavigator({
             className="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 disabled:opacity-30 disabled:hover:bg-slate-800/90 rounded-xl text-white text-xs font-bold flex items-center space-x-1 rtl:space-x-reverse shadow-md transition-all cursor-pointer disabled:cursor-not-allowed"
             title="Play next episode"
           >
-            <span>{isArabic ? "الحلقة التالية" : "Next Ep"}</span>
+            <span>{lbl.nextEp}</span>
             {isArabic ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           </button>
         </div>
@@ -121,14 +241,10 @@ export default function SeriesEpisodeNavigator({
       <div>
         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center justify-between flex-wrap gap-2">
           <span>
-            {isArabic
-              ? `اختر الموسم (${totalSeasons} مواسم متاحة)`
-              : `Select Season (${totalSeasons} Available)`}
+            {lbl.selectSeason(totalSeasons)}
           </span>
           <span className="text-[11px] text-purple-400 font-normal">
-            {isArabic
-              ? `الموسم ${currentSeason} يحتوي على ${episodesCount} حلقة`
-              : `Season ${currentSeason} has ${episodesCount} Episodes`}
+            {lbl.seasonHasEps(currentSeason, episodesCount)}
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -148,7 +264,7 @@ export default function SeriesEpisodeNavigator({
                     : "bg-slate-800/80 text-purple-200/80 hover:bg-slate-700/90 hover:text-white border border-purple-500/15"
                 }`}
               >
-                <span>{isArabic ? `الموسم ${s}` : `Season ${s}`}</span>
+                <span>{lbl.seasonPrefix(s)}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
                     isSelected
@@ -156,7 +272,7 @@ export default function SeriesEpisodeNavigator({
                       : "bg-slate-900/60 text-purple-300/70"
                   }`}
                 >
-                  {seasonEps} {isArabic ? "حلقة" : "eps"}
+                  {lbl.epsCount(seasonEps)}
                 </span>
               </button>
             );
@@ -168,16 +284,14 @@ export default function SeriesEpisodeNavigator({
       <div>
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            {isArabic
-              ? `حلقات الموسم ${currentSeason}`
-              : `Episodes in Season ${currentSeason}`}
+            {lbl.episodesInSeason(currentSeason)}
           </span>
 
           {/* Quick Jump Input if many episodes */}
           {episodesCount > 10 && (
             <form onSubmit={handleJumpSubmit} className="flex items-center space-x-1.5 rtl:space-x-reverse">
               <span className="text-[11px] text-purple-300/70">
-                {isArabic ? "انتقال إلى:" : "Jump to:"}
+                {lbl.jumpTo}
               </span>
               <div className="relative flex items-center">
                 <input
@@ -193,7 +307,7 @@ export default function SeriesEpisodeNavigator({
                   type="submit"
                   className="ml-1 rtl:ml-0 rtl:mr-1 px-2.5 py-1 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow"
                 >
-                  {isArabic ? "انتقال" : "Go"}
+                  {lbl.go}
                 </button>
               </div>
             </form>
@@ -228,18 +342,18 @@ export default function SeriesEpisodeNavigator({
                       isPlaying ? "text-white" : "text-slate-200 group-hover:text-white"
                     }`}
                   >
-                    {isArabic ? `حلقة ${ep}` : `EP ${ep}`}
+                    {lbl.epPrefix(ep)}
                   </span>
                 </div>
 
                 {isPlaying ? (
                   <span className="inline-flex items-center space-x-1 rtl:space-x-reverse text-[9px] font-bold text-rose-300 uppercase tracking-wider">
                     <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span>
-                    <span>{isArabic ? "قيد التشغيل" : "Playing"}</span>
+                    <span>{lbl.playing}</span>
                   </span>
                 ) : (
                   <span className="text-[10px] text-purple-300/50 group-hover:text-purple-300/80 font-medium">
-                    {isArabic ? `الحلقة ${ep}` : `Episode ${ep}`}
+                    {lbl.episodeFull(ep)}
                   </span>
                 )}
               </button>

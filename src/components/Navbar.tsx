@@ -5,11 +5,20 @@ import { useSession, signOut } from "next-auth/react";
 import { Film, Search, Menu, X, User, ShieldCheck, LogOut, Clapperboard, Tv, Star, Loader2, ArrowRight, MoreVertical, Globe, Check } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage, Language } from "@/context/LanguageContext";
+
+const AVAILABLE_LANGUAGES: Array<{ code: Language; label: string; flag: string; font?: string }> = [
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "ar", label: "العربية", flag: "🇸🇦", font: "'Cairo', sans-serif" },
+  { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "pt", label: "Português", flag: "🇧🇷" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "de", label: "Deutsch", flag: "🇩🇪" },
+];
 
 export default function Navbar() {
   const { data: session, status } = useSession();
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, translateGenre } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -90,44 +99,37 @@ export default function Navbar() {
 
   /** Shared language dropdown panel used in both desktop and mobile ⋮ menus */
   const LanguageDropdownPanel = () => (
-    <div className="bg-slate-900 border border-purple-500/30 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 w-52">
+    <div className="bg-slate-900 border border-purple-500/30 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 w-56">
       {/* Language Section */}
       <div className="px-3 pt-3 pb-1">
         <p className="text-[10px] font-bold uppercase tracking-wider text-purple-400/70 flex items-center gap-1.5 mb-2">
           <Globe className="w-3 h-3" />
           {t("nav.language")}
         </p>
-        <button
-          type="button"
-          onClick={() => { setLanguage("en"); setMoreMenuOpen(false); }}
-          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all mb-1 ${
-            language === "en"
-              ? "bg-rose-500/20 text-white border border-rose-500/40"
-              : "text-slate-300 hover:bg-slate-800 hover:text-white"
-          }`}
-        >
-          <span className="flex items-center gap-2.5">
-            <span className="text-base">🇬🇧</span>
-            <span>English</span>
-          </span>
-          {language === "en" && <Check className="w-3.5 h-3.5 text-rose-400 shrink-0" />}
-        </button>
-        <button
-          type="button"
-          onClick={() => { setLanguage("ar"); setMoreMenuOpen(false); }}
-          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
-            language === "ar"
-              ? "bg-rose-500/20 text-white border border-rose-500/40"
-              : "text-slate-300 hover:bg-slate-800 hover:text-white"
-          }`}
-          style={{ fontFamily: "'Cairo', sans-serif" }}
-        >
-          <span className="flex items-center gap-2.5">
-            <span className="text-base">🇸🇦</span>
-            <span>العربية</span>
-          </span>
-          {language === "ar" && <Check className="w-3.5 h-3.5 text-rose-400 shrink-0" />}
-        </button>
+        <div className="space-y-1">
+          {AVAILABLE_LANGUAGES.map((lang) => {
+            const isSelected = language === lang.code;
+            return (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => { setLanguage(lang.code); setMoreMenuOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all ${
+                  isSelected
+                    ? "bg-rose-500/20 text-white border border-rose-500/40 font-bold"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white font-medium border border-transparent"
+                }`}
+                style={lang.font ? { fontFamily: lang.font } : undefined}
+              >
+                <span className="flex items-center gap-2.5">
+                  <span className="text-base">{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </span>
+                {isSelected && <Check className="w-3.5 h-3.5 text-rose-400 shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Divider + Quick Links */}
@@ -250,9 +252,9 @@ export default function Navbar() {
                         </div>
                         <div className="flex-1 min-w-0">
                           {/* Movie title always stays in original language (no translation) */}
-                          <h4 className="text-white text-xs font-bold truncate original-title">{item.title}</h4>
+                          <h4 className="text-white text-xs font-bold truncate original-title" dir="ltr">{item.title}</h4>
                           <div className="flex items-center space-x-2 text-[10px] text-slate-400 mt-0.5">
-                            <span className="text-rose-400 font-semibold">{item.genre}</span>
+                            <span className="text-rose-400 font-semibold">{translateGenre(item.genre)}</span>
                             <span>•</span>
                             <span>{item.releaseYear}</span>
                             {item.mediaType === "tv" && (
@@ -463,8 +465,8 @@ export default function Navbar() {
                     </div>
                     <div className="flex-1 min-w-0">
                       {/* Movie title always in original language — no translation */}
-                      <h4 className="text-white text-xs font-bold truncate original-title">{item.title}</h4>
-                      <p className="text-[10px] text-slate-400">{item.genre} • {item.releaseYear}</p>
+                      <h4 className="text-white text-xs font-bold truncate original-title" dir="ltr">{item.title}</h4>
+                      <p className="text-[10px] text-slate-400">{translateGenre(item.genre)} • {item.releaseYear}</p>
                     </div>
                   </Link>
                 ))}

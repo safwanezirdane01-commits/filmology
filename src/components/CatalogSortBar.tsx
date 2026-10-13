@@ -31,16 +31,16 @@ export default function CatalogSortBar({
           className="bg-transparent text-white font-bold text-xs focus:outline-none cursor-pointer pr-1"
         >
           <option value="popular" className="bg-slate-900 text-white">
-            {isArabic ? "الأكثر شعبية" : "Most Popular"}
+            {t("catalog.trending")}
           </option>
           <option value="rating" className="bg-slate-900 text-white">
             {isArabic ? "الأعلى تقييماً (IMDb)" : "Highest Rated (IMDb)"}
           </option>
           <option value="year" className="bg-slate-900 text-white">
-            {isArabic ? "أحدث الإصدارات" : "Newest Releases"}
+            {t("catalog.newest")}
           </option>
           <option value="title" className="bg-slate-900 text-white">
-            {isArabic ? "الاسم (أ - ي)" : "Title (A - Z)"}
+            {t("catalog.az")}
           </option>
         </select>
       </div>

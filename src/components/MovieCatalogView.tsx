@@ -33,7 +33,7 @@ function getMovieRating(title: string, voteAverage?: number): string {
 }
 
 export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
-  const { t, isArabic, dir } = useLanguage();
+  const { t, isArabic, dir, translateGenre } = useLanguage();
 
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [filterSearch, setFilterSearch] = useState<string>("");
@@ -266,7 +266,7 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                   </Link>
 
                   <div className="p-2.5 sm:p-3 space-y-1">
-                    <h4 className="original-title text-white text-xs font-bold truncate group-hover:text-rose-200">
+                    <h4 className="original-title text-white text-xs font-bold truncate group-hover:text-rose-200" dir="ltr">
                       {item.title}
                     </h4>
                     <div className="flex items-center justify-between text-[10px] text-slate-400">
@@ -446,9 +446,9 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                   {/* Bottom Poster Info Overlay */}
                   <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3.5">
                     <div className="text-[9px] sm:text-[10px] font-bold text-rose-400 mb-0.5 uppercase tracking-wider line-clamp-1">
-                      {movie.genre}
+                      {translateGenre(movie.genre)}
                     </div>
-                    <h3 className="original-title font-bold text-white text-xs sm:text-sm md:text-base leading-tight drop-shadow-md line-clamp-2">
+                    <h3 className="original-title font-bold text-white text-xs sm:text-sm md:text-base leading-tight drop-shadow-md line-clamp-2" dir="ltr">
                       {movie.title}
                     </h3>
                     <div className="text-[10px] sm:text-xs text-purple-200/60 font-semibold mt-0.5">
