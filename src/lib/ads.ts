@@ -10,7 +10,7 @@ export interface AdSettings {
 
 const DEFAULT_SETTINGS: AdSettings = {
   directLinkUrl: "https://consciousdunkvastly.com/vkcab8pm?key=2d7f9ab1644671035abd720ada6bab69",
-  requiredClicks: 3,
+  requiredClicks: 2,
   bannerCode: "",
   isEnabled: true,
 };

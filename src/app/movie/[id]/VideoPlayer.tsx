@@ -27,8 +27,10 @@ export default function VideoPlayer({
   requiredClicks?: number;
   adsEnabled?: boolean;
 }) {
-  const { t, isArabic, dir } = useLanguage();
+  const { t, language, isArabic, dir } = useLanguage();
   const [clickCount, setClickCount] = useState(0);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [verifyCountdown, setVerifyCountdown] = useState<number>(3);
   const [selectedServer, setSelectedServer] = useState<number>(1);
   const [serverNotice, setServerNotice] = useState<string | null>(null);
   const [season, setSeason] = useState<number>(1);
@@ -82,6 +84,20 @@ export default function VideoPlayer({
     }
     return () => clearTimeout(timer);
   }, [showNextCountdown, countdownRemaining]);
+
+  // Smart Engagement Pacing countdown: guarantees ad tab reaches 3.5+ seconds dwell time
+  useEffect(() => {
+    let timer: any;
+    if (isVerifying && verifyCountdown > 0) {
+      timer = setTimeout(() => {
+        setVerifyCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (isVerifying && verifyCountdown <= 0) {
+      setIsVerifying(false);
+      setClickCount((prev) => prev + 1);
+    }
+    return () => clearTimeout(timer);
+  }, [isVerifying, verifyCountdown]);
 
   const handleTogglePiP = async () => {
     if (parsedSources?.isDirectVideo && videoRef.current) {
@@ -405,14 +421,28 @@ export default function VideoPlayer({
     e.preventDefault();
     e.stopPropagation();
 
-    // Immediately trigger the ad tab upon direct user click
+    if (isVerifying) return; // Ignore clicks while countdown is active
+
+    // Trigger the ad tab upon direct user click and retain focus
     try {
-      window.open(activeAdLink, "_blank");
+      const adWin = window.open(activeAdLink, "_blank");
+      if (adWin) {
+        try {
+          window.focus();
+        } catch {}
+      }
     } catch (err) {
       console.error("Popup launch error:", err);
     }
 
-    setClickCount((prev) => prev + 1);
+    if (clickCount + 1 >= targetClicks) {
+      // Final click unlocks the stream immediately
+      setClickCount(targetClicks);
+    } else {
+      // Smart Engagement Pacing: user stays on FilmologyX for 3.5s while ad tab loads in background
+      setIsVerifying(true);
+      setVerifyCountdown(3);
+    }
   };
 
   // Auto-play when direct video becomes unblocked
@@ -758,44 +788,105 @@ export default function VideoPlayer({
           </div>
         )}
 
-        {/* Sponsor / Fake Ads Verification Screen (Anti-Bypass Enabled) */}
+        {/* Sponsor / Smart Paced Verification Screen (Optimal Adsterra Dwell Strategy) */}
         {needsPopups && (
           <div 
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 sm:backdrop-blur-md p-4 text-center transition-all select-none"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 sm:backdrop-blur-md p-4 text-center transition-all select-none cursor-pointer"
             onClick={handleFakeClick}
           >
-            {/* Play Icon */}
-            <div className="w-14 sm:w-20 h-14 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-3 sm:mb-5 cursor-pointer hover:scale-105">
-              <Play className="w-6 sm:w-9 h-6 sm:h-9 text-white fill-current ml-0.5 sm:ml-1" />
-            </div>
-            
-            {/* Ad Verification Card */}
-            <div className="bg-slate-900/95 border border-purple-500/40 px-5 sm:px-8 py-3.5 sm:py-6 rounded-xl sm:rounded-2xl max-w-xs sm:max-w-md shadow-2xl sm:backdrop-blur-xl">
-              <div className="inline-flex items-center space-x-1.5 text-rose-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1 sm:mb-2">
-                <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-                <span>{isArabic ? "التحقق من أمان البث" : "Stream Security Verification"}</span>
-              </div>
-              
-              <h3 className="text-base sm:text-xl font-bold text-white mb-1">
-                {isArabic ? "فتح تشغيل البث فائق الدقة" : "Unlock HD Stream"}
-              </h3>
+            {isVerifying ? (
+              /* Dwell Time Buffer State: forces user to stay on FilmologyX while ad loads in background */
+              <div className="bg-slate-900/95 border border-purple-500/40 p-6 sm:p-8 rounded-2xl sm:rounded-3xl max-w-xs sm:max-w-md shadow-2xl sm:backdrop-blur-xl flex flex-col items-center animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-16 h-16 rounded-full border-4 border-rose-500/20 border-t-rose-500 flex items-center justify-center mb-3 animate-spin">
+                  <span className="text-xl font-black text-white animate-none">{verifyCountdown}</span>
+                </div>
 
-              <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed">
-                {`Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
-              </p>
-              
-              {/* Progress Bar */}
-              <div className="w-full bg-slate-800 rounded-full h-2 sm:h-2.5 mb-2 overflow-hidden border border-purple-500/20">
-                <div 
-                  className="bg-gradient-to-r from-rose-500 to-purple-600 h-2 sm:h-2.5 rounded-full transition-all duration-300" 
-                  style={{ width: `${(clickCount / targetClicks) * 100}%` }}
-                />
+                <div className="inline-flex items-center space-x-1.5 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>
+                    {isArabic
+                      ? "جاري التحقق من أمان البث"
+                      : language === "fr"
+                      ? "Vérification de sécurité"
+                      : language === "pt"
+                      ? "Verificação de segurança"
+                      : language === "es"
+                      ? "Verificación de seguridad"
+                      : language === "de"
+                      ? "Sicherheitsprüfung"
+                      : "Stream Security Buffer"}
+                  </span>
+                </div>
+
+                <h3 className="text-base sm:text-lg font-extrabold text-white mb-1.5">
+                  {isArabic
+                    ? `جاري الاتصال بخادم البث السريع (${verifyCountdown} ث)...`
+                    : language === "fr"
+                    ? `Connexion au serveur haute vitesse (${verifyCountdown}s)...`
+                    : language === "pt"
+                    ? `Conectando ao servidor de alta velocidade (${verifyCountdown}s)...`
+                    : language === "es"
+                    ? `Conectando al servidor de alta velocidad (${verifyCountdown}s)...`
+                    : language === "de"
+                    ? `Verbindung zum Highspeed-Server (${verifyCountdown}s)...`
+                    : `Connecting to high-speed CDN (${verifyCountdown}s)...`}
+                </h3>
+
+                <p className="text-slate-400 text-xs leading-relaxed max-w-xs">
+                  {isArabic
+                    ? "يرجى الانتظار بضع ثوانٍ لتجهيز الجودة الفائقة 1080p"
+                    : language === "fr"
+                    ? "Veuillez patienter quelques secondes pour charger le flux 1080p..."
+                    : language === "pt"
+                    ? "Aguarde alguns segundos para carregar o stream 1080p..."
+                    : language === "es"
+                    ? "Espera unos segundos para cargar la transmisión 1080p..."
+                    : language === "de"
+                    ? "Bitte warten Sie einen Moment für die 1080p-Qualität..."
+                    : "Buffering 1080p stream for instant playback..."}
+                </p>
               </div>
-              <div className="flex items-center justify-between text-[10px] sm:text-xs">
-                <span className="text-purple-300/70 font-medium">Steps completed</span>
-                <span className="text-rose-400 font-bold">{clickCount} / {targetClicks}</span>
-              </div>
-            </div>
+            ) : (
+              /* Normal Click State */
+              <>
+                {/* Play Icon */}
+                <div className="w-14 sm:w-20 h-14 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-3 sm:mb-5 hover:scale-105">
+                  <Play className="w-6 sm:w-9 h-6 sm:h-9 text-white fill-current ml-0.5 sm:ml-1" />
+                </div>
+                
+                {/* Ad Verification Card */}
+                <div className="bg-slate-900/95 border border-purple-500/40 px-5 sm:px-8 py-3.5 sm:py-6 rounded-xl sm:rounded-2xl max-w-xs sm:max-w-md shadow-2xl sm:backdrop-blur-xl">
+                  <div className="inline-flex items-center space-x-1.5 text-rose-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1 sm:mb-2">
+                    <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                    <span>{isArabic ? "التحقق من أمان البث" : "Stream Security Verification"}</span>
+                  </div>
+                  
+                  <h3 className="text-base sm:text-xl font-bold text-white mb-1">
+                    {isArabic ? "فتح تشغيل البث فائق الدقة" : "Unlock HD Stream"}
+                  </h3>
+
+                  <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed">
+                    {isArabic
+                      ? `اضغط على الشاشة لإكمال الخطوة ${clickCount + 1} من ${targetClicks}`
+                      : `Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
+                  </p>
+                  
+                  {/* Progress Bar */}
+                  <div className="w-full bg-slate-800 rounded-full h-2 sm:h-2.5 mb-2 overflow-hidden border border-purple-500/20">
+                    <div 
+                      className="bg-gradient-to-r from-rose-500 to-purple-600 h-2 sm:h-2.5 rounded-full transition-all duration-300" 
+                      style={{ width: `${(clickCount / targetClicks) * 100}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs">
+                    <span className="text-purple-300/70 font-medium">
+                      {isArabic ? "الخطوات المكتملة" : "Steps completed"}
+                    </span>
+                    <span className="text-rose-400 font-bold">{clickCount} / {targetClicks}</span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
