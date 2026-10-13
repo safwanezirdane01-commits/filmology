@@ -13,7 +13,7 @@ interface MovieItem {
   videoUrl?: string;
   thumbnailUrl: string;
   description?: string;
-  backdropUrl?: string;
+  backdropUrl?: string | null;
   voteAverage?: number;
   mediaType?: "movie" | "tv";
 }

@@ -148,9 +148,9 @@ export default async function Home() {
         - Browse Film Collection heading
       */}
       <HomeClientWrapper
-        liveTrending={liveTrending}
-        topRatedShelves={topRatedShelves}
-        tvSeries={tvSeries}
+        liveTrending={liveTrending as any[]}
+        topRatedShelves={topRatedShelves as any[]}
+        tvSeries={tvSeries as any[]}
       />
 
       {/* Main Movies Catalog with Live Filtering */}
