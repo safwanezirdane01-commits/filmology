@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Shield } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function HomeBannerFooter() {
@@ -57,8 +58,9 @@ export default function HomeBannerFooter() {
               <Link href="/movies" className="hover:text-white transition-colors">{t("nav.movies")}</Link>
               <Link href="/series" className="hover:text-white transition-colors">{t("nav.series")}</Link>
               <Link href="/search" className="hover:text-white transition-colors">{t("nav.search")}</Link>
-              <Link href="/dmca" className="text-rose-400/90 hover:text-rose-300 transition-colors font-bold flex items-center gap-1">
-                <span>🛡️</span> {t("nav.dmca")}
+              <Link href="/dmca" className="text-rose-400/90 hover:text-rose-300 transition-colors font-bold flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5" />
+                <span>{t("nav.dmca")}</span>
               </Link>
               <a href="mailto:dmca.filmologyx@gmail.com" className="hover:text-white transition-colors">
                 {t("nav.contact")}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { 
@@ -179,7 +179,7 @@ export default function AutoImportPanel() {
           className="flex items-center space-x-2 text-xs font-semibold px-4 py-2 rounded-full border border-purple-500/30 bg-slate-800/80 hover:bg-slate-700/80 text-purple-200 transition-all"
         >
           <KeyRound className="w-3.5 h-3.5 text-rose-400" />
-          <span>{apiKey ? "TMDb Key Saved ✓" : "Configure TMDb Key"}</span>
+          <span>{apiKey ? "TMDb Key Saved" : "Configure TMDb Key"}</span>
         </button>
       </div>
 
@@ -251,7 +251,7 @@ export default function AutoImportPanel() {
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  <span>⚡ Auto-Import All Curated Blockbusters</span>
+                  <span>Auto-Import All Curated Blockbusters</span>
                 </>
               )}
             </button>
@@ -267,7 +267,7 @@ export default function AutoImportPanel() {
                 onClick={() => handleBulkCatalog("action")}
                 className="text-xs bg-slate-800/80 hover:bg-rose-500/20 border border-purple-500/20 hover:border-rose-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition-all"
               >
-                💥 Action & Marvel
+                Action & Marvel
               </button>
               <button
                 type="button"
@@ -275,7 +275,7 @@ export default function AutoImportPanel() {
                 onClick={() => handleBulkCatalog("scifi")}
                 className="text-xs bg-slate-800/80 hover:bg-rose-500/20 border border-purple-500/20 hover:border-rose-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition-all"
               >
-                🌌 Sci-Fi Hits
+                Sci-Fi Hits
               </button>
               <button
                 type="button"
@@ -283,7 +283,7 @@ export default function AutoImportPanel() {
                 onClick={() => handleBulkCatalog("animation")}
                 className="text-xs bg-slate-800/80 hover:bg-rose-500/20 border border-purple-500/20 hover:border-rose-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition-all"
               >
-                🎨 Animation & Family
+                Animation & Family
               </button>
               <button
                 type="button"
@@ -291,7 +291,7 @@ export default function AutoImportPanel() {
                 onClick={() => handleBulkCatalog("horror")}
                 className="text-xs bg-slate-800/80 hover:bg-rose-500/20 border border-purple-500/20 hover:border-rose-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition-all"
               >
-                👻 Horror & Suspense
+                Horror & Suspense
               </button>
               <button
                 type="button"
@@ -299,7 +299,7 @@ export default function AutoImportPanel() {
                 onClick={() => handleBulkCatalog("drama")}
                 className="text-xs bg-slate-800/80 hover:bg-rose-500/20 border border-purple-500/20 hover:border-rose-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition-all"
               >
-                🎭 Drama
+                Drama
               </button>
             </div>
           </div>

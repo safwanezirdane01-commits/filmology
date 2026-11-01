@@ -369,8 +369,16 @@ export default function AnalyticsPanel({
                   className="flex items-center justify-between p-2 rounded-lg bg-slate-900/40 border border-purple-500/5 text-[11px]"
                 >
                   <div className="flex items-center space-x-2 min-w-0">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-purple-300 border border-purple-500/20 uppercase font-bold shrink-0">
-                      {visit.device === "mobile" ? "📱 Mobile" : "💻 PC"}
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-purple-300 border border-purple-500/20 uppercase font-bold shrink-0 inline-flex items-center gap-1">
+                      {visit.device === "mobile" ? (
+                        <>
+                          <Smartphone className="w-3 h-3" /> Mobile
+                        </>
+                      ) : (
+                        <>
+                          <Monitor className="w-3 h-3" /> PC
+                        </>
+                      )}
                     </span>
                     <span className="text-slate-300 font-medium truncate max-w-[170px] sm:max-w-[200px]">
                       {visit.title}

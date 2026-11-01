@@ -63,17 +63,17 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
   };
 
   const categories = [
-    { id: "all", label: t("cat.all"), icon: "🎬" },
-    { id: "imdb_trending", label: t("cat.imdb_trending"), icon: "🔥" },
-    { id: "imdb_top", label: t("cat.imdb_top"), icon: "⭐" },
-    { id: "series", label: t("cat.series"), icon: "📺" },
-    { id: "action", label: t("cat.action"), icon: "💥" },
-    { id: "scifi", label: t("cat.scifi"), icon: "🌌" },
-    { id: "drama", label: t("cat.drama"), icon: "🎭" },
-    { id: "horror", label: t("cat.horror"), icon: "👻" },
-    { id: "comedy", label: t("cat.comedy"), icon: "😂" },
-    { id: "romance", label: t("cat.romance"), icon: "💕" },
-    { id: "arabic", label: t("cat.arabic"), icon: "🌟" },
+    { id: "all", label: t("cat.all") },
+    { id: "imdb_trending", label: t("cat.imdb_trending") },
+    { id: "imdb_top", label: t("cat.imdb_top") },
+    { id: "series", label: t("cat.series") },
+    { id: "action", label: t("cat.action") },
+    { id: "scifi", label: t("cat.scifi") },
+    { id: "drama", label: t("cat.drama") },
+    { id: "horror", label: t("cat.horror") },
+    { id: "comedy", label: t("cat.comedy") },
+    { id: "romance", label: t("cat.romance") },
+    { id: "arabic", label: t("cat.arabic") },
   ];
 
   // Load initial page of movies for dynamic categories if not loaded yet
@@ -298,7 +298,6 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
                     : "bg-slate-800/60 text-purple-200/80 hover:bg-slate-800 hover:text-white border border-purple-500/10"
                 }`}
               >
-                <span>{cat.icon}</span>
                 <span>{cat.label}</span>
               </button>
             );
@@ -320,9 +319,9 @@ export default function MovieCatalogView({ movies }: { movies: MovieItem[] }) {
             onChange={(e: any) => setSortBy(e.target.value)}
             className="bg-slate-950/80 border border-purple-500/20 text-purple-200 text-xs px-2.5 py-2 rounded-xl focus:outline-none focus:border-rose-500 cursor-pointer shrink-0"
           >
-            <option value="trending">🔥 {t("catalog.trending")}</option>
-            <option value="year">📅 {t("catalog.newest")}</option>
-            <option value="title">🔤 {t("catalog.az")}</option>
+            <option value="trending">{t("catalog.trending")}</option>
+            <option value="year">{t("catalog.newest")}</option>
+            <option value="title">{t("catalog.az")}</option>
           </select>
         </div>
       </div>

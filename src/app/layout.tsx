@@ -6,6 +6,9 @@ import Navbar from "@/components/Navbar";
 import AdBlockDetector from "@/components/AdBlockDetector";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import RequestMovieModal from "@/components/RequestMovieModal";
+import { getAdSettings } from "@/lib/ads";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -60,9 +63,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const adSettings = getAdSettings();
+
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-rose-500/30 selection:text-rose-200`}>
+      <body className={`${inter.className} bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-rose-500/30 selection:text-rose-200 pb-16 md:pb-0`}>
         <Providers>
           <AdBlockDetector />
           <Navbar />
@@ -71,6 +76,11 @@ export default function RootLayout({
           </main>
           <PWAInstallPrompt />
           <AnalyticsTracker />
+          <MobileBottomNav telegramUrl={adSettings.telegramUrl} />
+          <RequestMovieModal telegramUrl={adSettings.telegramUrl} />
+          {adSettings.isEnabled && adSettings.socialBarCode && (
+            <div dangerouslySetInnerHTML={{ __html: adSettings.socialBarCode }} />
+          )}
         </Providers>
       </body>
     </html>

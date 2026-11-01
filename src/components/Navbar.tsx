@@ -2,18 +2,18 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Film, Search, Menu, X, User, ShieldCheck, LogOut, Clapperboard, Tv, Star, Loader2, ArrowRight, MoreVertical, Globe, Check } from "lucide-react";
+import { Film, Search, Menu, X, User, ShieldCheck, LogOut, Clapperboard, Tv, Star, Loader2, ArrowRight, MoreVertical, Globe, Check, Shield, Mail } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage, Language } from "@/context/LanguageContext";
 
-const AVAILABLE_LANGUAGES: Array<{ code: Language; label: string; flag: string; font?: string }> = [
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "ar", label: "العربية", flag: "🇸🇦", font: "'Cairo', sans-serif" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "pt", label: "Português", flag: "🇧🇷" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "de", label: "Deutsch", flag: "🇩🇪" },
+const AVAILABLE_LANGUAGES: Array<{ code: Language; label: string; badge: string; font?: string }> = [
+  { code: "en", label: "English", badge: "EN" },
+  { code: "ar", label: "العربية", badge: "AR", font: "'Cairo', sans-serif" },
+  { code: "fr", label: "Français", badge: "FR" },
+  { code: "pt", label: "Português", badge: "PT" },
+  { code: "es", label: "Español", badge: "ES" },
+  { code: "de", label: "Deutsch", badge: "DE" },
 ];
 
 export default function Navbar() {
@@ -122,7 +122,7 @@ export default function Navbar() {
                 style={lang.font ? { fontFamily: lang.font } : undefined}
               >
                 <span className="flex items-center gap-2.5">
-                  <span className="text-base">{lang.flag}</span>
+                  <span className="text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-500/20">{lang.badge}</span>
                   <span>{lang.label}</span>
                 </span>
                 {isSelected && <Check className="w-3.5 h-3.5 text-rose-400 shrink-0" />}
@@ -139,7 +139,7 @@ export default function Navbar() {
           onClick={() => setMoreMenuOpen(false)}
           className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors font-medium"
         >
-          <span>🛡️</span>
+          <Shield className="w-3.5 h-3.5 text-slate-400" />
           <span>{t("nav.dmca")}</span>
         </Link>
         <a
@@ -147,7 +147,7 @@ export default function Navbar() {
           onClick={() => setMoreMenuOpen(false)}
           className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors font-medium"
         >
-          <span>✉️</span>
+          <Mail className="w-3.5 h-3.5 text-slate-400" />
           <span>{t("nav.contact")}</span>
         </a>
       </div>

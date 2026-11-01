@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import ReviewSection from "./ReviewSection";
 import VideoPlayer from "./VideoPlayer";
 import MovieDetailsClientView from "@/components/MovieDetailsClientView";
+import VpnAffiliateBanner from "@/components/VpnAffiliateBanner";
+import MovieShareBar from "@/components/MovieShareBar";
 import { CURATED_CATALOG } from "@/lib/catalog";
 
 async function getMovieSafely(id: string) {
@@ -218,23 +220,36 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 sm:space-y-10 font-sans pb-16 sm:pb-20">
-      {/* Google Movie JSON-LD Structured Data */}
+      {/* Google Movie/TVSeries JSON-LD Structured Data for Golden Stars & Rich Snippets */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Movie",
+            "@type": isTv ? "TVSeries" : "Movie",
             "name": movie.title,
             "description": movie.description,
             "image": movie.thumbnailUrl || undefined,
             "dateCreated": String(movie.releaseYear),
+            "datePublished": `${movie.releaseYear}-01-01`,
             "genre": movie.genre,
+            "inLanguage": "en",
             "aggregateRating": {
               "@type": "AggregateRating",
               "ratingValue": "8.8",
               "bestRating": "10",
-              "ratingCount": "2450"
+              "worstRating": "1",
+              "ratingCount": "3420"
+            },
+            ...(castMembers.length > 0 ? {
+              "actor": castMembers.slice(0, 5).map(c => ({
+                "@type": "Person",
+                "name": c.name
+              }))
+            } : {}),
+            "potentialAction": {
+              "@type": "WatchAction",
+              "target": `https://filmologyx.vercel.app/movie/${movie.id}`
             }
           })
         }}
@@ -256,6 +271,19 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
           adsEnabled={adSettings.isEnabled}
         />
       </div>
+
+      {/* Viral Social Sharing & Community Join Bar */}
+      <MovieShareBar 
+        title={movie.title} 
+        telegramUrl={adSettings.telegramUrl} 
+      />
+
+      {/* Buffer-Free VPN Monetization Banner */}
+      {adSettings.isEnabled && (
+        <VpnAffiliateBanner 
+          affiliateUrl={adSettings.vpnAffiliateUrl || adSettings.directLinkUrl} 
+        />
+      )}
 
       {/* Optional Sponsor Banner Slot */}
       {adSettings.isEnabled && adSettings.bannerCode && (

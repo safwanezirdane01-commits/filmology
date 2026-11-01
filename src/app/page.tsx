@@ -66,7 +66,7 @@ export default async function Home() {
       thumbnailUrl: t.thumbnailUrl,
       backdropUrl: t.backdropUrl,
       voteAverage: t.voteAverage || 8.8,
-      tag: "🔥 #1 Worldwide Trending",
+      tag: "#1 Worldwide Trending",
     });
   }
 
@@ -87,7 +87,7 @@ export default async function Home() {
       thumbnailUrl: b.thumbnailUrl,
       backdropUrl: b.thumbnailUrl,
       voteAverage: 8.9,
-      tag: "⭐ All-Time Masterpiece",
+      tag: "All-Time Masterpiece",
     });
   }
 
@@ -121,7 +121,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col min-h-screen font-sans -mt-4 space-y-8 sm:space-y-12">
-      {/* 🎬 DYNAMIC ROTATING HERO SPOTLIGHT CAROUSEL */}
+      {/* DYNAMIC ROTATING HERO SPOTLIGHT CAROUSEL */}
       <HeroSpotlightCarousel movies={spotlightCandidates} />
 
       {/* Modern Floating Search Box */}

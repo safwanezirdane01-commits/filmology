@@ -5,6 +5,9 @@ export interface AdSettings {
   directLinkUrl: string;
   requiredClicks: number;
   bannerCode: string;
+  socialBarCode?: string;
+  vpnAffiliateUrl?: string;
+  telegramUrl?: string;
   isEnabled: boolean;
 }
 
@@ -12,6 +15,9 @@ const DEFAULT_SETTINGS: AdSettings = {
   directLinkUrl: "https://consciousdunkvastly.com/vkcab8pm?key=2d7f9ab1644671035abd720ada6bab69",
   requiredClicks: 2,
   bannerCode: "",
+  socialBarCode: "",
+  vpnAffiliateUrl: "https://consciousdunkvastly.com/vkcab8pm?key=2d7f9ab1644671035abd720ada6bab69",
+  telegramUrl: "https://t.me/FilmologyX",
   isEnabled: true,
 };
 

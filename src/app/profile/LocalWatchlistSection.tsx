@@ -45,7 +45,7 @@ export default function LocalWatchlistSection() {
         <div className="bg-slate-900/60 p-8 rounded-2xl border border-purple-900/30 text-center text-slate-400">
           <p className="text-sm font-medium">Your watchlist is currently empty.</p>
           <p className="text-xs text-slate-500 mt-1">
-            Tap the ❤️ heart icon on any movie poster to save it here for later!
+            Tap the heart icon on any movie poster to save it here for later!
           </p>
         </div>
       ) : (

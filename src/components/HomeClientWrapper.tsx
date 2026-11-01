@@ -68,7 +68,7 @@ export default function HomeClientWrapper({
         </div>
       </section>
 
-      {/* 🌟 CURATED SHELVES: DYNAMIC CONTENT ROWS */}
+      {/* CURATED SHELVES: DYNAMIC CONTENT ROWS */}
       <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
         {/* Shelf 1: Trending Worldwide */}
         {liveTrending.length > 0 && (

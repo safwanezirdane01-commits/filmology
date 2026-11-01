@@ -17,8 +17,8 @@ export default function ShareButton({
   const handleShare = async () => {
     const shareUrl = url || (typeof window !== "undefined" ? window.location.href : "");
     const shareText = isArabic
-      ? `شاهد فيلم "${title}" مجاناً بدقة 1080p Full HD على FilmologyX! 🍿🎬`
-      : `Watch "${title}" free in 1080p Full HD on FilmologyX! 🍿🎬`;
+      ? `شاهد فيلم "${title}" مجاناً بدقة 1080p Full HD على FilmologyX!`
+      : `Watch "${title}" free in 1080p Full HD on FilmologyX!`;
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {

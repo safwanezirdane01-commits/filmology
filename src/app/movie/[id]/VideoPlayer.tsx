@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, RefreshCw, Maximize2, Minimize2, PictureInPicture2, FastForward, X, Keyboard } from "lucide-react";
+import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, RefreshCw, Maximize2, Minimize2, PictureInPicture2, FastForward, X, Keyboard, AlertTriangle } from "lucide-react";
 import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
@@ -30,7 +30,11 @@ export default function VideoPlayer({
   const { t, language, isArabic, dir } = useLanguage();
   const [clickCount, setClickCount] = useState(0);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
-  const [verifyCountdown, setVerifyCountdown] = useState<number>(3);
+  const [verifyCountdown, setVerifyCountdown] = useState<number>(5);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [earlyReturnSeconds, setEarlyReturnSeconds] = useState<number>(0);
+  const adClickTimestampRef = useRef<number>(0);
+  const isVerifyingRef = useRef<boolean>(false);
   const [selectedServer, setSelectedServer] = useState<number>(1);
   const [serverNotice, setServerNotice] = useState<string | null>(null);
   const [season, setSeason] = useState<number>(1);
@@ -85,7 +89,7 @@ export default function VideoPlayer({
     return () => clearTimeout(timer);
   }, [showNextCountdown, countdownRemaining]);
 
-  // Smart Engagement Pacing countdown: guarantees ad tab reaches 3.5+ seconds dwell time
+  // Smart Engagement Pacing countdown: guarantees ad tab reaches 5+ seconds dwell time
   useEffect(() => {
     let timer: any;
     if (isVerifying && verifyCountdown > 0) {
@@ -94,10 +98,55 @@ export default function VideoPlayer({
       }, 1000);
     } else if (isVerifying && verifyCountdown <= 0) {
       setIsVerifying(false);
+      isVerifyingRef.current = false;
+      adClickTimestampRef.current = 0;
       setClickCount((prev) => prev + 1);
     }
     return () => clearTimeout(timer);
   }, [isVerifying, verifyCountdown]);
+
+  // Detect if user returns from the sponsor ad tab earlier than 5 seconds
+  useEffect(() => {
+    const handleReturn = () => {
+      if (!isVerifyingRef.current || !adClickTimestampRef.current) return;
+
+      const elapsed = (Date.now() - adClickTimestampRef.current) / 1000;
+
+      // If user returned sooner than 5 seconds (with a 400ms threshold for initial click/tab switches)
+      if (elapsed >= 0.4 && elapsed < 4.8) {
+        isVerifyingRef.current = false;
+        setIsVerifying(false);
+        setEarlyReturnSeconds(Math.max(1, Math.round(elapsed)));
+        setVerificationError("early_return");
+        adClickTimestampRef.current = 0;
+      } else if (elapsed >= 4.8) {
+        // User stayed on sponsor tab for 5+ seconds: dwell satisfied!
+        isVerifyingRef.current = false;
+        setIsVerifying(false);
+        setVerificationError(null);
+        adClickTimestampRef.current = 0;
+        setClickCount((prev) => prev + 1);
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        handleReturn();
+      }
+    };
+
+    const onFocus = () => {
+      handleReturn();
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
 
   const handleTogglePiP = async () => {
     if (parsedSources?.isDirectVideo && videoRef.current) {
@@ -159,7 +208,7 @@ export default function VideoPlayer({
     setShowResumeBanner(!!progress);
   }, [movieId, season, episode]);
 
-  // 🎯 Direct ad-free stream: try /api/stream first, fall back to iframes if it fails
+  // Direct ad-free stream: try /api/stream first, fall back to iframes if it fails
   useEffect(() => {
     if (!movieVideoUrl) {
       setDirectLoading(false);
@@ -208,7 +257,7 @@ export default function VideoPlayer({
   }, [movieVideoUrl, isSeries, season, episode]);
 
 
-  // 🛡️ Option C: Client-Side Pop-under Defuser & Window Shield
+  // Option C: Client-Side Pop-under Defuser & Window Shield
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -220,7 +269,7 @@ export default function VideoPlayer({
       if (urlStr && activeAdLink && (urlStr === activeAdLink || urlStr.startsWith(activeAdLink.split("?")[0]))) {
         return originalOpen.call(window, url, target, features);
       }
-      console.warn("🛡️ FilmologyX Defuser: Blocked unauthorized popup to:", urlStr);
+      console.warn("FilmologyX Defuser: Blocked unauthorized popup to:", urlStr);
       return null;
     };
 
@@ -417,31 +466,29 @@ export default function VideoPlayer({
 
 
 
-  const handleFakeClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleFakeClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
     if (isVerifying) return; // Ignore clicks while countdown is active
 
-    // Trigger the ad tab upon direct user click and retain focus
+    // Reset any previous early-return errors
+    setVerificationError(null);
+
+    // Record click timestamp and initiate 5-second dwell verification
+    const now = Date.now();
+    adClickTimestampRef.current = now;
+    isVerifyingRef.current = true;
+    setIsVerifying(true);
+    setVerifyCountdown(5);
+
+    // Trigger the sponsor ad tab upon user interaction
     try {
-      const adWin = window.open(activeAdLink, "_blank");
-      if (adWin) {
-        try {
-          window.focus();
-        } catch {}
-      }
+      window.open(activeAdLink, "_blank");
     } catch (err) {
       console.error("Popup launch error:", err);
-    }
-
-    if (clickCount + 1 >= targetClicks) {
-      // Final click unlocks the stream immediately
-      setClickCount(targetClicks);
-    } else {
-      // Smart Engagement Pacing: user stays on FilmologyX for 3.5s while ad tab loads in background
-      setIsVerifying(true);
-      setVerifyCountdown(3);
     }
   };
 
@@ -533,7 +580,7 @@ export default function VideoPlayer({
       if (e.key === "t" || e.key === "T") {
         e.preventDefault();
         setIsTheaterMode((prev) => {
-          triggerToast(!prev ? "🎬 Cinema Theater: ON" : "Cinema Theater: OFF");
+          triggerToast(!prev ? "Cinema Theater: ON" : "Cinema Theater: OFF");
           return !prev;
         });
         return;
@@ -545,7 +592,7 @@ export default function VideoPlayer({
         const screenEl = document.getElementById("video-player-screen");
         if (!document.fullscreenElement && screenEl) {
           screenEl.requestFullscreen().catch(() => {});
-          triggerToast("⛶ Fullscreen");
+          triggerToast("Fullscreen");
         } else if (document.fullscreenElement) {
           document.exitFullscreen().catch(() => {});
         }
@@ -556,7 +603,7 @@ export default function VideoPlayer({
       if (e.key === "p" || e.key === "P") {
         e.preventDefault();
         handleTogglePiP();
-        triggerToast("📺 Mini-Player PiP");
+        triggerToast("Mini-Player PiP");
         return;
       }
 
@@ -564,7 +611,7 @@ export default function VideoPlayer({
       if ((e.key === "n" || e.key === "N") && isSeries) {
         e.preventDefault();
         setEpisode((prev) => {
-          triggerToast(`⏭️ Episode ${prev + 1}`);
+          triggerToast(`Episode ${prev + 1}`);
           return prev + 1;
         });
         return;
@@ -576,26 +623,26 @@ export default function VideoPlayer({
           e.preventDefault();
           if (videoRef.current.paused) {
             videoRef.current.play().catch(() => {});
-            triggerToast("▶ Play");
+            triggerToast("Play");
           } else {
             videoRef.current.pause();
-            triggerToast("⏸ Pause");
+            triggerToast("Pause");
           }
         } else if (e.key === "ArrowLeft") {
           e.preventDefault();
           videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
-          triggerToast("⏪ -10s");
+          triggerToast("-10s");
         } else if (e.key === "ArrowRight") {
           e.preventDefault();
           videoRef.current.currentTime = Math.min(
             videoRef.current.duration || 99999,
             videoRef.current.currentTime + 10
           );
-          triggerToast("⏩ +10s");
+          triggerToast("+10s");
         } else if (e.key === "m" || e.key === "M") {
           e.preventDefault();
           videoRef.current.muted = !videoRef.current.muted;
-          triggerToast(videoRef.current.muted ? "🔇 Muted" : "🔊 Unmuted");
+          triggerToast(videoRef.current.muted ? "Muted" : "Unmuted");
         }
       }
     };
@@ -794,8 +841,83 @@ export default function VideoPlayer({
             className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 sm:backdrop-blur-md p-4 text-center transition-all select-none cursor-pointer"
             onClick={handleFakeClick}
           >
-            {isVerifying ? (
-              /* Dwell Time Buffer State: forces user to stay on FilmologyX while ad loads in background */
+            {verificationError === "early_return" ? (
+              /* Early Return Warning State: user returned sooner than 5 seconds */
+              <div 
+                className="bg-red-950/95 border-2 border-red-500/80 p-5 sm:p-7 rounded-2xl sm:rounded-3xl max-w-xs sm:max-w-md shadow-[0_0_50px_rgba(239,68,68,0.4)] sm:backdrop-blur-xl flex flex-col items-center animate-in fade-in zoom-in-95 duration-200"
+                onClick={handleFakeClick}
+              >
+                <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center mb-3 animate-pulse">
+                  <AlertTriangle className="w-7 sm:w-8 h-7 sm:h-8 text-red-400" />
+                </div>
+
+                <div className="inline-flex items-center space-x-1.5 text-red-400 text-xs font-bold uppercase tracking-wider mb-1">
+                  <span>
+                    {isArabic
+                      ? "تم إلغاء التحقق"
+                      : language === "fr"
+                      ? "Vérification annulée"
+                      : language === "pt"
+                      ? "Verificação cancelada"
+                      : language === "es"
+                      ? "Verificación cancelada"
+                      : language === "de"
+                      ? "Verifizierung abgebrochen"
+                      : "Verification Incomplete"}
+                  </span>
+                </div>
+
+                <h3 className="text-base sm:text-lg font-black text-white mb-2">
+                  {isArabic
+                    ? "عدت بسرعة كبيرة إلى الموقع!"
+                    : language === "fr"
+                    ? "Vous êtes revenu trop vite !"
+                    : language === "pt"
+                    ? "Você voltou rápido demais!"
+                    : language === "es"
+                    ? "¡Regresaste demasiado rápido!"
+                    : language === "de"
+                    ? "Zu schnell zurückgekehrt!"
+                    : "Returned Too Fast!"}
+                </h3>
+
+                <p className="text-red-200 text-xs sm:text-sm leading-relaxed max-w-sm mb-4">
+                  {isArabic
+                    ? `لقد عدت بعد ${earlyReturnSeconds} ثوانٍ فقط. يجب عليك البقاء في صفحة الراعي لمدة 5 ثوانٍ على الأقل لتفعيل السيرفر وفك قفل البث.`
+                    : language === "fr"
+                    ? `Vous êtes revenu après seulement ${earlyReturnSeconds}s. Vous devez rester au moins 5 secondes sur la page sponsor pour débloquer le lecteur.`
+                    : language === "pt"
+                    ? `Você retornou após apenas ${earlyReturnSeconds}s. Permaneça na página do patrocinador por pelo menos 5 segundos para liberar o stream.`
+                    : language === "es"
+                    ? `Regresaste después de solo ${earlyReturnSeconds}s. Debes permanecer en la página del patrocinador al menos 5 segundos para desbloquear la transmisión.`
+                    : language === "de"
+                    ? `Sie sind nach nur ${earlyReturnSeconds}s zurückgekehrt. Sie müssen mindestens 5 Sekunden auf der Sponsorenseite bleiben, um den Stream freizuschalten.`
+                    : `You returned after only ${earlyReturnSeconds}s. You must stay on the sponsor page for at least 5 seconds to unlock playback.`}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleFakeClick}
+                  className="w-full inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-lg transition-transform hover:scale-105 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>
+                    {isArabic
+                      ? "إعادة المحاولة والبقاء 5 ثوانٍ ↻"
+                      : language === "fr"
+                      ? "Réessayer et rester 5s ↻"
+                      : language === "pt"
+                      ? "Tentar novamente e aguardar 5s ↻"
+                      : language === "es"
+                      ? "Reintentar y esperar 5s ↻"
+                      : language === "de"
+                      ? "Wiederholen und 5s warten ↻"
+                      : "Tap to Redo (Stay 5s) ↻"}
+                  </span>
+                </button>
+              </div>
+            ) : isVerifying ? (
+              /* Dwell Time Buffer State: forces user to stay on sponsor ad */
               <div className="bg-slate-900/95 border border-purple-500/40 p-6 sm:p-8 rounded-2xl sm:rounded-3xl max-w-xs sm:max-w-md shadow-2xl sm:backdrop-blur-xl flex flex-col items-center animate-in fade-in zoom-in-95 duration-200">
                 <div className="w-16 h-16 rounded-full border-4 border-rose-500/20 border-t-rose-500 flex items-center justify-center mb-3 animate-spin">
                   <span className="text-xl font-black text-white animate-none">{verifyCountdown}</span>
@@ -805,45 +927,45 @@ export default function VideoPlayer({
                   <ShieldCheck className="w-4 h-4" />
                   <span>
                     {isArabic
-                      ? "جاري التحقق من أمان البث"
+                      ? "يرجى البقاء في صفحة الراعي"
                       : language === "fr"
-                      ? "Vérification de sécurité"
+                      ? "Veuillez rester sur la page sponsor"
                       : language === "pt"
-                      ? "Verificação de segurança"
+                      ? "Permaneça na página do patrocinador"
                       : language === "es"
-                      ? "Verificación de seguridad"
+                      ? "Permanece en la página del patrocinador"
                       : language === "de"
-                      ? "Sicherheitsprüfung"
-                      : "Stream Security Buffer"}
+                      ? "Bitte auf der Sponsorenseite bleiben"
+                      : "Stay on the sponsor page"}
                   </span>
                 </div>
 
                 <h3 className="text-base sm:text-lg font-extrabold text-white mb-1.5">
                   {isArabic
-                    ? `جاري الاتصال بخادم البث السريع (${verifyCountdown} ث)...`
+                    ? `جاري التحقق من التفاعل (${verifyCountdown} ث)...`
                     : language === "fr"
-                    ? `Connexion au serveur haute vitesse (${verifyCountdown}s)...`
+                    ? `Vérification du temps de séjour (${verifyCountdown}s)...`
                     : language === "pt"
-                    ? `Conectando ao servidor de alta velocidade (${verifyCountdown}s)...`
+                    ? `Verificando tempo de permanência (${verifyCountdown}s)...`
                     : language === "es"
-                    ? `Conectando al servidor de alta velocidad (${verifyCountdown}s)...`
+                    ? `Verificando tiempo de permanencia (${verifyCountdown}s)...`
                     : language === "de"
-                    ? `Verbindung zum Highspeed-Server (${verifyCountdown}s)...`
-                    : `Connecting to high-speed CDN (${verifyCountdown}s)...`}
+                    ? `Verweildauer wird geprüft (${verifyCountdown}s)...`
+                    : `Verifying sponsor dwell time (${verifyCountdown}s)...`}
                 </h3>
 
                 <p className="text-slate-400 text-xs leading-relaxed max-w-xs">
                   {isArabic
-                    ? "يرجى الانتظار بضع ثوانٍ لتجهيز الجودة الفائقة 1080p"
+                    ? "ابقَ في الصفحة المفتوحة لمدة 5 ثوانٍ، لا تغلقها فوراً لفك قفل المشغل بنجاح."
                     : language === "fr"
-                    ? "Veuillez patienter quelques secondes pour charger le flux 1080p..."
+                    ? "Restez sur la page ouverte pendant 5 secondes pour débloquer le lecteur."
                     : language === "pt"
-                    ? "Aguarde alguns segundos para carregar o stream 1080p..."
+                    ? "Fique na página aberta por 5 segundos para liberar a reprodução."
                     : language === "es"
-                    ? "Espera unos segundos para cargar la transmisión 1080p..."
+                    ? "Quédate en la página abierta durante 5 segundos para desbloquear el reproductor."
                     : language === "de"
-                    ? "Bitte warten Sie einen Moment für die 1080p-Qualität..."
-                    : "Buffering 1080p stream for instant playback..."}
+                    ? "Bleiben Sie 5 Sekunden auf der geöffneten Seite, um den Player freizuschalten."
+                    : "Keep the sponsor page open for 5 seconds to successfully unlock the player."}
                 </p>
               </div>
             ) : (
@@ -858,16 +980,46 @@ export default function VideoPlayer({
                 <div className="bg-slate-900/95 border border-purple-500/40 px-5 sm:px-8 py-3.5 sm:py-6 rounded-xl sm:rounded-2xl max-w-xs sm:max-w-md shadow-2xl sm:backdrop-blur-xl">
                   <div className="inline-flex items-center space-x-1.5 text-rose-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1 sm:mb-2">
                     <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-                    <span>{isArabic ? "التحقق من أمان البث" : "Stream Security Verification"}</span>
+                    <span>
+                      {isArabic
+                        ? "التحقق من أمان البث"
+                        : language === "fr"
+                        ? "Vérification de sécurité"
+                        : language === "pt"
+                        ? "Verificação de segurança"
+                        : language === "es"
+                        ? "Verificación de seguridad"
+                        : language === "de"
+                        ? "Sicherheitsprüfung"
+                        : "Stream Security Verification"}
+                    </span>
                   </div>
                   
                   <h3 className="text-base sm:text-xl font-bold text-white mb-1">
-                    {isArabic ? "فتح تشغيل البث فائق الدقة" : "Unlock HD Stream"}
+                    {isArabic
+                      ? "فتح تشغيل البث فائق الدقة"
+                      : language === "fr"
+                      ? "Débloquer le flux HD"
+                      : language === "pt"
+                      ? "Liberar transmissão HD"
+                      : language === "es"
+                      ? "Desbloquear transmisión HD"
+                      : language === "de"
+                      ? "HD-Stream freischalten"
+                      : "Unlock HD Stream"}
                   </h3>
 
                   <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed">
                     {isArabic
                       ? `اضغط على الشاشة لإكمال الخطوة ${clickCount + 1} من ${targetClicks}`
+                      : language === "fr"
+                      ? `Cliquez pour compléter l'étape ${clickCount + 1} sur ${targetClicks}`
+                      : language === "pt"
+                      ? `Toque para completar a etapa ${clickCount + 1} de ${targetClicks}`
+                      : language === "es"
+                      ? `Toca para completar el paso ${clickCount + 1} de ${targetClicks}`
+                      : language === "de"
+                      ? `Tippen, um Schritt ${clickCount + 1} von ${targetClicks} abzuschließen`
                       : `Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
                   </p>
                   
@@ -880,7 +1032,17 @@ export default function VideoPlayer({
                   </div>
                   <div className="flex items-center justify-between text-[10px] sm:text-xs">
                     <span className="text-purple-300/70 font-medium">
-                      {isArabic ? "الخطوات المكتملة" : "Steps completed"}
+                      {isArabic
+                        ? "الخطوات المكتملة"
+                        : language === "fr"
+                        ? "Étapes terminées"
+                        : language === "pt"
+                        ? "Etapas concluídas"
+                        : language === "es"
+                        ? "Pasos completados"
+                        : language === "de"
+                        ? "Abgeschlossene Schritte"
+                        : "Steps completed"}
                     </span>
                     <span className="text-rose-400 font-bold">{clickCount} / {targetClicks}</span>
                   </div>
@@ -901,14 +1063,14 @@ export default function VideoPlayer({
         {/* Floating Hotkey HUD Toast Notification */}
         {hotkeyToast && (
           <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-950/95 border border-rose-500/60 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-2xl flex items-center space-x-2 pointer-events-none animate-pulse">
-            <span className="text-rose-400">⌨️</span>
+            <Keyboard className="w-3.5 h-3.5 text-rose-400" />
             <span>{hotkeyToast}</span>
           </div>
         )}
 
         {/* Video Player Frame */}
         <div className="w-full h-full relative">
-          {/* 🎯 Native ad-free player — shown when a direct stream URL is found */}
+          {/* Native ad-free player — shown when a direct stream URL is found */}
           {directStream && !needsPopups ? (
             <NativeArabicPlayer
               key={`native-${directStream.url}`}
@@ -934,6 +1096,7 @@ export default function VideoPlayer({
               className="w-full h-full border-0"
               allowFullScreen
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              
               onLoad={() => setIsServerLoaded(true)}
             />
           )}
@@ -976,6 +1139,7 @@ export default function VideoPlayer({
                 className="w-full h-full border-0"
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                
               />
             )}
           </div>
@@ -1021,6 +1185,7 @@ export default function VideoPlayer({
               className="w-full h-full border-0"
               allowFullScreen
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              
             />
           )}
         </div>

@@ -370,7 +370,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "hero.moreInfo": "تفاصيل العمل",
     "hero.featured": "عمل سينمائي مميز",
     "hero.allTime": "تحفة سينمائية خالدة",
-    "hero.trending": "الأكثر رواجاً عالمياً 🔥",
+    "hero.trending": "الأكثر رواجاً عالمياً",
 
     // Shelves & Sections
     "shelf.trendingTitle": "الأكثر رواجاً عالمياً",

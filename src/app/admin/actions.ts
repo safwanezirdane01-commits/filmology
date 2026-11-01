@@ -53,6 +53,37 @@ export async function deleteMovie(movieId: string) {
   revalidatePath("/admin");
 }
 
+export async function updateMovie(movieId: string, formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  const title = (formData.get("title") as string) || "";
+  const description = (formData.get("description") as string) || "";
+  const videoUrl = (formData.get("videoUrl") as string) || null;
+  const thumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
+  const releaseYear = parseInt(formData.get("releaseYear") as string) || new Date().getFullYear();
+  const genre = (formData.get("genre") as string) || "Movie";
+
+  const updated = await prisma.movie.update({
+    where: { id: movieId },
+    data: {
+      title,
+      description,
+      videoUrl,
+      thumbnailUrl,
+      releaseYear,
+      genre,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath(`/movie/${movieId}`);
+  return { success: true, movie: updated };
+}
+
 export async function importCatalogMovies(category?: string) {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -190,6 +221,9 @@ export async function saveAdSettingsAction(formData: FormData) {
   const directLinkUrl = (formData.get("directLinkUrl") as string) || "";
   const requiredClicks = parseInt(formData.get("requiredClicks") as string) || 2;
   const bannerCode = (formData.get("bannerCode") as string) || "";
+  const socialBarCode = (formData.get("socialBarCode") as string) || "";
+  const vpnAffiliateUrl = (formData.get("vpnAffiliateUrl") as string) || "";
+  const telegramUrl = (formData.get("telegramUrl") as string) || "";
   const isEnabled = formData.get("isEnabled") === "on";
 
   const { saveAdSettings } = await import("@/lib/ads");
@@ -197,6 +231,9 @@ export async function saveAdSettingsAction(formData: FormData) {
     directLinkUrl: directLinkUrl.trim(),
     requiredClicks,
     bannerCode: bannerCode.trim(),
+    socialBarCode: socialBarCode.trim(),
+    vpnAffiliateUrl: vpnAffiliateUrl.trim(),
+    telegramUrl: telegramUrl.trim(),
     isEnabled,
   });
 
