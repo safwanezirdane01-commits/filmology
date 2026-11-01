@@ -523,30 +523,16 @@ export default function AdminDashboard({
                       <p className="text-[11px] text-slate-500">Opens in new tab when visitor unlocks the player</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Required Clicks to Unlock</label>
-                        <select
-                          value={adSettings.requiredClicks}
-                          onChange={(e) => setAdSettings((p) => ({ ...p, requiredClicks: Number(e.target.value) }))}
-                          className="w-full p-3 rounded-xl bg-slate-950 border border-white/10 text-white text-sm focus:outline-none focus:border-rose-500"
-                        >
-                          <option value={1}>1 Click — Casual / Fastest</option>
-                          <option value={2}>2 Clicks — Optimal CPM (Recommended)</option>
-                          <option value={3}>3 Clicks — Maximum Revenue</option>
-                        </select>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Popunder Strategy</label>
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-sm font-semibold text-emerald-300">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>1-Click Instant Unlock</span>
+                        </span>
+                        <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded font-bold">ACTIVE</span>
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Dwell Rule</label>
-                        <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-sm font-semibold text-emerald-300">
-                          <span className="flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>5 Seconds Minimum</span>
-                          </span>
-                          <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded font-bold">ACTIVE</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500">Early returns are told to redo</p>
-                      </div>
+                      <p className="text-[11px] text-slate-500">First play tap fires 1 smartlink in a new tab, then instantly unlocks the player</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

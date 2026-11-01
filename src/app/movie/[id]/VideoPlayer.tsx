@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Play, Server, Film, ShieldCheck, Tv, ChevronLeft, ChevronRight, Download, Clock, RotateCcw, RefreshCw, Maximize2, Minimize2, PictureInPicture2, FastForward, X, Keyboard, AlertTriangle } from "lucide-react";
+import { Play, Server, Film, Tv, ChevronLeft, ChevronRight, Clock, RotateCcw, RefreshCw, Maximize2, Minimize2, X, Keyboard } from "lucide-react";
 import { isRealSeries, getSeriesMetadata, getEpisodesForSeason } from "@/lib/series";
 import SeriesEpisodeNavigator from "@/components/SeriesEpisodeNavigator";
 import { saveWatchProgress, getWatchProgress, clearWatchItem, formatTime, WatchItem } from "@/lib/watchProgress";
@@ -29,12 +29,6 @@ export default function VideoPlayer({
 }) {
   const { t, language, isArabic, dir } = useLanguage();
   const [clickCount, setClickCount] = useState(0);
-  const [isVerifying, setIsVerifying] = useState<boolean>(false);
-  const [verifyCountdown, setVerifyCountdown] = useState<number>(5);
-  const [verificationError, setVerificationError] = useState<string | null>(null);
-  const [earlyReturnSeconds, setEarlyReturnSeconds] = useState<number>(0);
-  const adClickTimestampRef = useRef<number>(0);
-  const isVerifyingRef = useRef<boolean>(false);
   const [selectedServer, setSelectedServer] = useState<number>(1);
   const [serverNotice, setServerNotice] = useState<string | null>(null);
   const [season, setSeason] = useState<number>(1);
@@ -89,64 +83,6 @@ export default function VideoPlayer({
     return () => clearTimeout(timer);
   }, [showNextCountdown, countdownRemaining]);
 
-  // Smart Engagement Pacing countdown: guarantees ad tab reaches 5+ seconds dwell time
-  useEffect(() => {
-    let timer: any;
-    if (isVerifying && verifyCountdown > 0) {
-      timer = setTimeout(() => {
-        setVerifyCountdown((prev) => prev - 1);
-      }, 1000);
-    } else if (isVerifying && verifyCountdown <= 0) {
-      setIsVerifying(false);
-      isVerifyingRef.current = false;
-      adClickTimestampRef.current = 0;
-      setClickCount((prev) => prev + 1);
-    }
-    return () => clearTimeout(timer);
-  }, [isVerifying, verifyCountdown]);
-
-  // Detect if user returns from the sponsor ad tab earlier than 5 seconds
-  useEffect(() => {
-    const handleReturn = () => {
-      if (!isVerifyingRef.current || !adClickTimestampRef.current) return;
-
-      const elapsed = (Date.now() - adClickTimestampRef.current) / 1000;
-
-      // If user returned sooner than 5 seconds (with a 400ms threshold for initial click/tab switches)
-      if (elapsed >= 0.4 && elapsed < 4.8) {
-        isVerifyingRef.current = false;
-        setIsVerifying(false);
-        setEarlyReturnSeconds(Math.max(1, Math.round(elapsed)));
-        setVerificationError("early_return");
-        adClickTimestampRef.current = 0;
-      } else if (elapsed >= 4.8) {
-        // User stayed on sponsor tab for 5+ seconds: dwell satisfied!
-        isVerifyingRef.current = false;
-        setIsVerifying(false);
-        setVerificationError(null);
-        adClickTimestampRef.current = 0;
-        setClickCount((prev) => prev + 1);
-      }
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        handleReturn();
-      }
-    };
-
-    const onFocus = () => {
-      handleReturn();
-    };
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("focus", onFocus);
-
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, []);
 
   const handleTogglePiP = async () => {
     if (parsedSources?.isDirectVideo && videoRef.current) {
@@ -472,24 +408,18 @@ export default function VideoPlayer({
       e.stopPropagation();
     }
 
-    if (isVerifying) return; // Ignore clicks while countdown is active
+    // Already unlocked — ignore further clicks
+    if (clickCount >= targetClicks) return;
 
-    // Reset any previous early-return errors
-    setVerificationError(null);
-
-    // Record click timestamp and initiate 5-second dwell verification
-    const now = Date.now();
-    adClickTimestampRef.current = now;
-    isVerifyingRef.current = true;
-    setIsVerifying(true);
-    setVerifyCountdown(5);
-
-    // Trigger the sponsor ad tab upon user interaction
+    // Fire 1 smartlink in a new tab (popunder behavior)
     try {
       window.open(activeAdLink, "_blank");
     } catch (err) {
       console.error("Popup launch error:", err);
     }
+
+    // Immediately unlock the player after the single popunder fires
+    setClickCount(targetClicks);
   };
 
   // Auto-play when direct video becomes unblocked
@@ -835,220 +765,44 @@ export default function VideoPlayer({
           </div>
         )}
 
-        {/* Sponsor / Smart Paced Verification Screen (Optimal Adsterra Dwell Strategy) */}
+        {/* One-Tap Play Overlay — fires smartlink popunder and instantly unlocks */}
         {needsPopups && (
           <div 
             className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 sm:backdrop-blur-md p-4 text-center transition-all select-none cursor-pointer"
             onClick={handleFakeClick}
           >
-            {verificationError === "early_return" ? (
-              /* Early Return Warning State: user returned sooner than 5 seconds */
-              <div 
-                className="bg-red-950/95 border-2 border-red-500/80 p-5 sm:p-7 rounded-2xl sm:rounded-3xl max-w-xs sm:max-w-md shadow-[0_0_50px_rgba(239,68,68,0.4)] sm:backdrop-blur-xl flex flex-col items-center animate-in fade-in zoom-in-95 duration-200"
-                onClick={handleFakeClick}
-              >
-                <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center mb-3 animate-pulse">
-                  <AlertTriangle className="w-7 sm:w-8 h-7 sm:h-8 text-red-400" />
-                </div>
+            {/* Play Icon */}
+            <div className="w-16 sm:w-20 h-16 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-4 sm:mb-5 hover:scale-110">
+              <Play className="w-7 sm:w-9 h-7 sm:h-9 text-white fill-current ml-0.5 sm:ml-1" />
+            </div>
+            
+            <h3 className="text-base sm:text-xl font-bold text-white mb-1">
+              {isArabic
+                ? "اضغط للتشغيل"
+                : language === "fr"
+                ? "Appuyez pour lire"
+                : language === "pt"
+                ? "Toque para reproduzir"
+                : language === "es"
+                ? "Toca para reproducir"
+                : language === "de"
+                ? "Zum Abspielen tippen"
+                : "Tap to Play"}
+            </h3>
 
-                <div className="inline-flex items-center space-x-1.5 text-red-400 text-xs font-bold uppercase tracking-wider mb-1">
-                  <span>
-                    {isArabic
-                      ? "تم إلغاء التحقق"
-                      : language === "fr"
-                      ? "Vérification annulée"
-                      : language === "pt"
-                      ? "Verificação cancelada"
-                      : language === "es"
-                      ? "Verificación cancelada"
-                      : language === "de"
-                      ? "Verifizierung abgebrochen"
-                      : "Verification Incomplete"}
-                  </span>
-                </div>
-
-                <h3 className="text-base sm:text-lg font-black text-white mb-2">
-                  {isArabic
-                    ? "عدت بسرعة كبيرة إلى الموقع!"
-                    : language === "fr"
-                    ? "Vous êtes revenu trop vite !"
-                    : language === "pt"
-                    ? "Você voltou rápido demais!"
-                    : language === "es"
-                    ? "¡Regresaste demasiado rápido!"
-                    : language === "de"
-                    ? "Zu schnell zurückgekehrt!"
-                    : "Returned Too Fast!"}
-                </h3>
-
-                <p className="text-red-200 text-xs sm:text-sm leading-relaxed max-w-sm mb-4">
-                  {isArabic
-                    ? `لقد عدت بعد ${earlyReturnSeconds} ثوانٍ فقط. يجب عليك البقاء في صفحة الراعي لمدة 5 ثوانٍ على الأقل لتفعيل السيرفر وفك قفل البث.`
-                    : language === "fr"
-                    ? `Vous êtes revenu après seulement ${earlyReturnSeconds}s. Vous devez rester au moins 5 secondes sur la page sponsor pour débloquer le lecteur.`
-                    : language === "pt"
-                    ? `Você retornou após apenas ${earlyReturnSeconds}s. Permaneça na página do patrocinador por pelo menos 5 segundos para liberar o stream.`
-                    : language === "es"
-                    ? `Regresaste después de solo ${earlyReturnSeconds}s. Debes permanecer en la página del patrocinador al menos 5 segundos para desbloquear la transmisión.`
-                    : language === "de"
-                    ? `Sie sind nach nur ${earlyReturnSeconds}s zurückgekehrt. Sie müssen mindestens 5 Sekunden auf der Sponsorenseite bleiben, um den Stream freizuschalten.`
-                    : `You returned after only ${earlyReturnSeconds}s. You must stay on the sponsor page for at least 5 seconds to unlock playback.`}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={handleFakeClick}
-                  className="w-full inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-lg transition-transform hover:scale-105 cursor-pointer"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>
-                    {isArabic
-                      ? "إعادة المحاولة والبقاء 5 ثوانٍ ↻"
-                      : language === "fr"
-                      ? "Réessayer et rester 5s ↻"
-                      : language === "pt"
-                      ? "Tentar novamente e aguardar 5s ↻"
-                      : language === "es"
-                      ? "Reintentar y esperar 5s ↻"
-                      : language === "de"
-                      ? "Wiederholen und 5s warten ↻"
-                      : "Tap to Redo (Stay 5s) ↻"}
-                  </span>
-                </button>
-              </div>
-            ) : isVerifying ? (
-              /* Dwell Time Buffer State: forces user to stay on sponsor ad */
-              <div className="bg-slate-900/95 border border-purple-500/40 p-6 sm:p-8 rounded-2xl sm:rounded-3xl max-w-xs sm:max-w-md shadow-2xl sm:backdrop-blur-xl flex flex-col items-center animate-in fade-in zoom-in-95 duration-200">
-                <div className="w-16 h-16 rounded-full border-4 border-rose-500/20 border-t-rose-500 flex items-center justify-center mb-3 animate-spin">
-                  <span className="text-xl font-black text-white animate-none">{verifyCountdown}</span>
-                </div>
-
-                <div className="inline-flex items-center space-x-1.5 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>
-                    {isArabic
-                      ? "يرجى البقاء في صفحة الراعي"
-                      : language === "fr"
-                      ? "Veuillez rester sur la page sponsor"
-                      : language === "pt"
-                      ? "Permaneça na página do patrocinador"
-                      : language === "es"
-                      ? "Permanece en la página del patrocinador"
-                      : language === "de"
-                      ? "Bitte auf der Sponsorenseite bleiben"
-                      : "Stay on the sponsor page"}
-                  </span>
-                </div>
-
-                <h3 className="text-base sm:text-lg font-extrabold text-white mb-1.5">
-                  {isArabic
-                    ? `جاري التحقق من التفاعل (${verifyCountdown} ث)...`
-                    : language === "fr"
-                    ? `Vérification du temps de séjour (${verifyCountdown}s)...`
-                    : language === "pt"
-                    ? `Verificando tempo de permanência (${verifyCountdown}s)...`
-                    : language === "es"
-                    ? `Verificando tiempo de permanencia (${verifyCountdown}s)...`
-                    : language === "de"
-                    ? `Verweildauer wird geprüft (${verifyCountdown}s)...`
-                    : `Verifying sponsor dwell time (${verifyCountdown}s)...`}
-                </h3>
-
-                <p className="text-slate-400 text-xs leading-relaxed max-w-xs">
-                  {isArabic
-                    ? "ابقَ في الصفحة المفتوحة لمدة 5 ثوانٍ، لا تغلقها فوراً لفك قفل المشغل بنجاح."
-                    : language === "fr"
-                    ? "Restez sur la page ouverte pendant 5 secondes pour débloquer le lecteur."
-                    : language === "pt"
-                    ? "Fique na página aberta por 5 segundos para liberar a reprodução."
-                    : language === "es"
-                    ? "Quédate en la página abierta durante 5 segundos para desbloquear el reproductor."
-                    : language === "de"
-                    ? "Bleiben Sie 5 Sekunden auf der geöffneten Seite, um den Player freizuschalten."
-                    : "Keep the sponsor page open for 5 seconds to successfully unlock the player."}
-                </p>
-              </div>
-            ) : (
-              /* Normal Click State */
-              <>
-                {/* Play Icon */}
-                <div className="w-14 sm:w-20 h-14 sm:h-20 bg-gradient-to-r from-rose-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_35px_rgba(244,63,94,0.5)] transition-transform mb-3 sm:mb-5 hover:scale-105">
-                  <Play className="w-6 sm:w-9 h-6 sm:h-9 text-white fill-current ml-0.5 sm:ml-1" />
-                </div>
-                
-                {/* Ad Verification Card */}
-                <div className="bg-slate-900/95 border border-purple-500/40 px-5 sm:px-8 py-3.5 sm:py-6 rounded-xl sm:rounded-2xl max-w-xs sm:max-w-md shadow-2xl sm:backdrop-blur-xl">
-                  <div className="inline-flex items-center space-x-1.5 text-rose-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1 sm:mb-2">
-                    <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-                    <span>
-                      {isArabic
-                        ? "التحقق من أمان البث"
-                        : language === "fr"
-                        ? "Vérification de sécurité"
-                        : language === "pt"
-                        ? "Verificação de segurança"
-                        : language === "es"
-                        ? "Verificación de seguridad"
-                        : language === "de"
-                        ? "Sicherheitsprüfung"
-                        : "Stream Security Verification"}
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-base sm:text-xl font-bold text-white mb-1">
-                    {isArabic
-                      ? "فتح تشغيل البث فائق الدقة"
-                      : language === "fr"
-                      ? "Débloquer le flux HD"
-                      : language === "pt"
-                      ? "Liberar transmissão HD"
-                      : language === "es"
-                      ? "Desbloquear transmisión HD"
-                      : language === "de"
-                      ? "HD-Stream freischalten"
-                      : "Unlock HD Stream"}
-                  </h3>
-
-                  <p className="text-slate-300 mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed">
-                    {isArabic
-                      ? `اضغط على الشاشة لإكمال الخطوة ${clickCount + 1} من ${targetClicks}`
-                      : language === "fr"
-                      ? `Cliquez pour compléter l'étape ${clickCount + 1} sur ${targetClicks}`
-                      : language === "pt"
-                      ? `Toque para completar a etapa ${clickCount + 1} de ${targetClicks}`
-                      : language === "es"
-                      ? `Toca para completar el paso ${clickCount + 1} de ${targetClicks}`
-                      : language === "de"
-                      ? `Tippen, um Schritt ${clickCount + 1} von ${targetClicks} abzuschließen`
-                      : `Tap play screen to complete step ${clickCount + 1} of ${targetClicks}.`}
-                  </p>
-                  
-                  {/* Progress Bar */}
-                  <div className="w-full bg-slate-800 rounded-full h-2 sm:h-2.5 mb-2 overflow-hidden border border-purple-500/20">
-                    <div 
-                      className="bg-gradient-to-r from-rose-500 to-purple-600 h-2 sm:h-2.5 rounded-full transition-all duration-300" 
-                      style={{ width: `${(clickCount / targetClicks) * 100}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] sm:text-xs">
-                    <span className="text-purple-300/70 font-medium">
-                      {isArabic
-                        ? "الخطوات المكتملة"
-                        : language === "fr"
-                        ? "Étapes terminées"
-                        : language === "pt"
-                        ? "Etapas concluídas"
-                        : language === "es"
-                        ? "Pasos completados"
-                        : language === "de"
-                        ? "Abgeschlossene Schritte"
-                        : "Steps completed"}
-                    </span>
-                    <span className="text-rose-400 font-bold">{clickCount} / {targetClicks}</span>
-                  </div>
-                </div>
-              </>
-            )}
+            <p className="text-slate-400 text-xs sm:text-sm max-w-xs leading-relaxed">
+              {isArabic
+                ? "سيبدأ البث فورا بعد الضغط"
+                : language === "fr"
+                ? "Le flux commencera instantanément"
+                : language === "pt"
+                ? "O streaming começará instantaneamente"
+                : language === "es"
+                ? "La transmisión comenzará instantáneamente"
+                : language === "de"
+                ? "Der Stream beginnt sofort"
+                : "Stream will start instantly"}
+            </p>
           </div>
         )}
 

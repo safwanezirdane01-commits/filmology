@@ -7,6 +7,7 @@ import MovieDetailsClientView from "@/components/MovieDetailsClientView";
 import VpnAffiliateBanner from "@/components/VpnAffiliateBanner";
 import MovieShareBar from "@/components/MovieShareBar";
 import { CURATED_CATALOG } from "@/lib/catalog";
+import AdsterraSocialBar from "@/components/AdsterraSocialBar";
 
 async function getMovieSafely(id: string) {
   let cleanId = id.trim();
@@ -254,6 +255,11 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
           })
         }}
       />
+
+      {/* Adsterra Social Bar / In-Page Push Widget — sits above the player */}
+      {adSettings.isEnabled && adSettings.socialBarCode && (
+        <AdsterraSocialBar code={adSettings.socialBarCode} />
+      )}
 
       {/* Video Player with Cinematic Ambilight Glow */}
       <div className="relative group">
