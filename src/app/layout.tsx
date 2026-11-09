@@ -78,9 +78,6 @@ export default function RootLayout({
           <AnalyticsTracker />
           <MobileBottomNav telegramUrl={adSettings.telegramUrl} />
           <RequestMovieModal telegramUrl={adSettings.telegramUrl} />
-          {adSettings.isEnabled && adSettings.socialBarCode && (
-            <div dangerouslySetInnerHTML={{ __html: adSettings.socialBarCode }} />
-          )}
         </Providers>
       </body>
     </html>

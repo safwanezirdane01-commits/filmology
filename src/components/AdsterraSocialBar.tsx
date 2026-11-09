@@ -32,6 +32,11 @@ export default function AdsterraSocialBar({ code }: { code: string }) {
 
     // Now re-create and inject script elements so they execute
     scripts.forEach((oldScript) => {
+      const src = oldScript.getAttribute("src");
+      if (src && document.querySelector(`script[src="${src}"]`)) {
+        return; // Avoid duplicate loading if already present
+      }
+
       const newScript = document.createElement("script");
       // Copy all attributes
       Array.from(oldScript.attributes).forEach((attr) => {
